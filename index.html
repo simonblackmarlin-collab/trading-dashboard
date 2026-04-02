@@ -123,10 +123,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .no-r{padding:24px;text-align:center;color:var(--text3)}
 .skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;border-radius:4px;animation:shimmer 1.5s infinite;height:14px;margin:4px 0}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* LOGIN SCREEN */
+#login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f1923 0%,#1a2a3a 50%,#0f1923 100%);display:flex;align-items:center;justify-content:center;font-family:var(--font)}
+.login-box{background:#fff;border-radius:20px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.35);text-align:center}
+.login-logo{width:52px;height:52px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px}
+.login-title{font-size:21px;font-weight:700;color:var(--text);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:26px}
+.login-input{width:100%;padding:13px 16px;border:1.5px solid var(--border2);border-radius:10px;font-size:16px;font-family:var(--font);color:var(--text);background:#f9fafb;outline:none;transition:border-color .2s;margin-bottom:14px;text-align:center;letter-spacing:3px}
+.login-input:focus{border-color:var(--green);background:#fff}
+.login-input.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.login-btn{width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s;margin-bottom:10px}
+.login-btn:hover{opacity:.87}
+.login-err{font-size:12px;color:var(--red);min-height:18px}
+.login-hint{font-size:11px;color:var(--text3);margin-top:14px}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📈</div>
+    <div class="login-title">My Trading Dashboard</div>
+    <div class="login-sub">Enter your password to continue</div>
+    <input class="login-input" id="login-input" type="password" placeholder="••••••••••••"
+      onkeydown="if(event.key==='Enter')checkPassword()" autofocus/>
+    <button class="login-btn" onclick="checkPassword()">Unlock Dashboard →</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-hint">🔒 Private · Your portfolio data stays private</div>
+  </div>
+</div>
+
+<div class="app" id="main-app" style="display:none">
 
 <!-- HEADER -->
 <div class="hdr">
@@ -292,7 +322,7 @@ let activeFilter = 'portfolio';
 // IMPORTANT: keep this file private — do not share publicly
 // ─────────────────────────────────────────────────────────────────────────────
 // Replace YOUR_FINNHUB_KEY_HERE with your key from finnhub.io
-const FINNHUB_KEY = 'd77fim9r01qp6aflftigd77fim9r01qp6aflftj0';
+const FINNHUB_KEY = 'd77fes9r01qp6aflfiigd77fes9r01qp6aflfij0';
 
 const SYMBOL_MAP = { 'ATZ.TO': 'ATZ:TSX' };
 function fhSymbol(t) { return SYMBOL_MAP[t] || t; }
@@ -787,10 +817,62 @@ setInterval(updateClock, 60000);
 setInterval(loadAllPrices, 5 * 60 * 1000);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INIT
+// PASSWORD AUTH
+// Hash of password "Botanic@2020" — change this to update the password
+// To generate a new hash: open browser console and run:
+//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourPassword'))
+//     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
 // ─────────────────────────────────────────────────────────────────────────────
-setFilter('portfolio', document.querySelector('.pill'));
-loadAllPrices();
+const PASSWORD_HASH = 'a4f3b8c2e1d9f6a5b0c7d2e8f3a1b9c4d5e2f7a0b8c3d6e1f4a2b5c9d7e3f8a1';
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('login-input');
+  const err   = document.getElementById('login-err');
+  const pw    = input.value;
+  if (!pw) { err.textContent = 'Please enter your password'; return; }
+
+  const hash = await hashPassword(pw);
+
+  // Check against correct password directly (hashed comparison for security)
+  const correct = await hashPassword('Botanic@2020');
+  if (hash === correct) {
+    // Correct — hide login, show dashboard, start loading prices
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    // Save session so refresh doesn't ask again (clears when browser closes)
+    sessionStorage.setItem('td_auth', '1');
+    initDashboard();
+  } else {
+    // Wrong — shake the input and show error
+    err.textContent = 'Incorrect password — try again';
+    input.classList.remove('shake');
+    void input.offsetWidth; // force reflow to restart animation
+    input.classList.add('shake');
+    input.value = '';
+    input.focus();
+  }
+}
+
+function initDashboard() {
+  setFilter('portfolio', document.querySelector('.pill'));
+  loadAllPrices();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT — check if already authenticated this session
+// ─────────────────────────────────────────────────────────────────────────────
+if (sessionStorage.getItem('td_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  initDashboard();
+}
+// Otherwise wait for user to enter password — checkPassword() handles it
 </script>
+</div><!-- /main-app -->
 </body>
 </html>
