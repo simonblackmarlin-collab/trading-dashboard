@@ -3,7 +3,7 @@
 // Browser calls /api/quote?symbol=NVDA → this function calls Finnhub → returns data
 // This completely bypasses CORS because the call is server-to-server
 
-const FINNHUB_KEY = 'd77fes9r01qp6aflfiigd77fes9r01qp6aflfij0';
+const FINNHUB_KEY = 'd78nrmhr01qp0fl5u07gd78nrmhr01qp0fl5u080';
 
 export default async function handler(req, res) {
   // Allow requests from your own Vercel site
