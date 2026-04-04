@@ -316,55 +316,30 @@ let pricesLoaded = false;
 let selTicker = 'NVDA';
 let activeFilter = 'portfolio';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FINNHUB API  — reliable, official, free tier = 60 calls/min
-// To update your key: replace the value below
-// IMPORTANT: keep this file private — do not share publicly
-// ─────────────────────────────────────────────────────────────────────────────
-// Replace YOUR_FINNHUB_KEY_HERE with your key from finnhub.io
-const FINNHUB_KEY = 'd77fes9r01qp6aflfiigd77fes9r01qp6aflfij0';
-
-const SYMBOL_MAP = { 'ATZ.TO': 'ATZ:TSX' };
-function fhSymbol(t) { return SYMBOL_MAP[t] || t; }
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FETCH PRICE — tries 3 methods in order until one works
+// FETCH PRICE
+// Calls /api/quote — a Vercel serverless function that fetches from Finnhub
+// server-side. No CORS issues. Works perfectly on Vercel hosting.
 // ─────────────────────────────────────────────────────────────────────────────
 async function fetchPrice(symbol) {
-  const sym    = fhSymbol(symbol);
-  const apiUrl = `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_KEY}`;
-
-  const parse = d => (d && d.c && d.c !== 0) ? {
-    price: d.c, prev: d.pc,
-    change: d.d || (d.c - d.pc),
-    changePercent: d.dp || ((d.c - d.pc) / d.pc * 100),
-  } : null;
-
-  // Method 1: Direct (works from local server or Vercel)
   try {
-    const r = await fetch(apiUrl, { signal: AbortSignal.timeout(6000) });
-    if (r.ok) { const result = parse(await r.json()); if (result) return result; }
-  } catch(e) {}
-
-  // Method 2: corsproxy.io wrapper (works from file://)
-  try {
-    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`, { signal: AbortSignal.timeout(9000) });
-    if (r.ok) { const result = parse(await r.json()); if (result) return result; }
-  } catch(e) {}
-
-  // Method 3: allorigins wrapper (backup)
-  try {
-    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`, { signal: AbortSignal.timeout(10000) });
-    if (r.ok) {
-      const outer = await r.json();
-      const result = parse(JSON.parse(outer.contents || '{}'));
-      if (result) return result;
-    }
-  } catch(e) {}
-
-  return null;
+    const r = await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}`, {
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || d.error || !d.price) return null;
+    return {
+      price:         d.price,
+      prev:          d.prev,
+      change:        d.change,
+      changePercent: d.changePercent,
+    };
+  } catch(e) {
+    return null;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
