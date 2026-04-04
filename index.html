@@ -190,15 +190,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 </div>
 
 <!-- FILTER PILLS -->
-<div class="pills-label">Filter stocks</div>
+<div class="pills-label">Filter · showing top scorers from 74-stock pool</div>
 <div class="pills">
   <div class="pill on" style="border-color:var(--green-border);color:var(--green);background:var(--green-dim)" onclick="setFilter('portfolio',this)">My Portfolio</div>
-  <div class="pill" onclick="setFilter('all',this)">All stocks</div>
+  <div class="pill" onclick="setFilter('all',this)">🔥 Top 35 today</div>
   <div class="pill" onclick="setFilter('momentum',this)">3-day streak ▲</div>
   <div class="pill" onclick="setFilter('ytd',this)">Top YTD</div>
   <div class="pill" onclick="setFilter('ai',this)">AI &amp; tech</div>
   <div class="pill" onclick="setFilter('growth',this)">High growth</div>
-  <div class="pill hot" onclick="setFilter('potential',this)">⚡ High potential</div>
+  <div class="pill hot" onclick="setFilter('potential',this)">⚡ Emerging</div>
+  <div class="pill" style="border-color:rgba(245,158,11,0.4);color:#b45309" onclick="setFilter('crypto',this)">₿ Crypto</div>
 </div>
 
 <!-- TABS -->
@@ -212,15 +213,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 <div id="tab-dashboard" class="pg on">
   <div id="port-view">
     <div id="port-alerts"></div>
+    <div id="rotation-info" style="display:none;margin-bottom:8px"></div>
     <div class="metrics" id="port-metrics">
-      <div class="mc"><div class="mc-l">Invested</div><div class="mc-v">~$7,167</div></div>
+      <div class="mc"><div class="mc-l">Positions</div><div class="mc-v">4</div></div>
       <div class="mc"><div class="mc-l">Current value</div><div class="mc-v" id="m-val">Loading…</div></div>
       <div class="mc"><div class="mc-l">Total P&amp;L</div><div class="mc-v" id="m-pnl">Loading…</div></div>
       <div class="mc"><div class="mc-l">Return</div><div class="mc-v" id="m-ret">Loading…</div></div>
       <div class="mc"><div class="mc-l">Best today</div><div class="mc-v" id="m-best">Loading…</div></div>
     </div>
     <div class="port-grid" id="port-cards"></div>
-    <div class="note" id="price-source">Prices loading from Yahoo Finance…</div>
+    <div class="note" id="price-source">Prices loading from Finnhub…</div>
   </div>
 
   <div id="watch-view" style="display:none">
@@ -276,37 +278,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// STOCK DEFINITIONS
-// To add/remove stocks: edit this array. 
-// mine:true = your portfolio positions. Set avgCost and shares accordingly.
+// STOCK POOL — loaded dynamically from stocks-master.json
+// Edit stocks-master.json on GitHub to add/remove/change stocks
+// Dashboard auto-selects top 35 performers every morning
 // ─────────────────────────────────────────────────────────────────────────────
-const STOCKS = [
-  // Your portfolio — set mine:true
-  {t:'FRO', n:'Frontline',          risk:'Med', cat:['ytd'],         mom:false, earn:false, catalyst:'Iran tanker rates · Q1 EPS $2.27 forecast', ytdBase:38.15, mine:true,  avgCost:38.15, shares:91.7431},
-  {t:'NVO', n:'Novo Nordisk',       risk:'Med', cat:['ytd'],         mom:false, earn:false, catalyst:'Wegovy UK approved · Medicare mid-2026',    ytdBase:36.48, mine:true,  avgCost:18.00, shares:74,     cadAvg:24.87},
-  {t:'OXY', n:'Occidental',         risk:'Med', cat:['ytd'],         mom:false, earn:false, catalyst:'Iran oil premium · Zacks #1',               ytdBase:40.92, mine:true,  avgCost:67.29, shares:43.5428},
-  // Watchlist
-  {t:'NVDA',n:'NVIDIA',             risk:'Med', cat:['ai','growth'], mom:false, earn:true,  catalyst:'AI data center demand',     ytdBase:149,  mine:false},
-  {t:'MSFT',n:'Microsoft',          risk:'Low', cat:['ai','growth'], mom:false, earn:true,  catalyst:null,                        ytdBase:338,  mine:false},
-  {t:'AMZN',n:'Amazon',             risk:'Low', cat:['ai','growth'], mom:false, earn:true,  catalyst:null,                        ytdBase:189,  mine:false},
-  {t:'AVGO',n:'Broadcom',           risk:'Low', cat:['ai','growth'], mom:false, earn:true,  catalyst:null,                        ytdBase:260,  mine:false},
-  {t:'TSM', n:'Taiwan Semi',        risk:'Med', cat:['ai','growth'], mom:false, earn:false, catalyst:null,                        ytdBase:183,  mine:false},
-  {t:'NBIS',n:'Nebius Group',       risk:'High',cat:['ai','growth'], mom:false, earn:false, catalyst:null,                        ytdBase:29.8, mine:false},
-  {t:'TSLA',n:'Tesla',              risk:'High',cat:['growth'],      mom:false, earn:true,  catalyst:null,                        ytdBase:403,  mine:false},
-  {t:'NFLX',n:'Netflix',            risk:'Low', cat:['growth'],      mom:false, earn:false, catalyst:null,                        ytdBase:81,   mine:false},
-  {t:'TTD', n:'The Trade Desk',     risk:'Med', cat:['growth'],      mom:false, earn:false, catalyst:null,                        ytdBase:56,   mine:false},
-  {t:'KOS', n:'Kosmos Energy',      risk:'High',cat:['ytd'],         mom:false, earn:false, catalyst:null,                        ytdBase:2.55, mine:false},
-  {t:'SNDK',n:'SanDisk',            risk:'Med', cat:['ytd','ai'],    mom:false, earn:false, catalyst:'NAND flash shortage + AI storage', ytdBase:130, mine:false},
-  {t:'MRNA',n:'Moderna',            risk:'High',cat:['ytd'],         mom:false, earn:true,  catalyst:'FDA pipeline update',       ytdBase:43,   mine:false},
-  {t:'BW',  n:'Babcock & Wilcox',   risk:'High',cat:['potential'],   mom:false, earn:false, catalyst:'$1.5B AI data center contract', ytdBase:6.8, mine:false},
-  {t:'RKLB',n:'Rocket Lab',         risk:'High',cat:['potential'],   mom:false, earn:false, catalyst:'SpaceX IPO lifting space sector', ytdBase:20.2, mine:false},
-  {t:'IBRX',n:'ImmunityBio',        risk:'High',cat:['potential'],   mom:false, earn:false, catalyst:'Bladder cancer FDA fast-track', ytdBase:2.25, mine:false},
-  {t:'CELC',n:'Celcuity',           risk:'High',cat:['potential'],   mom:false, earn:false, catalyst:'FDA breast cancer NDA Jul 2026', ytdBase:19.7, mine:false},
-  {t:'NOC', n:'Northrop Grumman',   risk:'Low', cat:['potential'],   mom:false, earn:false, catalyst:'B-21 + Golden Dome contracts', ytdBase:650, mine:false},
-  {t:'DVN', n:'Devon Energy',       risk:'Med', cat:['potential'],   mom:false, earn:false, catalyst:'Blackcomb Pipeline 2026',    ytdBase:33.9, mine:false},
-  {t:'AXTI',n:'AXT Inc',            risk:'High',cat:['potential'],   mom:false, earn:false, catalyst:'35%+ revenue growth — AI wafers', ytdBase:35.9, mine:false},
-  {t:'QBTS',n:'D-Wave Quantum',     risk:'High',cat:['potential'],   mom:false, earn:false, catalyst:'Quantinuum IPO quantum re-rating', ytdBase:6.1, mine:false},
-];
+let STOCKS = []; // populated by loadMasterPool() on init
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRICE CACHE  (in-memory, refreshed on load)
@@ -349,7 +325,11 @@ async function fetchPrice(symbol) {
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadAllPrices() {
   setLoading(true);
-  const tickers = STOCKS.map(s => s.t);
+  // Load prices for ALL stocks in the master pool
+  // Portfolio positions loaded first so dashboard shows immediately
+  const mine   = STOCKS.filter(s => s.mine).map(s => s.t);
+  const others = STOCKS.filter(s => !s.mine).map(s => s.t);
+  const tickers = [...mine, ...others];
   const total   = tickers.length;
   let loaded    = 0;
   let failed    = [];
@@ -409,12 +389,22 @@ async function loadAllPrices() {
   const finalLoaded = Object.keys(prices).length;
   const finalFailed = tickers.filter(t => !prices[t]);
 
+  // Score all stocks now that we have prices
+  STOCKS.forEach(s => {
+    s.score = calcMomentumScore(s);
+  });
+
+  // Select top 35 and show rotation info
+  const { selected, dropped } = selectTop35();
+  const topTickers = selected.map(s => s.t);
+  const rotatedOut = dropped.filter(s => prices[s.t] && s.score < 20).map(s => s.t);
+
   if (finalLoaded === total) {
-    updateStatus(`✓ All ${total} prices loaded · ${new Date().toLocaleTimeString()}`, 'g');
-  } else if (finalLoaded >= total * 0.8) {
-    updateStatus(`✓ ${finalLoaded}/${total} prices loaded · ${new Date().toLocaleTimeString()} · Missing: ${finalFailed.join(', ')}`, 'g');
+    updateStatus(`✓ All ${total} stocks scored · Showing top 35 by momentum · ${new Date().toLocaleTimeString()} · ${rotatedOut.length > 0 ? rotatedOut.slice(0,5).join(', ') + ' scored too low to show' : 'All performing'}`, 'g');
+  } else if (finalLoaded >= total * 0.7) {
+    updateStatus(`✓ ${finalLoaded}/${total} prices loaded · Top 35 selected · ${new Date().toLocaleTimeString()}`, 'g');
   } else {
-    updateStatus(`⚠ ${finalLoaded}/${total} loaded. Click ↻ Refresh to try again. Still missing: ${finalFailed.join(', ')}`, 'r');
+    updateStatus(`⚠ Only ${finalLoaded}/${total} prices loaded · Click ↻ Refresh to try again · Missing: ${finalFailed.slice(0,8).join(', ')}`, 'r');
   }
 
   renderAll();
@@ -455,7 +445,7 @@ function colCls(v) { return v >= 0 ? 'g' : 'r'; }
 // TICKER STRIP
 // ─────────────────────────────────────────────────────────────────────────────
 function updateTickerStrip() {
-  const key = ['SPY','NVDA','MSFT','AVGO','TSM','AMZN','TSLA','OXY','NVO','FRO','VIX'];
+  const key = ['SPY','NVDA','MSFT','AVGO','TSM','AMZN','TSLA','OXY','NOVO.TO','FRO','ATZ.TO','VIX'];
   const strip = document.getElementById('ticker-strip');
   const items = key.filter(t => prices[t] || STOCKS.find(s=>s.t===t));
   strip.innerHTML = items.map((t, i) => {
@@ -524,8 +514,33 @@ function stockPnL(s) {
 // ─────────────────────────────────────────────────────────────────────────────
 function renderAll() {
   renderPortfolio();
+  renderRotationInfo();
   document.getElementById('price-source').textContent =
-    `Prices from Yahoo Finance via allorigins proxy · Updated ${new Date().toLocaleTimeString()} · Not financial advice`;
+    `Prices via Finnhub · ${STOCKS.length} stocks scored · Top 35 shown · Updated ${new Date().toLocaleTimeString()} · Not financial advice`;
+}
+
+function renderRotationInfo() {
+  const el = document.getElementById('rotation-info');
+  if (!el || STOCKS.length === 0) return;
+
+  // Score all stocks and get top 35
+  const scored = [...STOCKS]
+    .filter(s => !s.mine && prices[s.t])
+    .map(s => ({...s, score: s.score || 0}))
+    .sort((a,b) => b.score - a.score);
+
+  const top5  = scored.slice(0, 5);
+  const weak5 = scored.slice(-5).filter(s => s.score < 15);
+
+  if (top5.length === 0) { el.style.display='none'; return; }
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="background:var(--bg3);border-radius:var(--radius);padding:9px 12px;font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+      <span style="font-weight:600;color:var(--text)">🔥 Today's top movers:</span>
+      ${top5.map(s => `<span style="color:${s.c>=0?'var(--green)':'var(--red)'}"><strong>${s.t}</strong> ${s.c>=0?'+':''}${s.c.toFixed(1)}%</span>`).join(' · ')}
+      ${weak5.length > 0 ? `<span style="color:var(--text3);margin-left:8px">Low momentum: ${weak5.map(s=>s.t).join(', ')}</span>` : ''}
+    </div>`;
 }
 
 function renderPortfolio() {
@@ -555,14 +570,18 @@ function renderPortfolio() {
     const isGood = c > 1;
     const isBad  = c < -2;
     let msg = '';
+    const curr = s.cad ? 'CA$' : '$';
     if (s.t === 'OXY') {
-      if (p && p < 62)   msg = `OXY dropped to $${fmt(p)} — watch hard stop at $59. Earnings May 7.`;
-      else if (p && p > 64) msg = `OXY at $${fmt(p)} (+${c.toFixed(2)}%) — recovering. Zacks #1. Hold to May 7 earnings.`;
-      else                msg = `OXY at $${fmt(p)} (${fmtChg(c)}) — watch closely. Stop at $59. Earnings May 7.`;
-    } else if (s.t === 'NVO') {
-      msg = `NVO at $${fmt(p)} (${fmtChg(c)}) — near 52-week low $35.12. UK Wegovy approved. Analyst target $47–$58. Earnings May 6.`;
+      if (p && p < 62)   msg = `OXY at $${fmt(p)} — watch hard stop at $59. Earnings May 7.`;
+      else if (p && p > 64) msg = `OXY at $${fmt(p)} (${fmtChg(c)}) — near 52wk high. Zacks #1. Hold to May 7 earnings.`;
+      else                msg = `OXY at $${fmt(p)} (${fmtChg(c)}) — Iran oil premium holding. Stop at $59. Earnings May 7.`;
+    } else if (s.t === 'NOVO.TO') {
+      msg = `NOVO.TO at CA$${fmt(p)} (${fmtChg(c)}) — CIBC CDR tracking Novo Nordisk. Ozempic/Wegovy exposure in CAD. Medicare mid-2026 catalyst.`;
     } else if (s.t === 'FRO') {
       msg = `FRO at $${fmt(p)} (${fmtChg(c)}) — Iran tanker rates elevated. Q1 EPS forecast $2.27 (was $1.02). Earnings May 29.`;
+    } else if (s.t === 'ATZ.TO') {
+      if (p && p < 120)  msg = `ATZ.TO at CA$${fmt(p)} (${fmtChg(c)}) — below your buy price CA$132.64. Down ${(((p-s.avgCost)/s.avgCost)*100).toFixed(1)}%. Earnings Apr 30.`;
+      else               msg = `ATZ.TO at CA$${fmt(p)} (${fmtChg(c)}) — Aritzia recovering. Watch Apr 30 earnings. Analyst target CA$148.`;
     }
     const cls = isGood ? 'al-g' : isBad ? 'al-r' : 'al-a';
     const icon = isGood ? '🔥' : isBad ? '⚠' : '◎';
@@ -577,9 +596,10 @@ function renderPortfolio() {
     const col  = pnl >= 0 ? 'grn' : Math.abs(pnlPct) > 15 ? 'red' : 'amber';
     const tipCls = pnl >= 0 ? 'tip-g' : 'tip-r';
     let advice = '', stop = '';
-    if (s.t === 'FRO') { advice = '<strong>HOLD.</strong> Iran war driving tanker rates. Strong Q1 earnings May 29 ($2.27 EPS forecast). Dividend ~$1.03/share quarterly.'; stop = '$31.00'; }
-    if (s.t === 'NVO') { advice = '<strong>HOLD.</strong> Near 52-week low. Medicare obesity mid-2026 = major catalyst. Analyst target $47–$58. Earnings May 6.'; stop = '$32.00'; }
-    if (s.t === 'OXY') { advice = price < 62 ? '<strong>⚠ WATCH.</strong> Set hard stop at $59. Iran de-escalation = oil price risk. Earnings May 7.' : '<strong>HOLD.</strong> Bouncing — Iran premium holding. Zacks #1. Morgan Stanley target $73. Earnings May 7.'; stop = '$59.00'; }
+    if (s.t === 'FRO')     { advice = '<strong>HOLD.</strong> Iran war driving tanker rates. Strong Q1 earnings May 29 (EPS $2.27 forecast vs $1.02 last). Dividend ~$1.03/share quarterly.'; stop = '$31.00'; }
+    if (s.t === 'NOVO.TO') { advice = '<strong>HOLD.</strong> CIBC CDR tracking Novo Nordisk (Ozempic/Wegovy). CAD-hedged. Medicare obesity coverage mid-2026 = major catalyst. Near 52-week low — hold for recovery.'; stop = 'CA$12.00'; }
+    if (s.t === 'OXY')     { advice = price < 62 ? '<strong>⚠ WATCH.</strong> Hard stop at $59. Iran de-escalation = oil price risk. Earnings May 7.' : '<strong>HOLD.</strong> Iran premium holding. Zacks #1. Morgan Stanley target $73. Earnings May 7.'; stop = '$59.00'; }
+    if (s.t === 'ATZ.TO')  { advice = price >= s.avgCost ? '<strong>HOLD.</strong> Above your buy price. Aritzia near all-time high. Analyst target CA$148 (+30%). Earnings Apr 30.' : `<strong>WATCH.</strong> Down ${(((price-s.avgCost)/s.avgCost)*100).toFixed(1)}% from your entry. Aritzia strong fundamentals. Earnings Apr 30 — hold through.`; stop = 'CA$105.00'; }
     const pnlStr = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(0) + ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)';
     const beStr  = s.avgCost ? '$' + s.avgCost.toFixed(2) + ' (' + ((s.avgCost - price)/price*100).toFixed(1) + '% away)' : '—';
     return `<div class="pc ${col}">
@@ -604,20 +624,29 @@ function renderPortfolio() {
 // ─────────────────────────────────────────────────────────────────────────────
 function filtered() {
   const f = activeFilter;
-  const S = STOCKS.map(s => ({...s, p: px(s.t) || s.p || 0, c: parseFloat((chg(s.t) || 0).toFixed(2))}));
-  if (f==='portfolio') return S.filter(s=>s.mine);
-  if (f==='momentum')  return S.filter(s=>s.mom);
-  if (f==='ytd')       return [...S].sort((a,b)=>(b.ytd||0)-(a.ytd||0)).slice(0,10);
-  if (f==='ai')        return S.filter(s=>s.cat.includes('ai'));
-  if (f==='growth')    return S.filter(s=>s.cat.includes('growth'));
-  if (f==='potential') return S.filter(s=>s.cat.includes('potential'));
-  return S;
+  // Always work from scored+priced snapshot
+  const S = STOCKS.map(s => ({
+    ...s,
+    p: px(s.t) || s.p || 0,
+    c: parseFloat((chg(s.t) || 0).toFixed(2)),
+    score: s.score || calcMomentumScore(s)
+  }));
+
+  if (f === 'portfolio') return S.filter(s => s.mine);
+  if (f === 'momentum')  return S.filter(s => s.mom && s.c > 0).sort((a,b) => b.c - a.c);
+  if (f === 'ytd')       return [...S].sort((a,b) => (b.ytd||0) - (a.ytd||0)).slice(0, 15);
+  if (f === 'ai')        return S.filter(s => ['AI & Chips','Big Tech','Cloud Software'].includes(s.cat)).sort((a,b) => b.score - a.score);
+  if (f === 'growth')    return S.filter(s => ['High Growth','Fintech','Ad Tech','Media & Consumer'].includes(s.cat)).sort((a,b) => b.score - a.score);
+  if (f === 'potential') return S.filter(s => ['Emerging','Quantum & Space','Healthcare'].includes(s.cat)).sort((a,b) => b.score - a.score);
+  if (f === 'crypto')    return S.filter(s => s.cat === 'Crypto').sort((a,b) => b.score - a.score);
+  // 'all' — show top 35 by momentum score
+  return [...S].sort((a,b) => b.score - a.score).slice(0, 35);
 }
 
 function setFilter(f, el) {
   activeFilter = f;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
-  el.classList.add('on');
+  if (el) el.classList.add('on');
   const isPort = f === 'portfolio';
   document.getElementById('port-view').style.display  = isPort ? 'block' : 'none';
   document.getElementById('watch-view').style.display = isPort ? 'none'  : 'block';
@@ -687,7 +716,7 @@ function renderSellSignals() {
       s.earn ? 'Upcoming earnings risk' : null,
       (s.mine && price < s.avgCost) ? 'Below avg cost' : null,
     ].filter(Boolean).join(' · ') || 'No major exit signals';
-    let stops = {FRO:'$31',NVO:'$32',OXY:'$59'}[s.t] || '—';
+    let stops = {FRO:'$31.00 USD','NOVO.TO':'CA$12.00','OXY':'$59.00 USD','ATZ.TO':'CA$105.00'}[s.t] || '—';
     return `<tr>
       <td><strong>${s.t}</strong><br><small style="color:var(--text3)">${s.shares}sh @ $${s.avgCost.toFixed(2)}</small></td>
       <td style="font-family:var(--mono)">$${fmt(price)}</td>
@@ -833,9 +862,69 @@ async function checkPassword() {
   }
 }
 
-function initDashboard() {
+// ─────────────────────────────────────────────────────────────────────────────
+// LOAD MASTER POOL from stocks-master.json then fetch prices + score
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadMasterPool() {
+  try {
+    const res = await fetch('/stocks-master.json?v=' + Date.now());
+    if (!res.ok) throw new Error('Could not load stocks-master.json');
+    STOCKS = await res.json();
+    // Initialise runtime fields
+    STOCKS.forEach(s => { s.p = 0; s.c = 0; s.ytd = 0; s.mom = false; s.score = 0; });
+    console.log(`Loaded ${STOCKS.length} stocks from master pool`);
+  } catch(e) {
+    console.error('Failed to load master pool:', e);
+    updateStatus('⚠ Could not load stocks-master.json — check GitHub upload', 'r');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOMENTUM SCORE — pure price signals, no hardcoded assumptions
+// Used to auto-select the top 35 from the full pool every session
+// ─────────────────────────────────────────────────────────────────────────────
+function calcMomentumScore(s) {
+  let score = 0;
+  const c = s.c || 0;
+  // Today's move
+  if (c > 3)       score += 30;
+  else if (c > 1.5) score += 20;
+  else if (c > 0)   score += 10;
+  else if (c < -3)  score -= 15;
+  else if (c < -1)  score -= 8;
+  // Consecutive up days proxy (mom flag)
+  if (s.mom) score += 20;
+  // YTD performance
+  const ytd = s.ytd || 0;
+  if (ytd > 100)     score += 25;
+  else if (ytd > 50) score += 18;
+  else if (ytd > 20) score += 10;
+  else if (ytd > 0)  score += 5;
+  else if (ytd < -30) score -= 10;
+  // Portfolio positions always keep score high so they always show
+  if (s.mine) score += 50;
+  return Math.max(0, Math.min(99, score));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTO-SELECT TOP 35 from full pool based on momentum score
+// Portfolio positions always included regardless of score
+// ─────────────────────────────────────────────────────────────────────────────
+function selectTop35() {
+  // Always include portfolio positions
+  const mine = STOCKS.filter(s => s.mine);
+  const rest = STOCKS.filter(s => !s.mine);
+  // Sort rest by score descending, take top (35 - mine count)
+  const topRest = [...rest].sort((a,b) => b.score - a.score).slice(0, 35 - mine.length);
+  const selected = [...mine, ...topRest];
+  const dropped  = rest.filter(s => !topRest.includes(s));
+  return { selected, dropped };
+}
+
+async function initDashboard() {
   setFilter('portfolio', document.querySelector('.pill'));
-  loadAllPrices();
+  await loadMasterPool();
+  if (STOCKS.length > 0) loadAllPrices();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
