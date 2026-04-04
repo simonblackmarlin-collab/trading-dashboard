@@ -1,50 +1,78 @@
 // api/quote.js
-// Vercel serverless function — runs on Vercel's servers, not in the browser
-// Browser calls /api/quote?symbol=NVDA → this function calls Finnhub → returns data
-// This completely bypasses CORS because the call is server-to-server
+// Vercel serverless function — fetches stock prices server-side (no CORS issues)
+// Strategy:
+//   1. Try Finnhub (fast, reliable for US stocks)
+//   2. Fall back to Yahoo Finance (covers TSX, ETFs, international)
 
 const FINNHUB_KEY = 'd78nrmhr01qp0fl5u07gd78nrmhr01qp0fl5u080';
 
+// Stocks that Finnhub free tier doesn't cover — go straight to Yahoo
+const YAHOO_ONLY = ['NOVO.TO', 'ATZ.TO', 'SHOP.TO'];
+
 export default async function handler(req, res) {
-  // Allow requests from your own Vercel site
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const { symbol } = req.query;
+  if (!symbol) return res.status(400).json({ error: 'Missing symbol' });
 
-  if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol parameter' });
+  // Try Finnhub first (unless known Yahoo-only)
+  if (!YAHOO_ONLY.includes(symbol)) {
+    const finnhubResult = await tryFinnhub(symbol);
+    if (finnhubResult) return res.status(200).json(finnhubResult);
   }
 
-  // Map TSX stocks to Finnhub format
-  const symbolMap = { 'ATZ.TO': 'ATZ:TSX' };
-  const fhSymbol = symbolMap[symbol] || symbol;
+  // Fall back to Yahoo Finance (server-to-server — no CORS issue)
+  const yahooResult = await tryYahoo(symbol);
+  if (yahooResult) return res.status(200).json(yahooResult);
 
+  return res.status(404).json({ error: 'No data found', symbol });
+}
+
+// ── FINNHUB ──────────────────────────────────────────────────────────────────
+async function tryFinnhub(symbol) {
   try {
-    const url = `https://finnhub.io/api/v1/quote?symbol=${fhSymbol}&token=${FINNHUB_KEY}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      return res.status(502).json({ error: 'Finnhub request failed' });
-    }
-
-    const data = await response.json();
-
-    // Finnhub returns c=current, pc=prev close, d=change, dp=change%
-    if (!data || data.c === 0 || data.c === undefined) {
-      return res.status(404).json({ error: 'No data for symbol', symbol });
-    }
-
-    // Return clean price object
-    return res.status(200).json({
+    const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || !d.c || d.c === 0) return null;
+    return {
       symbol,
-      price:         data.c,
-      prev:          data.pc,
-      change:        data.d  || (data.c - data.pc),
-      changePercent: data.dp || ((data.c - data.pc) / data.pc * 100),
-    });
+      price:         d.c,
+      prev:          d.pc,
+      change:        d.d  || (d.c - d.pc),
+      changePercent: d.dp || ((d.c - d.pc) / d.pc * 100),
+      source:        'finnhub',
+    };
+  } catch { return null; }
+}
 
-  } catch (error) {
-    return res.status(500).json({ error: 'Server error', message: error.message });
-  }
+// ── YAHOO FINANCE ─────────────────────────────────────────────────────────────
+// Runs server-side on Vercel — no CORS restrictions here
+async function tryYahoo(symbol) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`;
+    const r = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return null;
+    const data   = await r.json();
+    const result = data?.chart?.result?.[0];
+    if (!result) return null;
+    const meta   = result.meta;
+    const price  = meta.regularMarketPrice || meta.previousClose;
+    const prev   = meta.chartPreviousClose || meta.previousClose;
+    if (!price || !prev) return null;
+    return {
+      symbol,
+      price,
+      prev,
+      change:        price - prev,
+      changePercent: ((price - prev) / prev) * 100,
+      source:        'yahoo',
+      currency:      meta.currency || 'CAD',
+    };
+  } catch { return null; }
 }
