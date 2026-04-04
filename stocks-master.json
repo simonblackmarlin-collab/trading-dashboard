@@ -1,0 +1,458 @@
+[
+  {
+    "t": "NVDA",
+    "n": "NVIDIA",
+    "cat": "AI & Chips",
+    "why": "AI GPU monopoly, moves 3-5% daily"
+  },
+  {
+    "t": "AMD",
+    "n": "Advanced Micro Devices",
+    "cat": "AI & Chips",
+    "why": "NVIDIA alternative, semiconductor cycles"
+  },
+  {
+    "t": "NOVO.TO",
+    "n": "Novo Nordisk CDR (CAD)",
+    "cat": "Healthcare",
+    "why": "Novo Nordisk CIBC CDR CAD hedged \u2014 Ozempic/Wegovy exposure",
+    "mine": true,
+    "avgCost": 24.87,
+    "shares": 74
+  },
+  {
+    "t": "AVGO",
+    "n": "Broadcom",
+    "cat": "AI & Chips",
+    "why": "Custom AI chips, institutional favourite"
+  },
+  {
+    "t": "TSM",
+    "n": "Taiwan Semi",
+    "cat": "AI & Chips",
+    "why": "Makes chips for everyone, global bellwether"
+  },
+  {
+    "t": "AMAT",
+    "n": "Applied Materials",
+    "cat": "AI & Chips",
+    "why": "Semiconductor equipment, AI capex cycle"
+  },
+  {
+    "t": "MRVL",
+    "n": "Marvell Technology",
+    "cat": "AI & Chips",
+    "why": "Custom AI accelerators, data centre"
+  },
+  {
+    "t": "SMCI",
+    "n": "Super Micro Computer",
+    "cat": "AI & Chips",
+    "why": "AI server demand, extreme volatility"
+  },
+  {
+    "t": "LRCX",
+    "n": "Lam Research",
+    "cat": "AI & Chips",
+    "why": "Chip equipment, moves with semis"
+  },
+  {
+    "t": "KLAC",
+    "n": "KLA Corporation",
+    "cat": "AI & Chips",
+    "why": "Chip inspection equipment, steady swing"
+  },
+  {
+    "t": "MSFT",
+    "n": "Microsoft",
+    "cat": "Big Tech",
+    "why": "Azure AI, Copilot, earnings swings"
+  },
+  {
+    "t": "AMZN",
+    "n": "Amazon",
+    "cat": "Big Tech",
+    "why": "AWS + AI, high volume daily"
+  },
+  {
+    "t": "GOOGL",
+    "n": "Alphabet",
+    "cat": "Big Tech",
+    "why": "Gemini AI, ad revenue swings"
+  },
+  {
+    "t": "META",
+    "n": "Meta Platforms",
+    "cat": "Big Tech",
+    "why": "AI ads, Llama, reactive to news"
+  },
+  {
+    "t": "AAPL",
+    "n": "Apple",
+    "cat": "Big Tech",
+    "why": "High volume, earnings driven"
+  },
+  {
+    "t": "TSLA",
+    "n": "Tesla",
+    "cat": "High Volatility",
+    "why": "Extreme beta, Elon news driven"
+  },
+  {
+    "t": "PLTR",
+    "n": "Palantir",
+    "cat": "High Volatility",
+    "why": "61% revenue growth 2026, AI/defense"
+  },
+  {
+    "t": "COIN",
+    "n": "Coinbase",
+    "cat": "Crypto",
+    "why": "Crypto exchange, moves with BTC/ETH"
+  },
+  {
+    "t": "MSTR",
+    "n": "MicroStrategy",
+    "cat": "Crypto",
+    "why": "Bitcoin treasury, extreme moves"
+  },
+  {
+    "t": "MELI",
+    "n": "MercadoLibre",
+    "cat": "High Growth",
+    "why": "Latin America ecomm + fintech dominance"
+  },
+  {
+    "t": "SHOP",
+    "n": "Shopify",
+    "cat": "High Growth",
+    "why": "Ecommerce infrastructure, earnings swings"
+  },
+  {
+    "t": "CRWD",
+    "n": "CrowdStrike",
+    "cat": "Cybersecurity",
+    "why": "Market leader, strong recurring revenue"
+  },
+  {
+    "t": "PANW",
+    "n": "Palo Alto Networks",
+    "cat": "Cybersecurity",
+    "why": "Enterprise security, steady momentum"
+  },
+  {
+    "t": "ZS",
+    "n": "Zscaler",
+    "cat": "Cybersecurity",
+    "why": "Cloud security, high beta growth"
+  },
+  {
+    "t": "NET",
+    "n": "Cloudflare",
+    "cat": "Cybersecurity",
+    "why": "Edge AI + security, momentum stock"
+  },
+  {
+    "t": "DDOG",
+    "n": "Datadog",
+    "cat": "Cloud Software",
+    "why": "Cloud monitoring, AI observability"
+  },
+  {
+    "t": "SNOW",
+    "n": "Snowflake",
+    "cat": "Cloud Software",
+    "why": "Data cloud, AI platform pivot"
+  },
+  {
+    "t": "MDB",
+    "n": "MongoDB",
+    "cat": "Cloud Software",
+    "why": "Database for AI apps, volatile"
+  },
+  {
+    "t": "HUBS",
+    "n": "HubSpot",
+    "cat": "Cloud Software",
+    "why": "CRM growth, AI features driving revenue"
+  },
+  {
+    "t": "TTD",
+    "n": "The Trade Desk",
+    "cat": "Ad Tech",
+    "why": "Programmatic ads, OpenAI partnership"
+  },
+  {
+    "t": "APP",
+    "n": "AppLovin",
+    "cat": "Emerging",
+    "why": "Mobile AI ads, breakout stock"
+  },
+  {
+    "t": "NFLX",
+    "n": "Netflix",
+    "cat": "Media & Consumer",
+    "why": "Ad tier growth, steady momentum"
+  },
+  {
+    "t": "SPOT",
+    "n": "Spotify",
+    "cat": "Media & Consumer",
+    "why": "AI podcasts + music, growing margins"
+  },
+  {
+    "t": "UBER",
+    "n": "Uber",
+    "cat": "Media & Consumer",
+    "why": "Autonomous + delivery growth"
+  },
+  {
+    "t": "ABNB",
+    "n": "Airbnb",
+    "cat": "Media & Consumer",
+    "why": "Travel recovery, high beta to sentiment"
+  },
+  {
+    "t": "IONQ",
+    "n": "IonQ",
+    "cat": "Quantum & Space",
+    "why": "Quantum computing, extreme volatility"
+  },
+  {
+    "t": "QBTS",
+    "n": "D-Wave Quantum",
+    "cat": "Quantum & Space",
+    "why": "Quantum sector re-rating play"
+  },
+  {
+    "t": "RKLB",
+    "n": "Rocket Lab",
+    "cat": "Quantum & Space",
+    "why": "Commercial space, SpaceX IPO halo"
+  },
+  {
+    "t": "ASTS",
+    "n": "AST SpaceMobile",
+    "cat": "Quantum & Space",
+    "why": "Satellite internet, high beta"
+  },
+  {
+    "t": "LLY",
+    "n": "Eli Lilly",
+    "cat": "Healthcare",
+    "why": "Oral weight loss pill dominance"
+  },
+  {
+    "t": "ISRG",
+    "n": "Intuitive Surgical",
+    "cat": "Healthcare",
+    "why": "Robotic surgery, defensive growth"
+  },
+  {
+    "t": "MRNA",
+    "n": "Moderna",
+    "cat": "Healthcare",
+    "why": "FDA pipeline, high volatility biotech"
+  },
+  {
+    "t": "CELC",
+    "n": "Celcuity",
+    "cat": "Healthcare",
+    "why": "FDA breast cancer NDA July 2026"
+  },
+  {
+    "t": "IBRX",
+    "n": "ImmunityBio",
+    "cat": "Healthcare",
+    "why": "Bladder cancer FDA fast-track"
+  },
+  {
+    "t": "SOFI",
+    "n": "SoFi Technologies",
+    "cat": "Fintech",
+    "why": "Digital banking growth, high beta"
+  },
+  {
+    "t": "HOOD",
+    "n": "Robinhood",
+    "cat": "Fintech",
+    "why": "Retail trading platform, crypto exposure"
+  },
+  {
+    "t": "UPST",
+    "n": "Upstart",
+    "cat": "Fintech",
+    "why": "AI lending, extreme swing stock"
+  },
+  {
+    "t": "PYPL",
+    "n": "PayPal",
+    "cat": "Fintech",
+    "why": "Turnaround play, cheap valuation"
+  },
+  {
+    "t": "OXY",
+    "n": "Occidental Petroleum",
+    "cat": "Energy",
+    "why": "Iran war oil premium, Buffett backed",
+    "mine": true,
+    "avgCost": 67.29,
+    "shares": 43.5428
+  },
+  {
+    "t": "DVN",
+    "n": "Devon Energy",
+    "cat": "Energy",
+    "why": "Blackcomb Pipeline 2026"
+  },
+  {
+    "t": "KOS",
+    "n": "Kosmos Energy",
+    "cat": "Energy",
+    "why": "High YTD performer, oil exposure"
+  },
+  {
+    "t": "FRO",
+    "n": "Frontline",
+    "cat": "Energy",
+    "why": "Iran tanker rates, Q1 EPS $2.27 forecast",
+    "mine": true,
+    "avgCost": 38.15,
+    "shares": 91.7431
+  },
+  {
+    "t": "NOC",
+    "n": "Northrop Grumman",
+    "cat": "Defence",
+    "why": "B-21 + Golden Dome contracts 2026"
+  },
+  {
+    "t": "LHX",
+    "n": "L3Harris Technologies",
+    "cat": "Defence",
+    "why": "Defence electronics, Iran conflict play"
+  },
+  {
+    "t": "AXTI",
+    "n": "AXT Inc",
+    "cat": "Emerging",
+    "why": "AI chip wafers, 35%+ revenue growth"
+  },
+  {
+    "t": "BW",
+    "n": "Babcock & Wilcox",
+    "cat": "Emerging",
+    "why": "$1.5B AI data center contract"
+  },
+  {
+    "t": "NBIS",
+    "n": "Nebius Group",
+    "cat": "Emerging",
+    "why": "AI GPU cloud, high growth"
+  },
+  {
+    "t": "SNDK",
+    "n": "SanDisk",
+    "cat": "Emerging",
+    "why": "NAND flash shortage + AI storage surge"
+  },
+  {
+    "t": "CLS",
+    "n": "Celestica",
+    "cat": "Emerging",
+    "why": "40% revenue growth, AI hyperscaler hardware"
+  },
+  {
+    "t": "CAVA",
+    "n": "CAVA Group",
+    "cat": "Consumer",
+    "why": "Fast casual growth, high momentum"
+  },
+  {
+    "t": "ONON",
+    "n": "On Holding",
+    "cat": "Consumer",
+    "why": "Premium running shoes, global expansion"
+  },
+  {
+    "t": "ATZ.TO",
+    "n": "Aritzia",
+    "cat": "Consumer",
+    "why": "Canadian retail, Everyday Luxury brand",
+    "mine": true,
+    "avgCost": 132.6383,
+    "shares": 6
+  },
+  {
+    "t": "LULU",
+    "n": "Lululemon",
+    "cat": "Consumer",
+    "why": "Premium athletic wear, swing trades"
+  },
+  {
+    "t": "GLD",
+    "n": "Gold ETF (SPDR)",
+    "cat": "Macro",
+    "why": "Gold at record highs, safe haven + inflation"
+  },
+  {
+    "t": "SLV",
+    "n": "Silver ETF (iShares)",
+    "cat": "Macro",
+    "why": "Industrial + safe haven demand"
+  },
+  {
+    "t": "USO",
+    "n": "Oil ETF (United States)",
+    "cat": "Macro",
+    "why": "Direct oil price play, Iran war"
+  },
+  {
+    "t": "QQQ",
+    "n": "Nasdaq 100 ETF",
+    "cat": "Macro",
+    "why": "Tech index, swing trade benchmark"
+  },
+  {
+    "t": "SPY",
+    "n": "S&P 500 ETF",
+    "cat": "Macro",
+    "why": "Broad market benchmark"
+  },
+  {
+    "t": "TQQQ",
+    "n": "3x Nasdaq Bull ETF",
+    "cat": "Macro",
+    "why": "Leveraged \u2014 3x Nasdaq moves daily"
+  },
+  {
+    "t": "SQQQ",
+    "n": "3x Nasdaq Bear ETF",
+    "cat": "Macro",
+    "why": "Short hedge when market falls"
+  },
+  {
+    "t": "BITO",
+    "n": "Bitcoin ETF (ProShares)",
+    "cat": "Crypto",
+    "why": "BTC exposure without owning crypto"
+  },
+  {
+    "t": "RIOT",
+    "n": "Riot Platforms",
+    "cat": "Crypto",
+    "why": "Bitcoin miner, high beta to crypto"
+  },
+  {
+    "t": "MARA",
+    "n": "Marathon Digital",
+    "cat": "Crypto",
+    "why": "Bitcoin miner, leveraged BTC play"
+  },
+  {
+    "t": "WULF",
+    "n": "TeraWulf",
+    "cat": "Crypto",
+    "why": "BTC mining + clean energy, high momentum"
+  }
+]
