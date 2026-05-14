@@ -908,18 +908,12 @@ async function loadMasterPool() {
 function calcMomentumScore(s) {
   let score = 0;
   const c = s.c || 0;
-  if (c > 3)        score += 30;
-  else if (c > 1.5) score += 20;
-  else if (c > 0)   score += 10;
-  else if (c < -3)  score -= 15;
-  else if (c < -1)  score -= 8;
-  if (s.mom) score += 20;
-  const ytd = s.ytd || 0;
-  if (ytd > 100)      score += 25;
-  else if (ytd > 50)  score += 18;
-  else if (ytd > 20)  score += 10;
-  else if (ytd > 0)   score += 5;
-  else if (ytd < -30) score -= 10;
+  if(c>3)score+=30;
+else if(c>1.5)score+=20;
+else if(c>0)score+=10;
+else if(c<-3)score-=15;
+else if(c<-1)score-=8;
+if(s.mom)score+=20;
   return Math.max(0, Math.min(99, score));
 }
 
