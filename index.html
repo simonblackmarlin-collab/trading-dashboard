@@ -920,7 +920,6 @@ function calcMomentumScore(s) {
   else if (ytd > 20)  score += 10;
   else if (ytd > 0)   score += 5;
   else if (ytd < -30) score -= 10;
-  if (s.mine) score += 50;
   return Math.max(0, Math.min(99, score));
 }
 
