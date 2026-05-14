@@ -714,19 +714,13 @@ async function runBacktest() {
   let done = 0;
   const results = await Promise.all(symbols.map(async sym => {
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&period1=${threeMonthsAgo}&period2=${now}`;
-      const r = await fetch(url);
-      const d = await r.json();
-      const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
-      if (!closes || closes.length < 2) return null;
-      const first = closes.find(v => v != null);
-      const last  = [...closes].reverse().find(v => v != null);
-      if (!first || !last) return null;
-      const pct = ((last - first) / first) * 100;
-      const stock = STOCKS.find(s => s.t === sym);
-      done++;
-      status.textContent = `Loading ${done}/${symbols.length}…`;
-      return { t: sym, n: stock?.n || sym, cat: stock?.cat || '', pct: Math.round(pct * 10) / 10, first: Math.round(first * 100) / 100, last: Math.round(last * 100) / 100 };
+      const r=await fetch(`/api/history?symbol=${encodeURIComponent(sym)}`);
+if(!r.ok)return null;
+const d=await r.json();
+if(!d||d.error||!d.first||!d.last)return null;
+const stock=STOCKS.find(s=>s.t===sym);
+done++;status.textContent=`Loading ${done}/${symbols.length}…`;
+return{t:sym,n:stock?.n||sym,cat:stock?.cat||'',pct:Math.round(d.pct*10)/10,first:Math.round(d.first*100)/100,last:Math.round(d.last*100)/100};
     } catch { return null; }
   }));
 
