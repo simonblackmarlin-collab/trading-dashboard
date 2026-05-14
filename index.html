@@ -48,12 +48,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 
 /* FILTER PILLS */
 .pills-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:500}
-.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
 .pill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);color:var(--text2);background:transparent;transition:all .15s;white-space:nowrap;font-family:var(--font)}
 .pill:hover{border-color:var(--text3);color:var(--text)}
 .pill.on{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
 .pill.hot{border-color:var(--amber-border);color:var(--amber)}
 .pill.hot.on{background:var(--amber-dim)}
+
+/* SETTINGS GEAR */
+.settings-btn{background:none;border:1px solid var(--border2);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;color:var(--text3);display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;font-family:var(--font)}
+.settings-btn:hover{border-color:var(--text2);color:var(--text)}
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;align-items:center;justify-content:center}
+.settings-overlay.open{display:flex}
+.settings-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:22px;width:320px;max-width:90vw}
+.settings-modal h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.settings-modal p{font-size:11px;color:var(--text3);margin-bottom:14px}
+.pill-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.pill-toggle-row:last-of-type{border-bottom:none}
+.pill-toggle-label{font-size:13px;color:var(--text2)}
+.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s}
+.toggle-switch input:checked + .toggle-slider{background:var(--green)}
+.toggle-switch input:checked + .toggle-slider:before{transform:translateX(16px)}
+.settings-close{margin-top:14px;width:100%;padding:9px;background:var(--bg3);border:none;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--font)}
+.settings-close:hover{color:var(--text)}
 
 /* TABS */
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
@@ -117,6 +137,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .scan-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;cursor:pointer;transition:border-color .15s}
 .scan-card:hover,.scan-card.top1{border-color:var(--green)}
 
+/* BACKTEST TAB */
+.bt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;gap:8px}
+.bt-run-btn{padding:6px 16px;border-radius:20px;background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font)}
+.bt-run-btn:disabled{opacity:.5;cursor:default}
+.bt-run-btn:hover:not(:disabled){opacity:.8}
+.bt-filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem;align-items:center}
+.bt-pill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);color:var(--text2);background:transparent;transition:all .15s;white-space:nowrap;font-family:var(--font)}
+.bt-pill.on{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.bt-table{width:100%;border-collapse:collapse}
+.bt-table th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);text-align:left;padding:4px 8px 8px;border-bottom:1px solid var(--border);font-weight:500}
+.bt-table th.num{text-align:right}
+.bt-table td{font-size:12px;padding:9px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.bt-table td.num{text-align:right}
+.bt-table tr:last-child td{border-bottom:none}
+.bt-table tr:hover td{background:var(--bg3)}
+.bt-bar-cell{width:80px}
+.bt-bar-wrap{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden}
+.bt-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+
 /* ERROR / STATUS */
 .err-box{background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--radius);padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:12px;line-height:1.5}
 .note{font-size:10px;color:var(--text3);line-height:1.5;padding-top:6px;border-top:1px solid var(--border);margin-top:6px}
@@ -156,6 +195,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-modal">
+    <h3>⚙ Customise Filter Pills</h3>
+    <p>Toggle which pills show on your dashboard</p>
+    <div id="pillToggles"></div>
+    <button class="settings-close" onclick="closeSettings()">Done</button>
+  </div>
+</div>
+
 <div class="app" id="main-app" style="display:none">
 
 <!-- HEADER -->
@@ -164,7 +213,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <div class="pulse"></div>
     <div>
       <div class="logo-t">My Trading Dashboard</div>
-      <div class="logo-s">Double-click START-WINDOWS.bat or START-MAC.command to launch · Prices via Finnhub</div>
+      <div class="logo-s">Prices via Finnhub · Top 35 scored daily</div>
     </div>
   </div>
   <div class="hdr-right">
@@ -181,7 +230,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 
 <!-- TICKER STRIP -->
 <div class="ticker" id="ticker-strip">
-  <!-- Filled by JS -->
   <div class="skeleton" style="width:80px;height:16px"></div>
   <div class="skeleton" style="width:80px;height:16px"></div>
   <div class="skeleton" style="width:80px;height:16px"></div>
@@ -192,14 +240,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 <!-- FILTER PILLS -->
 <div class="pills-label">Filter · showing top scorers from 74-stock pool</div>
 <div class="pills">
-  <div class="pill on" style="border-color:var(--green-border);color:var(--green);background:var(--green-dim)" onclick="setFilter('portfolio',this)">My Portfolio</div>
-  <div class="pill" onclick="setFilter('all',this)">🔥 Top 35 today</div>
-  <div class="pill" onclick="setFilter('momentum',this)">3-day streak ▲</div>
-  <div class="pill" onclick="setFilter('ytd',this)">Top YTD</div>
-  <div class="pill" onclick="setFilter('ai',this)">AI &amp; tech</div>
-  <div class="pill" onclick="setFilter('growth',this)">High growth</div>
-  <div class="pill hot" onclick="setFilter('potential',this)">⚡ Emerging</div>
-  <div class="pill" style="border-color:rgba(245,158,11,0.4);color:#b45309" onclick="setFilter('crypto',this)">₿ Crypto</div>
+  <div class="pill on" data-filter="all" style="border-color:var(--green-border);color:var(--green);background:var(--green-dim)" onclick="setFilter('all',this)">🔥 Top 35 today</div>
+  <div class="pill" data-filter="momentum" onclick="setFilter('momentum',this)">3-day streak ▲</div>
+  <div class="pill" data-filter="ytd" onclick="setFilter('ytd',this)">Top YTD</div>
+  <div class="pill" data-filter="ai" onclick="setFilter('ai',this)">AI &amp; tech</div>
+  <div class="pill" data-filter="growth" onclick="setFilter('growth',this)">High growth</div>
+  <div class="pill hot" data-filter="potential" onclick="setFilter('potential',this)">⚡ Emerging</div>
+  <div class="pill" data-filter="crypto" style="border-color:rgba(245,158,11,0.4);color:#b45309" onclick="setFilter('crypto',this)">₿ Crypto</div>
+  <button class="settings-btn" onclick="openSettings()" title="Customise pills">⚙</button>
 </div>
 
 <!-- TABS -->
@@ -207,25 +255,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="tab on" onclick="goTab('dashboard',this)">Dashboard</div>
   <div class="tab" onclick="goTab('sell',this)">Sell Signals</div>
   <div class="tab" onclick="goTab('scanner',this)">Breakout Scanner</div>
+  <div class="tab" onclick="goTab('backtest',this)">📊 Backtest</div>
 </div>
 
 <!-- ═══ DASHBOARD ═══ -->
 <div id="tab-dashboard" class="pg on">
-  <div id="port-view">
-    <div id="port-alerts"></div>
-    <div id="rotation-info" style="display:none;margin-bottom:8px"></div>
-    <div class="metrics" id="port-metrics">
-      <div class="mc"><div class="mc-l">Positions</div><div class="mc-v">4</div></div>
-      <div class="mc"><div class="mc-l">Current value</div><div class="mc-v" id="m-val">Loading…</div></div>
-      <div class="mc"><div class="mc-l">Total P&amp;L</div><div class="mc-v" id="m-pnl">Loading…</div></div>
-      <div class="mc"><div class="mc-l">Return</div><div class="mc-v" id="m-ret">Loading…</div></div>
-      <div class="mc"><div class="mc-l">Best today</div><div class="mc-v" id="m-best">Loading…</div></div>
-    </div>
-    <div class="port-grid" id="port-cards"></div>
-    <div class="note" id="price-source">Prices loading from Finnhub…</div>
-  </div>
-
-  <div id="watch-view" style="display:none">
+  <div id="watch-view">
     <div class="metrics">
       <div class="mc"><div class="mc-l">Selected</div><div class="mc-v" id="sel-t" style="font-size:14px">—</div></div>
       <div class="mc"><div class="mc-l">Price</div><div class="mc-v" id="sel-p" style="font-size:14px">—</div></div>
@@ -233,17 +268,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
       <div class="mc"><div class="mc-l">Signal</div><div class="mc-v" id="sel-s">—</div></div>
       <div class="mc"><div class="mc-l">Risk</div><div class="mc-v" id="sel-r">—</div></div>
     </div>
+    <div id="rotation-info" style="display:none;margin-bottom:8px"></div>
     <div class="wgrid" id="wgrid"></div>
+    <div class="note" id="price-source">Prices loading from Finnhub…</div>
   </div>
 </div>
 
 <!-- ═══ SELL SIGNALS ═══ -->
 <div id="tab-sell" class="pg">
   <div class="sbox">
-    <div class="sbox-t">Your positions — exit analysis</div>
+    <div class="sbox-t">Watchlist — exit analysis</div>
     <div style="overflow-x:auto">
       <table class="tbl">
-        <thead><tr><th>Stock</th><th>Live Price</th><th>Open P&amp;L</th><th>Today</th><th>Key exit triggers</th><th>Score /100</th><th>Action</th></tr></thead>
+        <thead><tr><th>Stock</th><th>Live Price</th><th>Today</th><th>Key exit triggers</th><th>Score /100</th><th>Action</th></tr></thead>
         <tbody id="sell-rows"></tbody>
       </table>
     </div>
@@ -274,30 +311,47 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   </div>
 </div>
 
+<!-- ═══ BACKTEST ═══ -->
+<div id="tab-backtest" class="pg">
+  <div class="bt-header">
+    <div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)">3-Month Backtest</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">How each stock performed over the last 3 months</div>
+    </div>
+    <button class="bt-run-btn" id="btRunBtn" onclick="runBacktest()">▶ Run Backtest</button>
+  </div>
+  <div class="bt-filter-row">
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-right:2px">Filter:</span>
+    <button class="bt-pill on" onclick="setBtFilter('all',this)">All</button>
+    <button class="bt-pill" onclick="setBtFilter('AI & Chips',this)">AI &amp; tech</button>
+    <button class="bt-pill" onclick="setBtFilter('High Growth',this)">High growth</button>
+    <button class="bt-pill" onclick="setBtFilter('Emerging',this)">⚡ Emerging</button>
+    <button class="bt-pill" onclick="setBtFilter('Crypto',this)">₿ Crypto</button>
+  </div>
+  <div id="btStatus" style="font-size:12px;color:var(--text3);margin-bottom:8px"></div>
+  <div id="btResults"><div class="no-r">Click ▶ Run Backtest to load 3-month return data for all your stocks</div></div>
+</div>
+
 </div><!-- /app -->
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// STOCK POOL — loaded dynamically from stocks-master.json
-// Edit stocks-master.json on GitHub to add/remove/change stocks
-// Dashboard auto-selects top 35 performers every morning
+// STOCK POOL
 // ─────────────────────────────────────────────────────────────────────────────
-let STOCKS = []; // populated by loadMasterPool() on init
+let STOCKS = [];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PRICE CACHE  (in-memory, refreshed on load)
+// PRICE CACHE
 // ─────────────────────────────────────────────────────────────────────────────
 const prices = {};
 let pricesLoaded = false;
 let selTicker = 'NVDA';
-let activeFilter = 'portfolio';
+let activeFilter = 'all';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FETCH PRICE
-// Calls /api/quote — a Vercel serverless function that fetches from Finnhub
-// server-side. No CORS issues. Works perfectly on Vercel hosting.
 // ─────────────────────────────────────────────────────────────────────────────
 async function fetchPrice(symbol) {
   try {
@@ -307,26 +361,15 @@ async function fetchPrice(symbol) {
     if (!r.ok) return null;
     const d = await r.json();
     if (!d || d.error || !d.price) return null;
-    return {
-      price:         d.price,
-      prev:          d.prev,
-      change:        d.change,
-      changePercent: d.changePercent,
-    };
-  } catch(e) {
-    return null;
-  }
+    return { price: d.price, prev: d.prev, change: d.change, changePercent: d.changePercent };
+  } catch(e) { return null; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LOAD ALL PRICES
-// Finnhub free = 60 calls/min  →  we stay well under with a 200ms gap
-// Shows live progress ticker as each price arrives
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadAllPrices() {
   setLoading(true);
-  // Load prices for ALL stocks in the master pool
-  // Portfolio positions loaded first so dashboard shows immediately
   const mine   = STOCKS.filter(s => s.mine).map(s => s.t);
   const others = STOCKS.filter(s => !s.mine).map(s => s.t);
   const tickers = [...mine, ...others];
@@ -336,7 +379,6 @@ async function loadAllPrices() {
 
   updateStatus(`Connecting to Finnhub… loading 0 / ${total}`, 'a');
 
-  // First pass — one request every 200ms (well within 60/min free limit)
   for (const t of tickers) {
     const data = await fetchPrice(t);
     if (data) {
@@ -350,18 +392,15 @@ async function loadAllPrices() {
       }
       loaded++;
       updateStatus(`Finnhub: loading ${loaded} / ${total} — ${t} ✓  $${data.price.toFixed(2)}`, 'a');
-      if (activeFilter === 'portfolio') renderPortfolio();
       updateTickerStrip();
     } else {
       failed.push(t);
-      updateStatus(`Finnhub: ${loaded} / ${total} — ${t} no data`, 'a');
     }
     await sleep(200);
   }
 
-  // Retry pass — wait 3s then try failed ones again at a slower pace
   if (failed.length > 0) {
-    updateStatus(`Retrying ${failed.length} tickers (${failed.join(', ')})…`, 'a');
+    updateStatus(`Retrying ${failed.length} tickers…`, 'a');
     await sleep(3000);
     for (const t of failed) {
       const data = await fetchPrice(t);
@@ -375,8 +414,6 @@ async function loadAllPrices() {
           s.p   = data.price;
         }
         loaded++;
-        updateStatus(`Retry OK: ${t} ✓  (${loaded}/${total})`, 'a');
-        if (activeFilter === 'portfolio') renderPortfolio();
         updateTickerStrip();
       }
       await sleep(400);
@@ -386,18 +423,11 @@ async function loadAllPrices() {
   pricesLoaded = true;
   setLoading(false);
 
+  STOCKS.forEach(s => { s.score = calcMomentumScore(s); });
+  const { selected, dropped } = selectTop35();
+  const rotatedOut = dropped.filter(s => prices[s.t] && s.score < 20).map(s => s.t);
   const finalLoaded = Object.keys(prices).length;
   const finalFailed = tickers.filter(t => !prices[t]);
-
-  // Score all stocks now that we have prices
-  STOCKS.forEach(s => {
-    s.score = calcMomentumScore(s);
-  });
-
-  // Select top 35 and show rotation info
-  const { selected, dropped } = selectTop35();
-  const topTickers = selected.map(s => s.t);
-  const rotatedOut = dropped.filter(s => prices[s.t] && s.score < 20).map(s => s.t);
 
   if (finalLoaded === total) {
     updateStatus(`✓ All ${total} stocks scored · Showing top 35 by momentum · ${new Date().toLocaleTimeString()} · ${rotatedOut.length > 0 ? rotatedOut.slice(0,5).join(', ') + ' scored too low to show' : 'All performing'}`, 'g');
@@ -412,8 +442,7 @@ async function loadAllPrices() {
 }
 
 function setLoading(on) {
-  const el = document.getElementById('loader');
-  el.classList.toggle('active', on);
+  document.getElementById('loader').classList.toggle('active', on);
 }
 
 function updateStatus(msg, type) {
@@ -423,32 +452,19 @@ function updateStatus(msg, type) {
   el.innerHTML = `<span>${msg}</span>`;
 }
 
-function px(t) {
-  const d = prices[t]; if(!d) return null;
-  return d.price;
-}
-function chg(t) {
-  const d = prices[t]; if(!d) return 0;
-  return d.changePercent;
-}
-function fmt(v, dec=2) {
-  if(v === null || v === undefined) return '—';
-  return v >= 1000 ? v.toFixed(0) : v.toFixed(dec);
-}
-function fmtChg(v) {
-  if(v === null || v === undefined) return '—';
-  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-}
+function px(t)   { const d = prices[t]; return d ? d.price : null; }
+function chg(t)  { const d = prices[t]; return d ? d.changePercent : 0; }
+function fmt(v, dec=2) { if(v===null||v===undefined) return '—'; return v>=1000?v.toFixed(0):v.toFixed(dec); }
+function fmtChg(v) { if(v===null||v===undefined) return '—'; return (v>=0?'+':'')+v.toFixed(2)+'%'; }
 function colCls(v) { return v >= 0 ? 'g' : 'r'; }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TICKER STRIP
 // ─────────────────────────────────────────────────────────────────────────────
 function updateTickerStrip() {
-  const key = ['SPY','NVDA','MSFT','AVGO','TSM','AMZN','TSLA','OXY','NOVO.TO','FRO','ATZ.TO','VIX'];
+  const key = ['SPY','NVDA','MSFT','AVGO','TSM','AMZN','TSLA','VIX'];
   const strip = document.getElementById('ticker-strip');
-  const items = key.filter(t => prices[t] || STOCKS.find(s=>s.t===t));
-  strip.innerHTML = items.map((t, i) => {
+  strip.innerHTML = key.map((t, i) => {
     const d = prices[t];
     const pVal = d ? '$' + fmt(d.price) : '…';
     const cVal = d ? fmtChg(d.changePercent) : '';
@@ -471,6 +487,7 @@ function buyScore(s) {
   const ytdS  = (s.ytd || 0) > 50 ? 10 : 0;
   return Math.min(99, rsiS+macdS+volS+momS+catS+earnS+ytdS);
 }
+
 function exitScore(s) {
   const c = s.c || chg(s.t);
   const p = s.p || px(s.t);
@@ -483,38 +500,11 @@ function exitScore(s) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PORTFOLIO P&L (live)
-// ─────────────────────────────────────────────────────────────────────────────
-function portPnL() {
-  const mine = STOCKS.filter(s => s.mine);
-  let totalValue = 0, totalCost = 0;
-  mine.forEach(s => {
-    const price = px(s.t) || s.p || s.avgCost || 0;
-    const cost  = s.avgCost * s.shares;
-    const val   = price * s.shares;
-    totalValue += val;
-    totalCost  += cost;
-  });
-  const pnl    = totalValue - totalCost;
-  const pnlPct = totalCost ? (pnl / totalCost * 100) : 0;
-  return { totalValue, totalCost, pnl, pnlPct };
-}
-
-function stockPnL(s) {
-  const price = px(s.t) || s.p || s.avgCost || 0;
-  const cost  = s.avgCost * s.shares;
-  const val   = price * s.shares;
-  const pnl   = val - cost;
-  const pnlPct = cost ? (pnl / cost * 100) : 0;
-  return { price, cost, val, pnl, pnlPct };
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // RENDER ALL
 // ─────────────────────────────────────────────────────────────────────────────
 function renderAll() {
-  renderPortfolio();
   renderRotationInfo();
+  renderWatchlist();
   document.getElementById('price-source').textContent =
     `Prices via Finnhub · ${STOCKS.length} stocks scored · Top 35 shown · Updated ${new Date().toLocaleTimeString()} · Not financial advice`;
 }
@@ -522,101 +512,16 @@ function renderAll() {
 function renderRotationInfo() {
   const el = document.getElementById('rotation-info');
   if (!el || STOCKS.length === 0) return;
-
-  // Score all stocks and get top 35
-  const scored = [...STOCKS]
-    .filter(s => !s.mine && prices[s.t])
-    .map(s => ({...s, score: s.score || 0}))
-    .sort((a,b) => b.score - a.score);
-
+  const scored = [...STOCKS].filter(s => prices[s.t]).map(s => ({...s, score: s.score || 0})).sort((a,b) => b.score - a.score);
   const top5  = scored.slice(0, 5);
   const weak5 = scored.slice(-5).filter(s => s.score < 15);
-
   if (top5.length === 0) { el.style.display='none'; return; }
-
   el.style.display = 'block';
-  el.innerHTML = `
-    <div style="background:var(--bg3);border-radius:var(--radius);padding:9px 12px;font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap;align-items:center">
-      <span style="font-weight:600;color:var(--text)">🔥 Today's top movers:</span>
-      ${top5.map(s => `<span style="color:${s.c>=0?'var(--green)':'var(--red)'}"><strong>${s.t}</strong> ${s.c>=0?'+':''}${s.c.toFixed(1)}%</span>`).join(' · ')}
-      ${weak5.length > 0 ? `<span style="color:var(--text3);margin-left:8px">Low momentum: ${weak5.map(s=>s.t).join(', ')}</span>` : ''}
-    </div>`;
-}
-
-function renderPortfolio() {
-  const { totalValue, pnl, pnlPct } = portPnL();
-  const mine = STOCKS.filter(s => s.mine);
-  const best = mine.reduce((a,b) => (chg(b.t) > chg(a.t) ? b : a), mine[0]);
-
-  document.getElementById('m-val').textContent = '$' + totalValue.toFixed(0);
-  const mp = document.getElementById('m-pnl');
-  mp.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(0);
-  mp.className = 'mc-v ' + (pnl >= 0 ? 'g' : 'r');
-  const mr = document.getElementById('m-ret');
-  mr.textContent = (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%';
-  mr.className = 'mc-v ' + (pnlPct >= 0 ? 'g' : 'r');
-  const mb = document.getElementById('m-best');
-  if (best && prices[best.t]) {
-    mb.textContent = best.t + ' ' + fmtChg(chg(best.t));
-    mb.className = 'mc-v ' + colCls(chg(best.t));
-  }
-
-  // Alerts
-  const alerts = document.getElementById('port-alerts');
-  alerts.innerHTML = mine.map(s => {
-    const { pnl, pnlPct } = stockPnL(s);
-    const c = chg(s.t);
-    const p = px(s.t);
-    const isGood = c > 1;
-    const isBad  = c < -2;
-    let msg = '';
-    const curr = s.cad ? 'CA$' : '$';
-    if (s.t === 'OXY') {
-      if (p && p < 62)   msg = `OXY at $${fmt(p)} — watch hard stop at $59. Earnings May 7.`;
-      else if (p && p > 64) msg = `OXY at $${fmt(p)} (${fmtChg(c)}) — near 52wk high. Zacks #1. Hold to May 7 earnings.`;
-      else                msg = `OXY at $${fmt(p)} (${fmtChg(c)}) — Iran oil premium holding. Stop at $59. Earnings May 7.`;
-    } else if (s.t === 'NOVO.TO') {
-      msg = `NOVO.TO at CA$${fmt(p)} (${fmtChg(c)}) — CIBC CDR tracking Novo Nordisk. Ozempic/Wegovy exposure in CAD. Medicare mid-2026 catalyst.`;
-    } else if (s.t === 'FRO') {
-      msg = `FRO at $${fmt(p)} (${fmtChg(c)}) — Iran tanker rates elevated. Q1 EPS forecast $2.27 (was $1.02). Earnings May 29.`;
-    } else if (s.t === 'ATZ.TO') {
-      if (p && p < 120)  msg = `ATZ.TO at CA$${fmt(p)} (${fmtChg(c)}) — below your buy price CA$132.64. Down ${(((p-s.avgCost)/s.avgCost)*100).toFixed(1)}%. Earnings Apr 30.`;
-      else               msg = `ATZ.TO at CA$${fmt(p)} (${fmtChg(c)}) — Aritzia recovering. Watch Apr 30 earnings. Analyst target CA$148.`;
-    }
-    const cls = isGood ? 'al-g' : isBad ? 'al-r' : 'al-a';
-    const icon = isGood ? '🔥' : isBad ? '⚠' : '◎';
-    return `<div class="alert ${cls}"><span>${icon}</span><span>${msg}</span></div>`;
-  }).join('');
-
-  // Portfolio cards
-  const cards = document.getElementById('port-cards');
-  cards.innerHTML = mine.map(s => {
-    const { price, pnl, pnlPct, cost, val } = stockPnL(s);
-    const c    = chg(s.t);
-    const col  = pnl >= 0 ? 'grn' : Math.abs(pnlPct) > 15 ? 'red' : 'amber';
-    const tipCls = pnl >= 0 ? 'tip-g' : 'tip-r';
-    let advice = '', stop = '';
-    if (s.t === 'FRO')     { advice = '<strong>HOLD.</strong> Iran war driving tanker rates. Strong Q1 earnings May 29 (EPS $2.27 forecast vs $1.02 last). Dividend ~$1.03/share quarterly.'; stop = '$31.00'; }
-    if (s.t === 'NOVO.TO') { advice = '<strong>HOLD.</strong> CIBC CDR tracking Novo Nordisk (Ozempic/Wegovy). CAD-hedged. Medicare obesity coverage mid-2026 = major catalyst. Near 52-week low — hold for recovery.'; stop = 'CA$12.00'; }
-    if (s.t === 'OXY')     { advice = price < 62 ? '<strong>⚠ WATCH.</strong> Hard stop at $59. Iran de-escalation = oil price risk. Earnings May 7.' : '<strong>HOLD.</strong> Iran premium holding. Zacks #1. Morgan Stanley target $73. Earnings May 7.'; stop = '$59.00'; }
-    if (s.t === 'ATZ.TO')  { advice = price >= s.avgCost ? '<strong>HOLD.</strong> Above your buy price. Aritzia near all-time high. Analyst target CA$148 (+30%). Earnings Apr 30.' : `<strong>WATCH.</strong> Down ${(((price-s.avgCost)/s.avgCost)*100).toFixed(1)}% from your entry. Aritzia strong fundamentals. Earnings Apr 30 — hold through.`; stop = 'CA$105.00'; }
-    const pnlStr = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(0) + ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)';
-    const beStr  = s.avgCost ? '$' + s.avgCost.toFixed(2) + ' (' + ((s.avgCost - price)/price*100).toFixed(1) + '% away)' : '—';
-    return `<div class="pc ${col}">
-      <div class="pc-hdr">
-        <span class="pc-ticker">${s.t}</span>
-        <span style="font-size:14px;font-weight:600;font-family:var(--mono)" class="${colCls(c)}">$${fmt(price)} <span style="font-size:10px">${fmtChg(c)}</span></span>
-      </div>
-      <div class="pc-name">${s.n} · ${s.shares} shares</div>
-      <div class="pc-row"><span class="pc-lbl">Avg cost</span><span class="pc-val">$${s.avgCost.toFixed(2)}${s.cadAvg ? ' (CA$'+s.cadAvg+' orig)' : ''}</span></div>
-      <div class="pc-row"><span class="pc-lbl">Position value</span><span class="pc-val">$${val.toFixed(0)}</span></div>
-      <div class="pc-row"><span class="pc-lbl">Open P&amp;L</span><span class="pc-val ${pnl>=0?'g':'r'}">${pnlStr}</span></div>
-      <div class="pc-row"><span class="pc-lbl">Break-even</span><span class="pc-val">${beStr}</span></div>
-      ${s.catalyst ? `<div class="pc-row"><span class="pc-lbl">Catalyst</span><span class="pc-val g">${s.catalyst}</span></div>` : ''}
-      <div class="pc-row"><span class="pc-lbl">Hard stop</span><span class="pc-val r">${stop}</span></div>
-      <div class="pc-tip ${tipCls}">${advice}</div>
-    </div>`;
-  }).join('');
+  el.innerHTML = `<div style="background:var(--bg3);border-radius:var(--radius);padding:9px 12px;font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+    <span style="font-weight:600;color:var(--text)">🔥 Today's top movers:</span>
+    ${top5.map(s => `<span style="color:${s.c>=0?'var(--green)':'var(--red)'}"><strong>${s.t}</strong> ${s.c>=0?'+':''}${s.c.toFixed(1)}%</span>`).join(' · ')}
+    ${weak5.length > 0 ? `<span style="color:var(--text3);margin-left:8px">Low momentum: ${weak5.map(s=>s.t).join(', ')}</span>` : ''}
+  </div>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -624,22 +529,18 @@ function renderPortfolio() {
 // ─────────────────────────────────────────────────────────────────────────────
 function filtered() {
   const f = activeFilter;
-  // Always work from scored+priced snapshot
   const S = STOCKS.map(s => ({
     ...s,
     p: px(s.t) || s.p || 0,
     c: parseFloat((chg(s.t) || 0).toFixed(2)),
     score: s.score || calcMomentumScore(s)
   }));
-
-  if (f === 'portfolio') return S.filter(s => s.mine);
   if (f === 'momentum')  return S.filter(s => s.mom && s.c > 0).sort((a,b) => b.c - a.c);
   if (f === 'ytd')       return [...S].sort((a,b) => (b.ytd||0) - (a.ytd||0)).slice(0, 15);
   if (f === 'ai')        return S.filter(s => ['AI & Chips','Big Tech','Cloud Software'].includes(s.cat)).sort((a,b) => b.score - a.score);
   if (f === 'growth')    return S.filter(s => ['High Growth','Fintech','Ad Tech','Media & Consumer'].includes(s.cat)).sort((a,b) => b.score - a.score);
   if (f === 'potential') return S.filter(s => ['Emerging','Quantum & Space','Healthcare'].includes(s.cat)).sort((a,b) => b.score - a.score);
   if (f === 'crypto')    return S.filter(s => s.cat === 'Crypto').sort((a,b) => b.score - a.score);
-  // 'all' — show top 35 by momentum score
   return [...S].sort((a,b) => b.score - a.score).slice(0, 35);
 }
 
@@ -647,10 +548,7 @@ function setFilter(f, el) {
   activeFilter = f;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
   if (el) el.classList.add('on');
-  const isPort = f === 'portfolio';
-  document.getElementById('port-view').style.display  = isPort ? 'block' : 'none';
-  document.getElementById('watch-view').style.display = isPort ? 'none'  : 'block';
-  if (!isPort) renderWatchlist();
+  renderWatchlist();
 }
 
 function renderWatchlist() {
@@ -701,42 +599,39 @@ function selectStock(t) {
 // ─────────────────────────────────────────────────────────────────────────────
 function renderSellSignals() {
   const cFn = sc => sc>=55?'#d42f4d':sc>=35?'#b45309':'#0a8f5c';
-  const mine = STOCKS.filter(s=>s.mine);
 
-  // Portfolio table
-  document.getElementById('sell-rows').innerHTML = mine.map(s=>{
-    const { price, pnl, pnlPct } = stockPnL(s);
-    const c = chg(s.t); const ex = exitScore(s);
-    const pnlStr = (pnl>=0?'+':'')+'$'+Math.abs(pnl).toFixed(0)+' ('+(pnlPct>=0?'+':'')+pnlPct.toFixed(1)+'%)';
+  // Top watchlist stocks by exit risk (non-portfolio)
+  const watchlist = STOCKS.filter(s => !s.mine).map(s => ({...s, c:parseFloat((chg(s.t)||0).toFixed(2)), p:px(s.t)||s.p||0})).sort((a,b) => exitScore(b).score - exitScore(a).score).slice(0, 20);
+
+  document.getElementById('sell-rows').innerHTML = watchlist.map(s => {
+    const ex = exitScore(s);
+    const c = s.c;
     const acCls = ex.action==='SELL'?'b-r':ex.action==='WATCH'?'b-a':'b-n';
     const trigText = [
       c < 0 ? 'Negative momentum' : null,
       ex.ob ? 'Overbought RSI' : null,
       ex.fall ? '3-day downtrend' : null,
       s.earn ? 'Upcoming earnings risk' : null,
-      (s.mine && price < s.avgCost) ? 'Below avg cost' : null,
     ].filter(Boolean).join(' · ') || 'No major exit signals';
-    let stops = {FRO:'$31.00 USD','NOVO.TO':'CA$12.00','OXY':'$59.00 USD','ATZ.TO':'CA$105.00'}[s.t] || '—';
+    const pStr = s.p >= 1000 ? s.p.toFixed(0) : s.p.toFixed(2);
     return `<tr>
-      <td><strong>${s.t}</strong><br><small style="color:var(--text3)">${s.shares}sh @ $${s.avgCost.toFixed(2)}</small></td>
-      <td style="font-family:var(--mono)">$${fmt(price)}</td>
-      <td class="${pnl>=0?'g':'r'}">${pnlStr}</td>
+      <td><strong>${s.t}</strong><br><small style="color:var(--text3)">${s.n}</small></td>
+      <td style="font-family:var(--mono)">${prices[s.t]?'$'+pStr:'—'}</td>
       <td class="${colCls(c)}">${fmtChg(c)}</td>
       <td style="font-size:11px;color:var(--text2)">${trigText}</td>
       <td><strong style="color:${cFn(ex.score)}">${ex.score}</strong>
         <div class="score-track"><div style="width:${ex.score}%;height:5px;border-radius:3px;background:${cFn(ex.score)}"></div></div>
       </td>
-      <td><span class="b ${acCls}">${ex.action}</span><br><small style="color:var(--text3)">Stop ${stops}</small></td>
+      <td><span class="b ${acCls}">${ex.action}</span></td>
     </tr>`;
   }).join('');
 
-  // Full watchlist scan
   const sorted = [...STOCKS].map(s=>({...s,c:parseFloat((chg(s.t)||0).toFixed(2)),p:px(s.t)||s.p||0})).sort((a,b)=>exitScore(b).score-exitScore(a).score);
   document.getElementById('sell-all-rows').innerHTML = sorted.map(s=>{
     const ex = exitScore(s); const acCls = ex.action==='SELL'?'b-r':ex.action==='WATCH'?'b-a':'b-n';
     const pStr = s.p>=1000?s.p.toFixed(0):s.p.toFixed(2);
     return `<tr>
-      <td><strong>${s.t}</strong>${s.mine?'<span class="b b-p" style="margin-left:4px;font-size:9px">Portfolio</span>':''}</td>
+      <td><strong>${s.t}</strong></td>
       <td style="font-family:var(--mono)">${prices[s.t]?'$'+pStr:'—'}</td>
       <td class="${s.c>=0?'g':'r'}">${fmtChg(s.c)}</td>
       <td>${ex.ob?'<span class="b b-r">Yes</span>':'—'}</td>
@@ -758,7 +653,7 @@ function renderScanner() {
 
   document.getElementById('scan-top').innerHTML = scored.slice(0,6).map((s,i) => {
     const col = cFn(s.score); const pStr = s.p>=1000?s.p.toFixed(0):s.p.toFixed(2);
-    return `<div class="scan-card${i===0?' top1':''}" onclick="selectStock('${s.t}');setFilter('all',document.querySelectorAll('.pill')[1])">
+    return `<div class="scan-card${i===0?' top1':''}" onclick="selectStock('${s.t}');setFilter('all',document.querySelectorAll('.pill')[0])">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
         <span style="font-size:14px;font-weight:600">${s.t} ${i===0?'🔥':''}</span>
         <span style="font-size:22px;font-weight:600;color:${col};font-family:var(--mono)">${s.score}</span>
@@ -769,7 +664,6 @@ function renderScanner() {
         ${s.mom?'<span class="b b-g">3-day ▲</span>':''}
         ${s.catalyst?'<span class="b b-a">⚡ Catalyst</span>':''}
         ${s.earn?'<span class="b b-r">Earnings</span>':''}
-        ${s.mine?'<span class="b b-p">Portfolio</span>':''}
       </div>
     </div>`;
   }).join('');
@@ -778,7 +672,7 @@ function renderScanner() {
     const col = cFn(s.score); const sig = s.c>=1.5?'BUY':s.c<=-1.5?'SELL':s.mom?'BUY':'HOLD';
     const pStr = s.p>=1000?s.p.toFixed(0):s.p.toFixed(2);
     return `<tr>
-      <td><strong>${s.t}</strong>${s.mine?'<span class="b b-p" style="margin-left:3px;font-size:9px">Portfolio</span>':''}</td>
+      <td><strong>${s.t}</strong></td>
       <td style="font-family:var(--mono)">${prices[s.t]?'$'+pStr:'—'}</td>
       <td class="${s.c>=0?'g':'r'}">${fmtChg(s.c)}</td>
       <td>${s.mom?'<span class="b b-g">Yes ▲</span>':'—'}</td>
@@ -792,6 +686,149 @@ function renderScanner() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BACKTEST
+// ─────────────────────────────────────────────────────────────────────────────
+let btData = [];
+let btFilter = 'all';
+
+function setBtFilter(f, el) {
+  btFilter = f;
+  document.querySelectorAll('.bt-pill').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+  renderBtResults();
+}
+
+async function runBacktest() {
+  const btn = document.getElementById('btRunBtn');
+  const status = document.getElementById('btStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading…';
+  btData = [];
+
+  const symbols = STOCKS.map(s => s.t);
+  status.textContent = `Fetching 3-month history for ${symbols.length} stocks…`;
+
+  const now = Math.floor(Date.now() / 1000);
+  const threeMonthsAgo = now - (90 * 24 * 60 * 60);
+
+  let done = 0;
+  const results = await Promise.all(symbols.map(async sym => {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&period1=${threeMonthsAgo}&period2=${now}`;
+      const r = await fetch(url);
+      const d = await r.json();
+      const closes = d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+      if (!closes || closes.length < 2) return null;
+      const first = closes.find(v => v != null);
+      const last  = [...closes].reverse().find(v => v != null);
+      if (!first || !last) return null;
+      const pct = ((last - first) / first) * 100;
+      const stock = STOCKS.find(s => s.t === sym);
+      done++;
+      status.textContent = `Loading ${done}/${symbols.length}…`;
+      return { t: sym, n: stock?.n || sym, cat: stock?.cat || '', pct: Math.round(pct * 10) / 10, first: Math.round(first * 100) / 100, last: Math.round(last * 100) / 100 };
+    } catch { return null; }
+  }));
+
+  btData = results.filter(Boolean).sort((a, b) => b.pct - a.pct);
+  btn.disabled = false;
+  btn.textContent = '↻ Re-run';
+  status.textContent = `${btData.length} stocks loaded · 3-month return (sorted best → worst)`;
+  renderBtResults();
+}
+
+function renderBtResults() {
+  const container = document.getElementById('btResults');
+  if (!btData.length) {
+    container.innerHTML = '<div class="no-r">Click ▶ Run Backtest to load 3-month return data</div>';
+    return;
+  }
+  const filtered = btFilter === 'all' ? btData : btData.filter(s => s.cat === btFilter || (Array.isArray(s.cat) && s.cat.includes(btFilter)));
+  if (!filtered.length) {
+    container.innerHTML = '<div class="no-r">No stocks in this category</div>';
+    return;
+  }
+  const maxAbs = Math.max(...filtered.map(s => Math.abs(s.pct)), 1);
+  const rows = filtered.map(s => {
+    const color    = s.pct >= 0 ? 'var(--green)' : 'var(--red)';
+    const barWidth = Math.round((Math.abs(s.pct) / maxAbs) * 100);
+    const sign     = s.pct >= 0 ? '+' : '';
+    return `<tr>
+      <td><strong>${s.t}</strong><br><small style="color:var(--text3)">${s.n}</small></td>
+      <td class="num" style="color:${color};font-weight:600">${sign}${s.pct}%</td>
+      <td class="num" style="color:var(--text3);font-size:11px">$${s.first}</td>
+      <td class="num" style="color:var(--text3);font-size:11px">$${s.last}</td>
+      <td class="bt-bar-cell">
+        <div class="bt-bar-wrap"><div class="bt-bar-fill" style="width:${barWidth}%;background:${color}"></div></div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `<div style="overflow-x:auto"><table class="bt-table">
+    <thead><tr>
+      <th>Stock</th>
+      <th class="num">3M Return</th>
+      <th class="num">Price then</th>
+      <th class="num">Price now</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SETTINGS / FILTER BLACKLIST
+// ─────────────────────────────────────────────────────────────────────────────
+const ALL_PILLS = [
+  { id: 'all',       label: '🔥 Top 35 today' },
+  { id: 'momentum',  label: '3-day streak ▲' },
+  { id: 'ytd',       label: 'Top YTD' },
+  { id: 'ai',        label: 'AI & tech' },
+  { id: 'growth',    label: 'High growth' },
+  { id: 'potential', label: '⚡ Emerging' },
+  { id: 'crypto',    label: '₿ Crypto' },
+];
+
+function getHiddenPills() {
+  try { return JSON.parse(localStorage.getItem('hiddenPills') || '[]'); } catch { return []; }
+}
+function saveHiddenPills(arr) { localStorage.setItem('hiddenPills', JSON.stringify(arr)); }
+
+function applyPillVisibility() {
+  const hidden = getHiddenPills();
+  ALL_PILLS.forEach(p => {
+    const el = document.querySelector(`.pill[data-filter="${p.id}"]`);
+    if (el) el.style.display = hidden.includes(p.id) ? 'none' : '';
+  });
+}
+
+function openSettings() {
+  const hidden = getHiddenPills();
+  document.getElementById('pillToggles').innerHTML = ALL_PILLS.map(p => `
+    <div class="pill-toggle-row">
+      <span class="pill-toggle-label">${p.label}</span>
+      <label class="toggle-switch">
+        <input type="checkbox" ${!hidden.includes(p.id) ? 'checked' : ''}
+               onchange="togglePill('${p.id}', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+  applyPillVisibility();
+}
+
+function togglePill(id, visible) {
+  let hidden = getHiddenPills();
+  if (visible) { hidden = hidden.filter(h => h !== id); }
+  else { if (!hidden.includes(id)) hidden.push(id); }
+  saveHiddenPills(hidden);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────────────────────────────────────
 function goTab(id, el) {
@@ -799,12 +836,13 @@ function goTab(id, el) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('tab-'+id).classList.add('on');
   el.classList.add('on');
-  if (id==='sell')    renderSellSignals();
-  if (id==='scanner') renderScanner();
+  if (id==='sell')      renderSellSignals();
+  if (id==='scanner')   renderScanner();
+  if (id==='backtest')  renderBtResults();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CLOCK
+// CLOCK + AUTO-REFRESH
 // ─────────────────────────────────────────────────────────────────────────────
 function updateClock() {
   document.getElementById('ts').textContent = new Date().toLocaleString('en-US',{
@@ -814,18 +852,10 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 60000);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AUTO-REFRESH every 5 minutes
-// ─────────────────────────────────────────────────────────────────────────────
 setInterval(loadAllPrices, 5 * 60 * 1000);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PASSWORD AUTH
-// Hash of password "Botanic@2020" — change this to update the password
-// To generate a new hash: open browser console and run:
-//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourPassword'))
-//     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
 // ─────────────────────────────────────────────────────────────────────────────
 const PASSWORD_HASH = 'a4f3b8c2e1d9f6a5b0c7d2e8f3a1b9c4d5e2f7a0b8c3d6e1f4a2b5c9d7e3f8a1';
 
@@ -839,23 +869,17 @@ async function checkPassword() {
   const err   = document.getElementById('login-err');
   const pw    = input.value;
   if (!pw) { err.textContent = 'Please enter your password'; return; }
-
-  const hash = await hashPassword(pw);
-
-  // Check against correct password directly (hashed comparison for security)
+  const hash    = await hashPassword(pw);
   const correct = await hashPassword('Botanic@2020');
   if (hash === correct) {
-    // Correct — hide login, show dashboard, start loading prices
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    // Save session so refresh doesn't ask again (clears when browser closes)
     sessionStorage.setItem('td_auth', '1');
     initDashboard();
   } else {
-    // Wrong — shake the input and show error
     err.textContent = 'Incorrect password — try again';
     input.classList.remove('shake');
-    void input.offsetWidth; // force reflow to restart animation
+    void input.offsetWidth;
     input.classList.add('shake');
     input.value = '';
     input.focus();
@@ -863,14 +887,13 @@ async function checkPassword() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LOAD MASTER POOL from stocks-master.json then fetch prices + score
+// LOAD MASTER POOL
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadMasterPool() {
   try {
     const res = await fetch('/stocks-master.json?v=' + Date.now());
     if (!res.ok) throw new Error('Could not load stocks-master.json');
     STOCKS = await res.json();
-    // Initialise runtime fields
     STOCKS.forEach(s => { s.p = 0; s.c = 0; s.ytd = 0; s.mom = false; s.score = 0; });
     console.log(`Loaded ${STOCKS.length} stocks from master pool`);
   } catch(e) {
@@ -880,41 +903,30 @@ async function loadMasterPool() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MOMENTUM SCORE — pure price signals, no hardcoded assumptions
-// Used to auto-select the top 35 from the full pool every session
+// MOMENTUM SCORE
 // ─────────────────────────────────────────────────────────────────────────────
 function calcMomentumScore(s) {
   let score = 0;
   const c = s.c || 0;
-  // Today's move
-  if (c > 3)       score += 30;
+  if (c > 3)        score += 30;
   else if (c > 1.5) score += 20;
   else if (c > 0)   score += 10;
   else if (c < -3)  score -= 15;
   else if (c < -1)  score -= 8;
-  // Consecutive up days proxy (mom flag)
   if (s.mom) score += 20;
-  // YTD performance
   const ytd = s.ytd || 0;
-  if (ytd > 100)     score += 25;
-  else if (ytd > 50) score += 18;
-  else if (ytd > 20) score += 10;
-  else if (ytd > 0)  score += 5;
+  if (ytd > 100)      score += 25;
+  else if (ytd > 50)  score += 18;
+  else if (ytd > 20)  score += 10;
+  else if (ytd > 0)   score += 5;
   else if (ytd < -30) score -= 10;
-  // Portfolio positions always keep score high so they always show
   if (s.mine) score += 50;
   return Math.max(0, Math.min(99, score));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AUTO-SELECT TOP 35 from full pool based on momentum score
-// Portfolio positions always included regardless of score
-// ─────────────────────────────────────────────────────────────────────────────
 function selectTop35() {
-  // Always include portfolio positions
-  const mine = STOCKS.filter(s => s.mine);
-  const rest = STOCKS.filter(s => !s.mine);
-  // Sort rest by score descending, take top (35 - mine count)
+  const mine    = STOCKS.filter(s => s.mine);
+  const rest    = STOCKS.filter(s => !s.mine);
   const topRest = [...rest].sort((a,b) => b.score - a.score).slice(0, 35 - mine.length);
   const selected = [...mine, ...topRest];
   const dropped  = rest.filter(s => !topRest.includes(s));
@@ -922,20 +934,20 @@ function selectTop35() {
 }
 
 async function initDashboard() {
-  setFilter('portfolio', document.querySelector('.pill'));
+  applyPillVisibility();
+  setFilter('all', document.querySelector('.pill[data-filter="all"]'));
   await loadMasterPool();
   if (STOCKS.length > 0) loadAllPrices();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INIT — check if already authenticated this session
+// INIT
 // ─────────────────────────────────────────────────────────────────────────────
 if (sessionStorage.getItem('td_auth') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'block';
   initDashboard();
 }
-// Otherwise wait for user to enter password — checkPassword() handles it
 </script>
 </div><!-- /main-app -->
 </body>
