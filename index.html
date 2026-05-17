@@ -1173,7 +1173,7 @@ async function hashPassword(pw){const buf=await crypto.subtle.digest('SHA-256',n
 async function checkPassword(){
   const input=document.getElementById('login-input');const err=document.getElementById('login-err');const pw=input.value;
   if(!pw){err.textContent='Please enter your password';return;}
-  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic@2020');
+  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic_007');
   if(hash===correct){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
