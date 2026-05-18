@@ -1704,12 +1704,12 @@ async function loadCandidates(){
 }
 async function initDashboard(){
   applyPillVisibility();
-  setFilter('all',document.querySelector('.pill[data-filter="all"]'));
   await loadCandidates();
   if(CANDIDATES.length>0){
     await loadAllPrices();
     selectDynamicPool();
     STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+    setFilter('all',document.querySelector('.pill[data-filter="all"]'));
     renderAll();
     renderPoolTab();
     backgroundLoadRemaining();
@@ -1726,7 +1726,7 @@ async function backgroundLoadRemaining(){
     await sleep(200);
   }
   selectDynamicPool();STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-  renderAll();renderPoolTab();
+  renderAll();renderWatchlist();renderPoolTab();
   updateStatus(`✓ Dynamic pool updated · ${STOCKS.length} from ${CANDIDATES.length} candidates · ${new Date().toLocaleTimeString()}`,'g');
   updateTickerStrip();
 }
