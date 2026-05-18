@@ -340,6 +340,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .earn-move{font-weight:600}
 .earn-tip{margin-top:6px;font-size:11px;padding:6px 10px;border-radius:7px;line-height:1.5}
 
+/* ── MARKET STATUS ── */
+.market-banner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-lg);margin-bottom:12px;font-size:12px;line-height:1.5;border:1px solid;flex-wrap:wrap}
+.market-banner.closed{background:#1a1a2e;border-color:rgba(255,255,255,0.1);color:#94a3b8}
+.market-banner.open{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.market-banner.pre{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
+.market-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulseAnim 2s infinite}
+.market-closed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.market-closed-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px;opacity:.75;position:relative}
+.market-closed-badge{position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;background:#1a1a2e;color:#94a3b8}
+.market-closed-suggest{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;text-align:center}
+.market-suggest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.market-suggest-btn{padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-family:var(--font);transition:border-color .15s;text-align:center}
+.market-suggest-btn:hover{border-color:var(--accent)}
+.market-suggest-icon{font-size:24px;margin-bottom:6px}
+.market-suggest-label{font-size:12px;font-weight:600;color:var(--text);display:block}
+.market-suggest-sub{font-size:10px;color:var(--text3);margin-top:2px;display:block}
+
 /* ── PHASE 2.1: PAPER TRADING ── */
 .paper-hero{background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 100%);border-radius:var(--radius-lg);padding:18px;margin-bottom:12px;color:white}
 .paper-hero-label{font-size:11px;opacity:.7;margin-bottom:4px;font-weight:500}
@@ -577,6 +594,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
       <div class="mc"><div class="mc-l">Risk</div><div class="mc-v" id="sel-r">—</div></div>
     </div>
     <div id="rotation-info" style="display:none;margin-bottom:8px"></div>
+    <div id="market-status-banner"></div>
     <div class="wgrid" id="wgrid"></div>
     <div class="note" id="price-source">Prices loading…</div>
   </div>
@@ -1034,13 +1052,16 @@ function renderPoolTab(){
 function filtered(){
   const f=activeFilter;
   const S=STOCKS.map(s=>({...s,p:px(s.t)||s.p||0,c:parseFloat((chg(s.t)||0).toFixed(2)),score:s.score||calcMomentumScore(s)}));
-  if(f==='momentum')return S.filter(s=>s.mom&&s.c>0).sort((a,b)=>b.c-a.c);
+  if(!S.length)return[];
+  if(f==='momentum')return S.filter(s=>s.mom||s.c>0.5).sort((a,b)=>b.c-a.c);
   if(f==='ytd')return[...S].sort((a,b)=>(b.ytd||0)-(a.ytd||0)).slice(0,15);
-  if(f==='ai')return S.filter(s=>s.cat==='AI & Chips').sort((a,b)=>b.score-a.score);
-  if(f==='growth')return S.filter(s=>['High Growth','Fintech','Ad Tech'].includes(s.cat)).sort((a,b)=>b.score-a.score);
-  if(f==='potential')return S.filter(s=>s.cat==='Emerging').sort((a,b)=>b.score-a.score);
-  if(f==='crypto')return S.filter(s=>s.cat==='Crypto').sort((a,b)=>b.score-a.score);
-  return[...S].sort((a,b)=>b.score-a.score).slice(0,DISPLAY_TOP);
+  if(f==='ai')return S.filter(s=>s.cat==='AI & Chips'||s.cat==='AI'||s.cat==='Chips').sort((a,b)=>b.score-a.score);
+  if(f==='growth')return S.filter(s=>['High Growth','High growth','Growth','Fintech','Ad Tech'].includes(s.cat)).sort((a,b)=>b.score-a.score);
+  if(f==='potential')return S.filter(s=>s.cat==='Emerging'||s.cat==='Emerging Markets'||s.cat==='Small Cap').sort((a,b)=>b.score-a.score);
+  if(f==='crypto')return S.filter(s=>s.cat==='Crypto'||s.cat==='Cryptocurrency').sort((a,b)=>b.score-a.score);
+  // Default 'all' - show top 35 by score, fall back to showing all if scores are zero
+  const sorted=[...S].sort((a,b)=>b.score-a.score);
+  return sorted.slice(0,DISPLAY_TOP);
 }
 function setFilter(f,el){
   activeFilter=f;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
@@ -1049,9 +1070,104 @@ function setFilter(f,el){
 function getAlerts(){try{return JSON.parse(localStorage.getItem('priceAlerts')||'{}');}catch{return{};}}
 function getNotes(){try{return JSON.parse(localStorage.getItem('stockNotes')||'{}');}catch{return{};}}
 
+// ── MARKET STATUS ─────────────────────────────────────────────────────────────
+function getMarketStatus(){
+  const now=new Date();
+  const utc=now.getTime()+(now.getTimezoneOffset()*60000);
+  const et=new Date(utc+(3600000*-5)); // ET (EST)
+  const day=et.getDay();const h=et.getHours();const m=et.getMinutes();const mins=h*60+m;
+  const isWeekday=day>=1&&day<=5;
+  const marketOpen=9*60+30;const marketClose=16*60;
+  if(!isWeekday)return{status:'closed',reason:'weekend',day,et};
+  if(mins<marketOpen)return{status:'pre',reason:'pre-market',opensIn:marketOpen-mins,et};
+  if(mins>=marketClose)return{status:'after',reason:'after-hours',et};
+  return{status:'open',reason:'live',et};
+}
+function getNextOpenText(ms){
+  if(ms.reason==='weekend')return ms.day===0?'Opens Monday at 9:30 AM ET':'Opens Monday at 9:30 AM ET';
+  if(ms.reason==='pre-market'){const mins=ms.opensIn;return`Opens in ${Math.floor(mins/60)}h ${mins%60}m`;}
+  return'Opens tomorrow at 9:30 AM ET';
+}
+function renderMarketBanner(){
+  const ms=getMarketStatus();const banner=document.getElementById('market-status-banner');if(!banner)return;
+  if(ms.status==='open'){
+    banner.innerHTML=`<div class="market-banner open"><div class="market-status-dot" style="background:var(--green)"></div><strong>Markets are open</strong> · Live prices · NYSE &amp; NASDAQ trading until 4:00 PM ET</div>`;
+    return;
+  }
+  if(ms.status==='pre'){
+    banner.innerHTML=`<div class="market-banner pre"><div class="market-status-dot" style="background:var(--amber)"></div><strong>Pre-market</strong> · ${getNextOpenText(ms)} · Prices shown are yesterday's close</div>`;
+    return;
+  }
+  const isWeekend=ms.reason==='weekend';
+  banner.innerHTML=`<div class="market-banner closed">
+    <div class="market-status-dot" style="background:#475569;animation:none"></div>
+    <div style="flex:1">
+      <strong style="color:#e2e8f0">${isWeekend?'Markets are closed for the weekend':'Markets are closed'}</strong>
+      <span style="margin-left:8px;font-size:11px;opacity:.8">${getNextOpenText(ms)}</span><br>
+      <span style="font-size:11px;opacity:.7">Prices below are from the last trading session · Momentum filters need live data to work · Use this time to learn and plan</span>
+    </div>
+  </div>
+  <div class="market-closed-suggest">
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Make the most of the weekend 👇</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Markets are closed but StockMate still has plenty for you</div>
+    <div class="market-suggest-grid">
+      <button class="market-suggest-btn" onclick="goTab('earnings',document.querySelector('.tab[onclick*=earnings]'))">
+        <div class="market-suggest-icon">📅</div>
+        <span class="market-suggest-label">Earnings Calendar</span>
+        <span class="market-suggest-sub">See what's reporting next week</span>
+      </button>
+      <button class="market-suggest-btn" onclick="goTab('learn',document.querySelector('.tab[onclick*=learn]'))">
+        <div class="market-suggest-icon">📚</div>
+        <span class="market-suggest-label">Learn</span>
+        <span class="market-suggest-sub">Complete your next lesson</span>
+      </button>
+      <button class="market-suggest-btn" onclick="goTab('paper',document.querySelector('.tab[onclick*=paper]'))">
+        <div class="market-suggest-icon">🧪</div>
+        <span class="market-suggest-label">Paper Trade</span>
+        <span class="market-suggest-sub">Practice with virtual money</span>
+      </button>
+      <button class="market-suggest-btn" onclick="goTab('digest',document.querySelector('.tab[onclick*=digest]'))">
+        <div class="market-suggest-icon">📬</div>
+        <span class="market-suggest-label">Weekly Digest</span>
+        <span class="market-suggest-sub">Plan your week ahead</span>
+      </button>
+    </div>
+  </div>`;
+}
+
 function renderWatchlist(){
+  const ms=getMarketStatus();
   const list=filtered();const g=document.getElementById('wgrid');
-  if(!list.length){g.innerHTML='<div class="no-r">No stocks match this filter.</div>';return;}
+  renderMarketBanner();
+
+  // Markets closed and filter returns nothing — show last-close cards
+  if(ms.status!=='open'&&!list.length){
+    const allStocks=STOCKS.map(s=>({...s,p:px(s.t)||s.p||0,c:parseFloat((chg(s.t)||0).toFixed(2)),score:s.score||calcMomentumScore(s)}));
+    const topStocks=[...allStocks].sort((a,b)=>b.score-a.score).slice(0,DISPLAY_TOP);
+    if(topStocks.length){
+      g.innerHTML=topStocks.map(s=>{
+        const rC=s.risk==='High'?'b-r':s.risk==='Low'?'b-g':'b-a';
+        const px2=s.p>=1000?s.p.toFixed(0):s.p>=100?s.p.toFixed(1):s.p.toFixed(2);
+        return`<div class="market-closed-card" onclick="selectStock('${s.t}')">
+          <div class="market-closed-badge">Last close</div>
+          <div class="wt">${s.t}</div>
+          <div class="wn">${s.n}</div>
+          <div class="wp">${prices[s.t]?'$'+px2:'—'}</div>
+          <div class="wch" style="color:var(--text3)">Closed</div>
+          <div class="wbadges"><span class="b ${rC}">${s.risk}</span><span class="b b-n">${s.cat}</span></div>
+        </div>`;
+      }).join('');
+    }else{
+      g.innerHTML=`<div class="no-r" style="grid-column:1/-1">Prices will load when markets open</div>`;
+    }
+    return;
+  }
+
+  if(!list.length){
+    const cats=[...new Set(STOCKS.map(s=>s.cat))].filter(Boolean).sort().join(', ');
+    g.innerHTML=`<div class="no-r" style="grid-column:1/-1">No stocks match this filter.<br><span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">Available categories: ${cats||'loading…'}</span></div>`;
+    return;
+  }
   const alerts=getAlerts();const notes=getNotes();
   g.innerHTML=list.map(s=>{
     const sig=s.c>=1.5?'BUY':s.c<=-1.5?'SELL':s.mom?'BUY':'HOLD';
