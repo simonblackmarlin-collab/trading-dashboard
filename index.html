@@ -877,6 +877,7 @@ async function loadAllPrices(){
   }
   pricesLoaded=true;setLoading(false);
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+  selectDynamicPool();
   const fl=Object.keys(prices).length,ff=tickers.filter(t=>!prices[t]);
   if(fl>=total*0.9)updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
   else updateStatus(`⚠ ${fl}/${total} loaded · Missing: ${ff.slice(0,6).join(', ')}`,'r');
@@ -1416,7 +1417,14 @@ async function initDashboard(){
   applyPillVisibility();
   setFilter('all',document.querySelector('.pill[data-filter="all"]'));
   await loadCandidates();
-  if(CANDIDATES.length>0){await loadAllPrices();backgroundLoadRemaining();}
+  if(CANDIDATES.length>0){
+    await loadAllPrices();
+    selectDynamicPool();
+    STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+    renderAll();
+    renderPoolTab();
+    backgroundLoadRemaining();
+  }
 }
 async function backgroundLoadRemaining(){
   const loaded=new Set(Object.keys(prices));
