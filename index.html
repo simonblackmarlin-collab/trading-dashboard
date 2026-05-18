@@ -1182,8 +1182,20 @@ function selectDynamicPool(){
 }
 
 function renderAll(){
-  renderRotationInfo();renderWatchlist();
+  renderRotationInfo();
+  renderWatchlist();
+  renderHealthScore();
+  checkSmartAlerts();
+  populateTickerSelect();
   document.getElementById('price-source').textContent=`Prices via Finnhub · ${STOCKS.length} stocks from ${CANDIDATES.length} candidates · ${new Date().toLocaleTimeString()} · Not financial advice`;
+  // Refresh active tabs
+  if(document.getElementById('tab-smart-alerts')?.classList.contains('on'))generateSmartAlerts();
+  if(document.getElementById('tab-community')?.classList.contains('on'))renderCommunity();
+  if(document.getElementById('tab-digest')?.classList.contains('on'))renderWeeklyDigest();
+  if(document.getElementById('tab-paper')?.classList.contains('on'))renderPaperPortfolio();
+  if(document.getElementById('tab-heatmap')?.classList.contains('on'))renderHeatmap();
+  if(document.getElementById('tab-journal')?.classList.contains('on'))renderJournalEntries();
+  if(document.getElementById('tab-watchlist-alerts')?.classList.contains('on'))renderWatchlistAlerts();
 }
 
 function renderRotationInfo(){
@@ -2353,25 +2365,8 @@ function renderWatchlistAlerts(){
   }).join('');
 }
 
-// Hook Phase 3 into renderAll
-const _p3RenderAll=renderAll;
-function renderAll(){
-  _p3RenderAll();
-  if(document.getElementById('tab-heatmap')?.classList.contains('on'))renderHeatmap();
-  if(document.getElementById('tab-journal')?.classList.contains('on'))renderJournalEntries();
-  if(document.getElementById('tab-watchlist-alerts')?.classList.contains('on'))renderWatchlistAlerts();
-  checkSmartAlerts();
-  populateTickerSelect();
-}
-const _origRenderAll=renderAll;
-function renderAll(){
-  _origRenderAll();
-  renderHealthScore();
-  if(document.getElementById('tab-smart-alerts')?.classList.contains('on'))generateSmartAlerts();
-  if(document.getElementById('tab-community')?.classList.contains('on'))renderCommunity();
-  if(document.getElementById('tab-digest')?.classList.contains('on'))renderWeeklyDigest();
-  if(document.getElementById('tab-paper')?.classList.contains('on'))renderPaperPortfolio();
-}
+// Hook Phase 3 into price load — handled by consolidated renderAll above
+// Hook health score + smart alerts — handled by consolidated renderAll above
 
 // ══════════════════════════════════════════════════════
 // PHASE 2.1: PAPER TRADING
