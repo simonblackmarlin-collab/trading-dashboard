@@ -437,6 +437,73 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .digest-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5}
 .digest-item:last-child{border-bottom:none}
 .digest-item-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* ── PHASE 3.1: SECTOR HEATMAP ── */
+.heatmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+@media(max-width:480px){.heatmap-grid{grid-template-columns:repeat(2,1fr)}}
+.heatmap-cell{border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:transform .15s;position:relative;overflow:hidden}
+.heatmap-cell:hover{transform:scale(1.02)}
+.heatmap-cell-name{font-size:11px;font-weight:600;opacity:.85;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.heatmap-cell-pct{font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px}
+.heatmap-cell-count{font-size:10px;opacity:.7}
+.heatmap-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.3)}
+.heatmap-bar-fill{height:100%;background:rgba(255,255,255,0.6);transition:width .5s}
+
+/* ── PHASE 3.2: COMPARE MODE ── */
+.compare-search-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.compare-input{flex:1;min-width:120px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:var(--mono);color:var(--text);background:var(--bg3);outline:none;text-transform:uppercase}
+.compare-input:focus{border-color:var(--accent)}
+.compare-btn{padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:480px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative}
+.compare-card.winner{border-color:var(--green-border);box-shadow:0 2px 12px rgba(10,143,92,0.1)}
+.compare-ticker{font-size:22px;font-weight:700;margin-bottom:2px}
+.compare-name{font-size:11px;color:var(--text3);margin-bottom:12px}
+.compare-stat{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.compare-stat:last-child{border-bottom:none}
+.compare-stat-label{color:var(--text3)}
+.compare-stat-val{font-weight:600}
+.compare-winner-badge{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--green-dim);color:var(--green)}
+.compare-verdict{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.compare-verdict-title{font-size:13px;font-weight:700;margin-bottom:8px}
+.compare-verdict-body{font-size:13px;color:var(--text2);line-height:1.7}
+
+/* ── PHASE 3.3: DECISION JOURNAL ── */
+.journal-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.journal-form-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.journal-field{margin-bottom:10px}
+.journal-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:block}
+.journal-input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none}
+.journal-input:focus{border-color:var(--accent)}
+.journal-textarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none;resize:vertical;min-height:70px;line-height:1.5}
+.journal-textarea:focus{border-color:var(--accent)}
+.journal-row{display:flex;gap:8px;flex-wrap:wrap}
+.journal-save-btn{padding:9px 18px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.journal-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.journal-entry-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.journal-entry-ticker{font-size:15px;font-weight:700}
+.journal-entry-type{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.journal-entry-date{font-size:11px;color:var(--text3);margin-left:auto}
+.journal-entry-body{font-size:12px;color:var(--text2);line-height:1.6}
+.journal-entry-outcome{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
+.journal-del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px}
+.journal-del-btn:hover{color:var(--red)}
+
+/* ── PHASE 3.4: SMART WATCHLIST ALERTS ── */
+.smart-alert-builder{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.sab-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.sab-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+.sab-select{padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none;cursor:pointer}
+.sab-select:focus{border-color:var(--accent)}
+.sab-input{padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--text);background:var(--bg3);outline:none;width:90px}
+.sab-input:focus{border-color:var(--accent)}
+.sab-add-btn{padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.sab-alert-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;font-size:12px}
+.sab-alert-row.triggered{background:var(--green-dim);border:1px solid var(--green-border)}
+.sab-alert-text{flex:1;color:var(--text2);line-height:1.5}
+.sab-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px}
+.sab-del:hover{color:var(--red)}
 </style>
 </head>
 <body>
@@ -517,6 +584,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="tab" onclick="goTab('backtest',this)">📊 Backtest</div>
   <div class="tab" onclick="goTab('earnings',this)">📅 Earnings</div>
   <div class="tab" onclick="goTab('smart-alerts',this)">🔔 Smart Alerts</div>
+  <div class="tab" onclick="goTab('heatmap',this)">🌡 Heatmap</div>
+  <div class="tab" onclick="goTab('compare',this)">⚖️ Compare</div>
+  <div class="tab" onclick="goTab('journal',this)">📓 Journal</div>
+  <div class="tab" onclick="goTab('watchlist-alerts',this)">🎯 My Alerts</div>
   <div class="tab" onclick="goTab('paper',this)">🧪 Paper Trade</div>
   <div class="tab" onclick="goTab('learn',this)">📚 Learn</div>
   <div class="tab" onclick="goTab('community',this)">👥 Community</div>
@@ -733,6 +804,104 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div id="digest-content"><div class="no-r">Load prices to generate your weekly digest</div></div>
 </div>
 
+<!-- SECTOR HEATMAP -->
+<div id="tab-heatmap" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)">🌡 Sector Heatmap</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">Which sectors are hot and cold right now · click any sector to filter the dashboard</div>
+    </div>
+    <button class="bt-run-btn" onclick="renderHeatmap()">↻ Refresh</button>
+  </div>
+  <div id="heatmap-content"><div class="no-r">Load prices to see sector heatmap</div></div>
+</div>
+
+<!-- COMPARE MODE -->
+<div id="tab-compare" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">⚖️ Compare Stocks</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Side-by-side comparison with a plain-English verdict — should I buy X or Y?</div>
+  </div>
+  <div class="compare-search-row">
+    <input class="compare-input" id="compare-a" placeholder="Ticker A (e.g. NVDA)" oninput="this.value=this.value.toUpperCase()"/>
+    <input class="compare-input" id="compare-b" placeholder="Ticker B (e.g. MSFT)" oninput="this.value=this.value.toUpperCase()"/>
+    <button class="compare-btn" onclick="runCompare()">Compare →</button>
+  </div>
+  <div id="compare-content"><div class="no-r">Enter two tickers above to compare them</div></div>
+</div>
+
+<!-- DECISION JOURNAL -->
+<div id="tab-journal" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">📓 Decision Journal</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Log every buy and sell decision · track what worked · learn from every trade</div>
+  </div>
+  <div class="journal-form">
+    <div class="journal-form-title">Log a new decision</div>
+    <div class="journal-row" style="margin-bottom:10px">
+      <div class="journal-field" style="flex:1;min-width:100px">
+        <label class="journal-label">Ticker</label>
+        <input class="journal-input" id="jnl-ticker" placeholder="e.g. NVDA" oninput="this.value=this.value.toUpperCase()"/>
+      </div>
+      <div class="journal-field" style="flex:1;min-width:100px">
+        <label class="journal-label">Action</label>
+        <select class="journal-input sab-select" id="jnl-action">
+          <option value="BUY">BUY</option>
+          <option value="SELL">SELL</option>
+          <option value="WATCH">WATCHING</option>
+        </select>
+      </div>
+      <div class="journal-field" style="flex:1;min-width:100px">
+        <label class="journal-label">Price</label>
+        <input class="journal-input" id="jnl-price" type="number" step="0.01" placeholder="$0.00"/>
+      </div>
+    </div>
+    <div class="journal-field">
+      <label class="journal-label">Why are you making this decision?</label>
+      <textarea class="journal-textarea" id="jnl-why" placeholder="e.g. 3-day momentum streak, strong earnings beat, sector rotation into AI..."></textarea>
+    </div>
+    <div class="journal-field">
+      <label class="journal-label">What signal triggered it? (optional)</label>
+      <input class="journal-input" id="jnl-signal" placeholder="e.g. Breakout scanner score 87, 3-day streak, analyst upgrade"/>
+    </div>
+    <div class="journal-row">
+      <button class="journal-save-btn" onclick="saveJournalEntry()">Save entry →</button>
+    </div>
+    <div id="jnl-msg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+  </div>
+  <div id="journal-entries"><div class="no-r">No journal entries yet — log your first decision above</div></div>
+</div>
+
+<!-- SMART WATCHLIST ALERTS -->
+<div id="tab-watchlist-alerts" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">🎯 My Watchlist Alerts</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Multi-condition alerts — get notified when exactly the right setup appears</div>
+  </div>
+  <div class="alert al-a" style="margin-bottom:12px"><span>💡</span><span>These alerts are checked every 5 minutes while you have the app open. For push notifications you'll need the mobile app (coming soon).</span></div>
+  <div class="smart-alert-builder">
+    <div class="sab-title">Build a new alert</div>
+    <div class="sab-row">
+      <select class="sab-select" id="sab-ticker-select" style="flex:1;min-width:120px">
+        <option value="">Select stock…</option>
+      </select>
+      <select class="sab-select" id="sab-condition">
+        <option value="price_above">Price above $</option>
+        <option value="price_below">Price below $</option>
+        <option value="change_above">Day change above %</option>
+        <option value="change_below">Day change below %</option>
+        <option value="streak_3">3-day streak starts</option>
+        <option value="streak_end">3-day streak ends</option>
+        <option value="before_earnings">7 days before earnings</option>
+      </select>
+      <input class="sab-input" id="sab-value" type="number" step="0.01" placeholder="Value"/>
+      <button class="sab-add-btn" onclick="addSmartAlert()">Add Alert</button>
+    </div>
+    <div id="sab-msg" style="font-size:12px;color:var(--text3);min-height:16px"></div>
+  </div>
+  <div id="watchlist-alerts-list"><div class="no-r">No alerts set yet</div></div>
+</div>
+
 <!-- POOL -->
 <div id="tab-pool" class="pg">
   <div style="margin-bottom:12px">
@@ -797,10 +966,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mob-nav">
   <button class="mob-nav-btn on" onclick="mobNav('dashboard',this)"><span class="mob-nav-icon">📊</span>Market</button>
-  <button class="mob-nav-btn" onclick="mobNav('recommendations',this)"><span class="mob-nav-icon">🎯</span>Picks</button>
-  <button class="mob-nav-btn" onclick="mobNav('paper',this)"><span class="mob-nav-icon">🧪</span>Practice</button>
+  <button class="mob-nav-btn" onclick="mobNav('heatmap',this)"><span class="mob-nav-icon">🌡</span>Heatmap</button>
+  <button class="mob-nav-btn" onclick="mobNav('compare',this)"><span class="mob-nav-icon">⚖️</span>Compare</button>
+  <button class="mob-nav-btn" onclick="mobNav('journal',this)"><span class="mob-nav-icon">📓</span>Journal</button>
   <button class="mob-nav-btn" onclick="mobNav('learn',this)"><span class="mob-nav-icon">📚</span>Learn</button>
-  <button class="mob-nav-btn" onclick="mobNav('digest',this)"><span class="mob-nav-icon">📬</span>Digest</button>
 </nav>
 <script>
 // ── COMPANY BIOS ──────────────────────────────────────────────────────────────
@@ -1490,6 +1659,10 @@ function goTab(id,el){
   if(id==='learn')renderLearnJourney();
   if(id==='community')renderCommunity();
   if(id==='digest')renderWeeklyDigest();
+  if(id==='heatmap')renderHeatmap();
+  if(id==='compare')populateCompareDropdown();
+  if(id==='journal')renderJournalEntries();
+  if(id==='watchlist-alerts')renderWatchlistAlerts();
 }
 function mobNav(id,el){
   document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('on'));
@@ -1507,7 +1680,7 @@ async function hashPassword(pw){const buf=await crypto.subtle.digest('SHA-256',n
 async function checkPassword(){
   const input=document.getElementById('login-input');const err=document.getElementById('login-err');const pw=input.value;
   if(!pw){err.textContent='Please enter your password';return;}
-  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic_007');
+  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic@2020');
   if(hash===correct){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
@@ -1568,10 +1741,9 @@ if(sessionStorage.getItem('td_auth')==='1'){
 // ══════════════════════════════════════════════════════
 function renderHealthScore(){
   if(!pricesLoaded||!STOCKS.length)return;
-
-  // Find portfolio stocks (ones with mine:true or matching BIOS portfolio tickers)
-  const myTickers=['FRO','NOVO.TO','ATZ.TO'];
-  const myStocks=STOCKS.filter(s=>myTickers.includes(s.t)||s.mine);
+  // Health score requires user portfolio data — will be enabled in a future phase
+  // when user accounts and portfolio tracking are implemented
+  const myStocks=STOCKS.filter(s=>s.mine);
   if(!myStocks.length){document.getElementById('health-card').style.display='none';return;}
 
   const issues=[];let score=10;
@@ -1755,12 +1927,9 @@ function generateSmartAlerts(){
     return;
   }
   const alerts=[];
-  const myTickers=['FRO','NOVO.TO','ATZ.TO'];
 
   STOCKS.forEach(s=>{
     const c=s.c||chg(s.t)||0;
-    const p=px(s.t)||s.p||0;
-    const isMine=myTickers.includes(s.t)||s.mine;
 
     // Big mover alert
     if(Math.abs(c)>=2){
@@ -1768,18 +1937,14 @@ function generateSmartAlerts(){
       const why=up
         ?(s.mom?'continuing a multi-day uptrend with strong momentum':'reacting to positive news or sector rotation')
         :(s.catalyst?'dropping despite a recent catalyst — worth investigating':'showing weakness — could be profit-taking or negative news');
-      const action=up&&isMine
-        ?`Your position is benefiting. Consider whether to take partial profits or hold for more upside.`
-        :!up&&isMine
-        ?`Your position is underwater. Check if the reason for your original buy thesis still holds.`
-        :up
-        ?`Watch for a 3-day streak to confirm — that would be a stronger buy signal.`
-        :`Potential entry if you believe in the company long-term — but check the news first.`;
+      const action=up
+        ?`Watch for a 3-day streak to confirm — that would be a stronger buy signal. Check recent news for the catalyst.`
+        :`Potential entry if you believe in the company long-term — but check the news first and wait for stabilisation.`;
       alerts.push({
         ticker:s.t,dot:up?'var(--green)':'var(--red)',
         type:up?'Big Mover ▲':'Big Mover ▼',typeBg:up?'var(--green-dim)':'var(--red-dim)',typeColor:up?'var(--green)':'var(--red)',
         why:`<strong>${s.t}</strong> is ${up?'up':'down'} <strong>${Math.abs(c).toFixed(1)}%</strong> today, ${why}.`,
-        action,mine:isMine,time:'Today · Live'
+        action,time:'Today · Live'
       });
     }
 
@@ -1789,19 +1954,19 @@ function generateSmartAlerts(){
         ticker:s.t,dot:'var(--accent)',
         type:'3-Day Streak',typeBg:'var(--accent-light)',typeColor:'var(--accent)',
         why:`<strong>${s.t}</strong> has been rising for 3 or more consecutive days, including today's +${c.toFixed(1)}%. This momentum pattern historically continues short-term more often than it reverses.`,
-        action:isMine?'Your position is performing well. Keep your stop loss updated to lock in gains.':'A 3-day streak is a buy signal worth watching — check volume to confirm strength.',
-        mine:isMine,time:'Today · Live'
+        action:'A 3-day streak is a buy signal worth watching — check volume to confirm strength and use the Pre-Buy Checklist before acting.',
+        time:'Today · Live'
       });
     }
 
-    // Earnings warning for held stocks
-    if(isMine&&s.earn&&!alerts.find(a=>a.ticker===s.t&&a.type==='Earnings Alert')){
+    // Earnings coming soon
+    if(s.earn&&!alerts.find(a=>a.ticker===s.t&&a.type==='Earnings Alert')){
       alerts.push({
         ticker:s.t,dot:'var(--amber)',
         type:'Earnings Alert',typeBg:'var(--amber-dim)',typeColor:'var(--amber)',
         why:`<strong>${s.t}</strong> has an earnings report coming soon. This is the single biggest risk event for any stock — results can cause 10–20% moves in either direction within hours.`,
-        action:'Consider whether you want to hold through earnings or reduce your position size beforehand. There\'s no shame in waiting for the dust to settle.',
-        mine:true,time:'Upcoming'
+        action:"If you hold this stock, consider your position size before earnings. If you're watching it, wait for the dust to settle after results before buying.",
+        time:'Upcoming'
       });
     }
   });
@@ -1817,8 +1982,8 @@ function generateSmartAlerts(){
         ticker:cat,dot:up?'var(--green)':'var(--amber)',
         type:'Sector Move',typeBg:up?'var(--green-dim)':'var(--amber-dim)',typeColor:up?'var(--green)':'var(--amber)',
         why:`The <strong>${cat}</strong> sector is ${up?'up':'down'} an average of <strong>${Math.abs(avg).toFixed(1)}%</strong> today across ${changes.length} stocks. ${up?'This sector-wide move suggests a macro catalyst — news or data affecting the whole space.':'This broad sector weakness may indicate macro headwinds rather than individual stock problems.'}`,
-        action:up?`If you own stocks in ${cat}, this broad tailwind supports your positions.`:`If you own stocks in ${cat}, check whether the macro concern affects your thesis.`,
-        mine:false,time:'Today · Sector'
+        action:up?`Broad sector tailwind — stocks in ${cat} have the wind at their backs today.`:`Check whether the macro concern affects any stocks in ${cat} you're watching.`,
+        time:'Today · Sector'
       });
     }
   });
@@ -1832,13 +1997,11 @@ function generateSmartAlerts(){
     return;
   }
 
-  // Mine first, then by impact
-  const sorted=[...alerts.filter(a=>a.mine),...alerts.filter(a=>!a.mine)];
-  document.getElementById('smart-alerts-content').innerHTML=sorted.map(a=>`
+  document.getElementById('smart-alerts-content').innerHTML=alerts.map(a=>`
     <div class="smart-alert-card">
       <div class="sa-header">
         <div class="sa-dot" style="background:${a.dot}"></div>
-        <div class="sa-ticker">${a.ticker}${a.mine?' <span style="font-size:10px;color:var(--accent)">● Your position</span>':''}</div>
+        <div class="sa-ticker">${a.ticker}</div>
         <div class="sa-type" style="background:${a.typeBg};color:${a.typeColor}">${a.type}</div>
       </div>
       <div class="sa-why">${a.why}</div>
@@ -1869,13 +2032,10 @@ const EARNINGS_DATA={
 };
 
 function renderEarningsCalendar(){
-  const myTickers=['FRO','NOVO.TO','ATZ.TO'];
   const allEarnings=Object.entries(EARNINGS_DATA).map(([t,d])=>({
-    t,mine:myTickers.includes(t)||(STOCKS.find(s=>s.t===t)?.mine)||false,
-    n:STOCKS.find(s=>s.t===t)?.n||t,...d
+    t,n:STOCKS.find(s=>s.t===t)?.n||t,...d
   })).sort((a,b)=>a.daysAway-b.daysAway);
 
-  // Group into buckets
   const soon=allEarnings.filter(e=>e.daysAway<=14);
   const thisMonth=allEarnings.filter(e=>e.daysAway>14&&e.daysAway<=35);
   const later=allEarnings.filter(e=>e.daysAway>35);
@@ -1884,39 +2044,325 @@ function renderEarningsCalendar(){
     return list.map(e=>{
       const urgency=e.daysAway<=7?'var(--red)':e.daysAway<=14?'var(--amber)':'var(--text2)';
       const moveColor=e.histMove>=10?'var(--red)':e.histMove>=6?'var(--amber)':'var(--green)';
-      const tipBg=e.mine?'var(--accent-light)':'var(--amber-dim)';
-      const tipColor=e.mine?'var(--accent)':'var(--amber)';
-      return`<div class="earn-card${e.mine?' mine':''}" onclick="selectStock('${e.t}');goTab('dashboard',document.querySelector('.tab'))">
+      return`<div class="earn-card" onclick="selectStock('${e.t}');goTab('dashboard',document.querySelector('.tab'))">
         <div class="earn-row1">
           <div class="earn-ticker">${e.t}</div>
           <div class="earn-name">${e.n}</div>
-          ${e.mine?'<span class="earn-mine-badge">My Portfolio</span>':''}
           <div class="earn-date" style="color:${urgency}">${e.daysAway===0?'Today':e.daysAway===1?'Tomorrow':`In ${e.daysAway} days`} · ${e.date}</div>
         </div>
         <div class="earn-body">
           <div style="margin-bottom:4px"><span style="color:var(--text3)">Expected: </span>${e.expected}</div>
           <div style="margin-bottom:6px"><span style="color:var(--text3)">Typical move: </span><span class="earn-move" style="color:${moveColor}">±${e.histMove}%</span> on earnings day</div>
-          <div class="earn-tip" style="background:${tipBg};color:${tipColor}">💡 ${e.tip}</div>
+          <div class="earn-tip" style="background:var(--amber-dim);color:var(--amber)">💡 ${e.tip}</div>
         </div>
       </div>`;
     }).join('');
   }
 
   let html='';
-  if(soon.length){
-    html+=`<div class="earn-week"><div class="earn-week-label" style="color:var(--red)">⚡ Coming up in the next 2 weeks</div>${renderEarnCards(soon)}</div>`;
-  }
-  if(thisMonth.length){
-    html+=`<div class="earn-week"><div class="earn-week-label">📆 This month</div>${renderEarnCards(thisMonth)}</div>`;
-  }
-  if(later.length){
-    html+=`<div class="earn-week"><div class="earn-week-label">🗓 Further out</div>${renderEarnCards(later)}</div>`;
-  }
+  if(soon.length)html+=`<div class="earn-week"><div class="earn-week-label" style="color:var(--red)">⚡ Coming up in the next 2 weeks</div>${renderEarnCards(soon)}</div>`;
+  if(thisMonth.length)html+=`<div class="earn-week"><div class="earn-week-label">📆 This month</div>${renderEarnCards(thisMonth)}</div>`;
+  if(later.length)html+=`<div class="earn-week"><div class="earn-week-label">🗓 Further out</div>${renderEarnCards(later)}</div>`;
   if(!html)html='<div class="no-r">No upcoming earnings data available</div>';
   document.getElementById('earnings-content').innerHTML=html;
 }
 
-// Hook health score + smart alerts into price load
+// ══════════════════════════════════════════════════════
+// PHASE 3.1: SECTOR HEATMAP
+// ══════════════════════════════════════════════════════
+function renderHeatmap(){
+  if(!pricesLoaded){document.getElementById('heatmap-content').innerHTML='<div class="no-r">Load prices to see sector heatmap</div>';return;}
+  // Build sector stats
+  const sectors={};
+  STOCKS.forEach(s=>{
+    if(!prices[s.t])return;
+    const cat=s.cat||'Other';
+    if(!sectors[cat])sectors[cat]={stocks:[],totalChg:0,count:0,up:0,down:0};
+    sectors[cat].stocks.push(s);
+    sectors[cat].totalChg+=(s.c||0);
+    sectors[cat].count++;
+    if((s.c||0)>0)sectors[cat].up++;else if((s.c||0)<0)sectors[cat].down++;
+  });
+  const sectorList=Object.entries(sectors).map(([cat,d])=>({
+    cat,avg:d.count?parseFloat((d.totalChg/d.count).toFixed(2)):0,
+    count:d.count,up:d.up,down:d.down,
+    top:[...d.stocks].sort((a,b)=>Math.abs(b.c||0)-Math.abs(a.c||0)).slice(0,3)
+  })).sort((a,b)=>b.avg-a.avg);
+
+  const maxAbs=Math.max(...sectorList.map(s=>Math.abs(s.avg)),0.5);
+
+  function cellColor(avg){
+    const intensity=Math.min(Math.abs(avg)/maxAbs,1);
+    if(avg>=2)return`rgba(10,143,92,${0.5+intensity*0.5})`;
+    if(avg>0)return`rgba(10,143,92,${0.2+intensity*0.4})`;
+    if(avg<=-2)return`rgba(212,47,77,${0.5+intensity*0.5})`;
+    if(avg<0)return`rgba(212,47,77,${0.2+intensity*0.4})`;
+    return'var(--bg3)';
+  }
+  function textColor(avg){return Math.abs(avg)>0.3?'white':'var(--text)';}
+
+  const summaryHtml=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--green)"><strong>${sectorList.filter(s=>s.avg>0).length}</strong> sectors up</div>
+    <div style="background:var(--red-dim);border:1px solid var(--red-border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red)"><strong>${sectorList.filter(s=>s.avg<0).length}</strong> sectors down</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text3)"><strong>${sectorList.filter(s=>s.avg===0).length}</strong> flat</div>
+  </div>`;
+
+  const gridHtml=`<div class="heatmap-grid">${sectorList.map(s=>{
+    const bg=cellColor(s.avg);const tc=textColor(s.avg);const barW=Math.round((Math.abs(s.avg)/maxAbs)*100);
+    return`<div class="heatmap-cell" style="background:${bg};color:${tc}" onclick="setFilter('${s.cat==='AI & Chips'?'ai':s.cat==='High Growth'||s.cat==='Fintech'?'growth':s.cat==='Crypto'?'crypto':s.cat==='Emerging'?'potential':'all'}',document.querySelector('.pill[data-filter=all]'));goTab('dashboard',document.querySelector('.tab'))">
+      <div class="heatmap-cell-name">${s.cat}</div>
+      <div class="heatmap-cell-pct">${s.avg>=0?'+':''}${s.avg}%</div>
+      <div class="heatmap-cell-count">${s.count} stocks · ${s.up} up, ${s.down} down</div>
+      <div class="heatmap-bar"><div class="heatmap-bar-fill" style="width:${barW}%"></div></div>
+    </div>`;
+  }).join('')}</div>`;
+
+  const tableHtml=`<div class="sbox"><div class="sbox-t">Sector breakdown</div><div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Sector</th><th>Avg change</th><th>Stocks</th><th>Up</th><th>Down</th><th>Top movers</th></tr></thead>
+    <tbody>${sectorList.map(s=>`<tr>
+      <td><strong>${s.cat}</strong></td>
+      <td class="${s.avg>=0?'g':'r'}">${s.avg>=0?'+':''}${s.avg}%</td>
+      <td>${s.count}</td>
+      <td class="g">${s.up}</td>
+      <td class="r">${s.down}</td>
+      <td style="font-size:11px;color:var(--text2)">${s.top.map(x=>`${x.t} ${x.c>=0?'+':''}${(x.c||0).toFixed(1)}%`).join(' · ')}</td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+
+  document.getElementById('heatmap-content').innerHTML=summaryHtml+gridHtml+tableHtml;
+}
+
+// ══════════════════════════════════════════════════════
+// PHASE 3.2: COMPARE MODE
+// ══════════════════════════════════════════════════════
+function populateCompareDropdown(){
+  // Pre-fill suggestions — user can also type any ticker
+}
+
+function runCompare(){
+  const aEl=document.getElementById('compare-a');const bEl=document.getElementById('compare-b');
+  const tA=aEl.value.trim().toUpperCase();const tB=bEl.value.trim().toUpperCase();
+  if(!tA||!tB){document.getElementById('compare-content').innerHTML='<div class="no-r">Enter two tickers to compare</div>';return;}
+  if(tA===tB){document.getElementById('compare-content').innerHTML='<div class="no-r">Enter two different tickers</div>';return;}
+  const sA=STOCKS.find(s=>s.t===tA);const sB=STOCKS.find(s=>s.t===tB);
+  const pA=px(tA)||sA?.p||0;const pB=px(tB)||sB?.p||0;
+  const cA=chg(tA)||sA?.c||0;const cB=chg(tB)||sB?.c||0;
+  const scoreA=sA?.score||calcMomentumScore(sA||{c:cA,mom:false});
+  const scoreB=sB?.score||calcMomentumScore(sB||{c:cB,mom:false});
+  const fundA=fundamentals[tA]||null;const fundB=fundamentals[tB]||null;
+  const btA=btData.find(b=>b.t===tA);const btB=btData.find(b=>b.t===tB);
+
+  // Score each dimension
+  let winsA=0,winsB=0;
+  const dims=[
+    {label:'Signal score',a:scoreA,b:scoreB,aStr:`${scoreA}/99`,bStr:`${scoreB}/99`,higher:true},
+    {label:'Today\'s change',a:cA,b:cB,aStr:`${cA>=0?'+':''}${cA.toFixed(2)}%`,bStr:`${cB>=0?'+':''}${cB.toFixed(2)}%`,higher:true},
+    {label:'3-day momentum',a:sA?.mom?1:0,b:sB?.mom?1:0,aStr:sA?.mom?'✓ Yes':'✗ No',bStr:sB?.mom?'✓ Yes':'✗ No',higher:true},
+    {label:'3M return',a:btA?.pct??null,b:btB?.pct??null,aStr:btA?`${btA.pct>=0?'+':''}${btA.pct}%`:'—',bStr:btB?`${btB.pct>=0?'+':''}${btB.pct}%`:'—',higher:true},
+    {label:'Risk level',a:sA?.risk==='Low'?2:sA?.risk==='Med'?1:0,b:sB?.risk==='Low'?2:sB?.risk==='Med'?1:0,aStr:sA?.risk||'—',bStr:sB?.risk||'—',higher:true},
+    {label:'Analyst upside',a:fundA?.upside??null,b:fundB?.upside??null,aStr:fundA?.upside!=null?`+${fundA.upside.toFixed(0)}%`:'—',bStr:fundB?.upside!=null?`+${fundB.upside.toFixed(0)}%`:'—',higher:true},
+  ];
+
+  dims.forEach(d=>{
+    if(d.a===null&&d.b===null)return;
+    if(d.a===null){winsB++;return;}if(d.b===null){winsA++;return;}
+    if(d.higher){if(d.a>d.b)winsA++;else if(d.b>d.a)winsB++;}
+    else{if(d.a<d.b)winsA++;else if(d.b<d.a)winsB++;}
+  });
+
+  const winner=winsA>winsB?tA:winsB>winsA?tB:null;
+  const nameA=sA?.n||tA;const nameB=sB?.n||tB;
+
+  function cardHtml(t,s,p,c,score,fund,bt,wins,otherWins){
+    const isWinner=wins>otherWins;
+    return`<div class="compare-card${isWinner?' winner':''}">
+      ${isWinner?'<div class="compare-winner-badge">Better choice</div>':''}
+      <div class="compare-ticker">${t}</div>
+      <div class="compare-name">${s?.n||t} · ${s?.cat||'—'}</div>
+      ${dims.map(d=>{
+        const val=t===tA?d.aStr:d.bStr;const myScore=t===tA?d.a:d.b;const otherScore=t===tA?d.b:d.a;
+        const better=myScore!==null&&otherScore!==null&&myScore>otherScore;
+        return`<div class="compare-stat">
+          <span class="compare-stat-label">${d.label}</span>
+          <span class="compare-stat-val" style="color:${better?'var(--green)':'var(--text)'}">${val}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Plain-English verdict
+  let verdict='';
+  const stronger=winner?`<strong>${winner}</strong>`:'Neither stock';
+  const winnerS=winner===tA?sA:sB;const loserS=winner===tA?sB:sA;
+  if(winner){
+    verdict+=`${stronger} comes out ahead on ${Math.max(winsA,winsB)} out of ${dims.filter(d=>d.a!==null||d.b!==null).length} factors. `;
+    if(winnerS?.mom&&!loserS?.mom)verdict+=`It has active 3-day momentum which ${winner===tA?tB:tA} doesn't. `;
+    if(Math.max(winsA,winsB)>=5)verdict+=`This is a fairly clear signal — the data consistently favours ${winner}. `;
+    else verdict+=`It's a close call — the difference is marginal. `;
+  }else{
+    verdict=`These two stocks are very evenly matched across all measured factors. The choice may come down to your personal conviction in each company's story rather than the numbers. `;
+  }
+  if(sA?.risk!==sB?.risk){
+    const higherRisk=sA?.risk==='High'?tA:sB?.risk==='High'?tB:null;
+    if(higherRisk)verdict+=`Note that ${higherRisk} carries higher risk — it can move more sharply in both directions. `;
+  }
+  const earnsoon=fundA?.daysToEarnings<=14||fundB?.daysToEarnings<=14;
+  if(earnsoon)verdict+=`⚠️ One or both stocks have earnings soon — that adds short-term uncertainty regardless of which you pick.`;
+
+  document.getElementById('compare-content').innerHTML=`
+    <div class="compare-verdict">
+      <div class="compare-verdict-title">📊 Verdict</div>
+      <div class="compare-verdict-body">${verdict}</div>
+    </div>
+    <div class="compare-grid">
+      ${cardHtml(tA,sA,pA,cA,scoreA,fundA,btA,winsA,winsB)}
+      ${cardHtml(tB,sB,pB,cB,scoreB,fundB,btB,winsB,winsA)}
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;padding:6px 0">Not financial advice · Run Backtest and Full Analysis for more accurate scoring</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// PHASE 3.3: DECISION JOURNAL
+// ══════════════════════════════════════════════════════
+function getJournal(){try{return JSON.parse(localStorage.getItem('decisionJournal')||'[]');}catch{return[];}}
+function saveJournal(arr){localStorage.setItem('decisionJournal',JSON.stringify(arr));}
+
+function saveJournalEntry(){
+  const ticker=document.getElementById('jnl-ticker').value.trim().toUpperCase();
+  const action=document.getElementById('jnl-action').value;
+  const price=parseFloat(document.getElementById('jnl-price').value)||null;
+  const why=document.getElementById('jnl-why').value.trim();
+  const signal=document.getElementById('jnl-signal').value.trim();
+  const msg=document.getElementById('jnl-msg');
+  if(!ticker||!why){msg.style.color='var(--red)';msg.textContent='Please enter a ticker and your reasoning.';return;}
+  const entry={id:Date.now(),ticker,action,price,why,signal,date:new Date().toLocaleString(),outcome:null,learned:null};
+  const journal=getJournal();journal.unshift(entry);saveJournal(journal);
+  document.getElementById('jnl-ticker').value='';document.getElementById('jnl-price').value='';
+  document.getElementById('jnl-why').value='';document.getElementById('jnl-signal').value='';
+  msg.style.color='var(--green)';msg.textContent='Entry saved ✓';setTimeout(()=>{msg.textContent='';},2500);
+  renderJournalEntries();
+}
+
+function deleteJournalEntry(id){
+  const journal=getJournal().filter(e=>e.id!==id);saveJournal(journal);renderJournalEntries();
+}
+
+function renderJournalEntries(){
+  const journal=getJournal();const el=document.getElementById('journal-entries');
+  if(!journal.length){el.innerHTML='<div class="no-r">No journal entries yet — log your first decision above</div>';return;}
+  el.innerHTML=journal.map(e=>{
+    const typeColor=e.action==='BUY'?'b-g':e.action==='SELL'?'b-r':'b-a';
+    const curPrice=px(e.ticker)||null;
+    const pnl=e.price&&curPrice?((curPrice-e.price)/e.price*100).toFixed(1):null;
+    const pnlColor=pnl>=0?'var(--green)':'var(--red)';
+    return`<div class="journal-entry">
+      <div class="journal-entry-header">
+        <div class="journal-entry-ticker">${e.ticker}</div>
+        <span class="journal-entry-type b ${typeColor}">${e.action}</span>
+        ${e.price?`<span style="font-size:12px;color:var(--text2)">@ $${e.price.toFixed(2)}</span>`:''}
+        ${pnl!==null?`<span style="font-size:12px;font-weight:600;color:${pnlColor}">${pnl>=0?'+':''}${pnl}% now</span>`:''}
+        <div class="journal-entry-date">${e.date}</div>
+        <button class="journal-del-btn" onclick="deleteJournalEntry(${e.id})">✕</button>
+      </div>
+      <div class="journal-entry-body">
+        <div style="margin-bottom:6px"><strong style="color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.05em">Why:</strong> ${e.why}</div>
+        ${e.signal?`<div><strong style="color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.05em">Signal:</strong> ${e.signal}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// PHASE 3.4: SMART WATCHLIST ALERTS
+// ══════════════════════════════════════════════════════
+function getSmartAlerts(){try{return JSON.parse(localStorage.getItem('smartWatchAlerts')||'[]');}catch{return[];}}
+function saveSmartAlerts(arr){localStorage.setItem('smartWatchAlerts',JSON.stringify(arr));}
+
+function addSmartAlert(){
+  const ticker=document.getElementById('sab-ticker-select').value;
+  const condition=document.getElementById('sab-condition').value;
+  const value=parseFloat(document.getElementById('sab-value').value)||null;
+  const msg=document.getElementById('sab-msg');
+  const needsValue=['price_above','price_below','change_above','change_below'];
+  if(!ticker){msg.textContent='Please select a stock.';return;}
+  if(needsValue.includes(condition)&&!value){msg.textContent='Please enter a value.';return;}
+  const alerts=getSmartAlerts();
+  alerts.push({id:Date.now(),ticker,condition,value,triggered:false,createdAt:new Date().toLocaleString()});
+  saveSmartAlerts(alerts);
+  document.getElementById('sab-value').value='';
+  msg.style.color='var(--green)';msg.textContent='Alert added ✓';setTimeout(()=>{msg.textContent='';},2000);
+  renderWatchlistAlerts();
+}
+
+function deleteSmartAlert(id){
+  saveSmartAlerts(getSmartAlerts().filter(a=>a.id!==id));renderWatchlistAlerts();
+}
+
+function conditionText(a){
+  const labels={price_above:`Price above $${a.value}`,price_below:`Price below $${a.value}`,change_above:`Day change above +${a.value}%`,change_below:`Day change below ${a.value}%`,streak_3:'3-day streak starts',streak_end:'3-day streak ends',before_earnings:'7 days before earnings'};
+  return labels[a.condition]||a.condition;
+}
+
+function checkSmartAlerts(){
+  const alerts=getSmartAlerts();let changed=false;
+  alerts.forEach(a=>{
+    if(a.triggered)return;
+    const s=STOCKS.find(x=>x.t===a.ticker);const p=px(a.ticker)||0;const c=chg(a.ticker)||0;
+    let hit=false;
+    if(a.condition==='price_above')hit=p>=a.value;
+    else if(a.condition==='price_below')hit=p<=a.value&&p>0;
+    else if(a.condition==='change_above')hit=c>=a.value;
+    else if(a.condition==='change_below')hit=c<=a.value;
+    else if(a.condition==='streak_3')hit=s?.mom&&c>0;
+    else if(a.condition==='streak_end')hit=!s?.mom&&c<-0.5;
+    else if(a.condition==='before_earnings')hit=s?.earn;
+    if(hit){
+      a.triggered=true;changed=true;
+      const toast=document.createElement('div');toast.className='alert-toast';
+      toast.textContent=`🎯 ${a.ticker} — ${conditionText(a)}`;
+      toast.onclick=()=>toast.remove();
+      document.getElementById('alertBanner').appendChild(toast);
+      setTimeout(()=>toast.remove(),10000);
+    }
+  });
+  if(changed)saveSmartAlerts(alerts);
+}
+
+function populateTickerSelect(){
+  const sel=document.getElementById('sab-ticker-select');if(!sel)return;
+  const current=sel.value;
+  sel.innerHTML='<option value="">Select stock…</option>'+[...STOCKS].sort((a,b)=>a.t.localeCompare(b.t)).map(s=>`<option value="${s.t}">${s.t} — ${s.n}</option>`).join('');
+  if(current)sel.value=current;
+}
+
+function renderWatchlistAlerts(){
+  populateTickerSelect();
+  const alerts=getSmartAlerts();const el=document.getElementById('watchlist-alerts-list');
+  if(!alerts.length){el.innerHTML='<div class="no-r">No alerts set yet — build one above</div>';return;}
+  el.innerHTML=alerts.map(a=>{
+    const p=px(a.ticker)||0;const s=STOCKS.find(x=>x.t===a.ticker);
+    return`<div class="sab-alert-row${a.triggered?' triggered':''}">
+      <div class="sab-alert-text">
+        <strong>${a.ticker}</strong> — ${conditionText(a)}
+        ${a.triggered?'<span style="color:var(--green);font-weight:700;margin-left:8px">✓ TRIGGERED</span>':''}
+        ${p?`<span style="color:var(--text3);font-size:11px;margin-left:8px">Current: $${p.toFixed(2)} · ${(chg(a.ticker)||0)>=0?'+':''}${(chg(a.ticker)||0).toFixed(2)}%</span>`:''}
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">Added ${a.createdAt}</div>
+      </div>
+      <button class="sab-del" onclick="deleteSmartAlert(${a.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// Hook Phase 3 into renderAll
+const _p3RenderAll=renderAll;
+function renderAll(){
+  _p3RenderAll();
+  if(document.getElementById('tab-heatmap')?.classList.contains('on'))renderHeatmap();
+  if(document.getElementById('tab-journal')?.classList.contains('on'))renderJournalEntries();
+  if(document.getElementById('tab-watchlist-alerts')?.classList.contains('on'))renderWatchlistAlerts();
+  checkSmartAlerts();
+  populateTickerSelect();
+}
 const _origRenderAll=renderAll;
 function renderAll(){
   _origRenderAll();
@@ -2178,8 +2624,6 @@ function renderCommunity(){
 // ══════════════════════════════════════════════════════
 function renderWeeklyDigest(){
   if(!pricesLoaded){document.getElementById('digest-content').innerHTML='<div class="no-r">Load prices to generate your weekly digest</div>';return;}
-  const myTickers=['FRO','NOVO.TO','ATZ.TO'];
-  const myStocks=STOCKS.filter(s=>myTickers.includes(s.t)||s.mine);
   const topMover=[...STOCKS].filter(s=>prices[s.t]).sort((a,b)=>Math.abs(b.c||0)-Math.abs(a.c||0))[0];
   const topBuy=[...STOCKS].filter(s=>prices[s.t]).sort((a,b)=>(b.score||0)-(a.score||0))[0];
   const earningThisWeek=Object.entries(EARNINGS_DATA).filter(([,e])=>e.daysAway<=7).map(([t])=>t);
@@ -2187,35 +2631,11 @@ function renderWeeklyDigest(){
   const nextLesson=LESSONS.find(l=>!done.includes(l.id));
   const week=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 
-  // Portfolio performance
-  let portVal=0,portCost=0;
-  myStocks.forEach(s=>{
-    const p=px(s.t)||s.p||0;portVal+=p*s.shares;portCost+=(s.avgCost||p)*s.shares;
-  });
-  const portRet=portVal-portCost;const portRetPct=portCost?((portRet/portCost)*100).toFixed(1):0;
-
   document.getElementById('digest-content').innerHTML=`
     <div class="digest-card">
       <div style="font-size:12px;opacity:.8;margin-bottom:4px">Week of ${week}</div>
       <div style="font-size:20px;font-weight:700;margin-bottom:4px">Your StockMate Digest</div>
       <div style="font-size:13px;opacity:.85">Here's what you need to know heading into the week</div>
-    </div>
-
-    <div class="digest-section">
-      <div class="digest-section-title">📊 Your portfolio this week</div>
-      ${myStocks.length?`
-        ${myStocks.map(s=>{
-          const p=px(s.t)||s.p||0;const c=chg(s.t)||s.c||0;const up=c>=0;
-          return`<div class="digest-item">
-            <div class="digest-item-icon">${up?'📈':'📉'}</div>
-            <div><strong>${s.t}</strong> is ${up?'up':'down'} <strong style="color:${up?'var(--green)':'var(--red)'}">${Math.abs(c).toFixed(1)}%</strong> · Current price $${p.toFixed(2)}</div>
-          </div>`;
-        }).join('')}
-        <div class="digest-item" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px">
-          <div class="digest-item-icon">💼</div>
-          <div>Overall portfolio return: <strong style="color:${portRet>=0?'var(--green)':'var(--red)'}">${portRet>=0?'+':''}${portRetPct}%</strong></div>
-        </div>`
-      :'<div style="font-size:12px;color:var(--text3)">Add positions to see your portfolio summary here.</div>'}
     </div>
 
     <div class="digest-section">
@@ -2233,10 +2653,10 @@ function renderWeeklyDigest(){
     ${earningThisWeek.length?`<div class="digest-section">
       <div class="digest-section-title">📅 Earnings to watch this week</div>
       ${earningThisWeek.map(t=>{
-        const e=EARNINGS_DATA[t];const isMine=myTickers.includes(t);
+        const e=EARNINGS_DATA[t];
         return`<div class="digest-item">
-          <div class="digest-item-icon">${isMine?'🔴':'📅'}</div>
-          <div><strong>${t}</strong> reports ${e.date}. ${isMine?'<strong style="color:var(--accent)">This is your position</strong> — ':''}Typical move: ±${e.histMove}%. ${e.expected}.</div>
+          <div class="digest-item-icon">📅</div>
+          <div><strong>${t}</strong> reports ${e.date}. Typical move: ±${e.histMove}%. ${e.expected}.</div>
         </div>`;
       }).join('')}
     </div>`:''}
