@@ -1434,7 +1434,65 @@ function setFilter(f,el){
 function getAlerts(){try{return JSON.parse(localStorage.getItem('priceAlerts')||'{}');}catch{return{};}}
 function getNotes(){try{return JSON.parse(localStorage.getItem('stockNotes')||'{}');}catch{return{};}}
 
-// ── MARKET STATUS ─────────────────────────────────────────────────────────────
+// ── LIVE COMPANY BIOS (fetched from /api/fundamentals, cached in localStorage) ──
+const BIO_CACHE_KEY='stockmate_bios_v1';
+const BIO_CACHE_TTL=7*24*60*60*1000; // 7 days
+
+function getBioCache(){
+  try{
+    const raw=localStorage.getItem(BIO_CACHE_KEY);
+    if(!raw)return{};
+    const parsed=JSON.parse(raw);
+    // Prune expired entries
+    const now=Date.now();
+    Object.keys(parsed).forEach(k=>{if(now-parsed[k].ts>BIO_CACHE_TTL)delete parsed[k];});
+    return parsed;
+  }catch{return{};}
+}
+function setBioCache(ticker,text){
+  try{
+    const cache=getBioCache();
+    cache[ticker]={text,ts:Date.now()};
+    localStorage.setItem(BIO_CACHE_KEY,JSON.stringify(cache));
+  }catch{}
+}
+
+async function loadLiveBio(ticker,cat,bioEl){
+  // 1. Check cache first
+  const cache=getBioCache();
+  if(cache[ticker]?.text){
+    renderBio(bioEl,cache[ticker].text,cat);
+    return;
+  }
+  // 2. If fundamentals already loaded for this ticker, use that
+  if(fundamentals[ticker]?.description){
+    const desc=fundamentals[ticker].description;
+    setBioCache(ticker,desc);
+    renderBio(bioEl,desc,cat);
+    return;
+  }
+  // 3. Fetch from API
+  try{
+    const r=await fetch(`/api/fundamentals?symbol=${encodeURIComponent(ticker)}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d?.description){
+      // Store in fundamentals cache too
+      if(!fundamentals[ticker])fundamentals[ticker]={};
+      fundamentals[ticker].description=d.description;
+      setBioCache(ticker,d.description);
+      renderBio(bioEl,d.description,cat);
+    }
+  }catch{}
+}
+
+function renderBio(bioEl,text,cat){
+  if(!bioEl||!text)return;
+  // Only update if the element is still in the DOM and visible
+  if(!document.getElementById('stockDetail')?.classList.contains('visible'))return;
+  bioEl.innerHTML=`<div class="about-bio"><div class="about-bio-label">About this company</div>${text}</div>`;
+}
+
 function getMarketStatus(){
   const now=new Date();
   const utc=now.getTime()+(now.getTimezoneOffset()*60000);
@@ -1565,8 +1623,12 @@ async function selectStock(t){
   const detail=document.getElementById('stockDetail');detail.classList.add('visible');
   document.getElementById('sd-title').textContent=`${t} — ${s.n}`;
   document.getElementById('sd-subtitle').textContent=`${s.cat} · Risk: ${s.risk} · ${p2?'$'+fmt(p2):''} ${fmtChg(c2)}`;
-  const bio=BIOS[t]||CAT_BIOS[s?.cat]||'';
-  document.getElementById('sd-bio').innerHTML=bio?`<div class="about-bio"><div class="about-bio-label">About this company</div>${bio}</div>`:'';
+  // Show hardcoded or category bio immediately, then upgrade with live description
+  const staticBio=BIOS[t]||CAT_BIOS[s?.cat]||'';
+  const bioEl=document.getElementById('sd-bio');
+  bioEl.innerHTML=staticBio?`<div class="about-bio"><div class="about-bio-label">About this company</div>${staticBio}</div>`:'';
+  // Fetch live description (cached in localStorage)
+  loadLiveBio(t,s?.cat,bioEl);
   // Pre-buy checklist button
   const existingCl=document.getElementById('sd-checklist-btn');
   if(existingCl)existingCl.remove();
