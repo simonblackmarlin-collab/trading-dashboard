@@ -111,9 +111,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .settings-btn:hover{border-color:var(--text2);color:var(--text)}
 
 /* TABS */
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:12px;overflow-x:auto;scrollbar-width:none;position:relative}
 .tabs::-webkit-scrollbar{display:none}
 @media(max-width:600px){.tabs{display:none}}
+.tabs-wrap{position:relative}
+.tab-scroll-btn{display:none;position:absolute;top:0;bottom:1px;width:28px;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--bg) 60%,transparent);border:none;cursor:pointer;color:var(--text3);font-size:14px;z-index:5;padding:0}
+.tab-scroll-btn.right{right:0;background:linear-gradient(270deg,var(--bg) 60%,transparent)}
+.tab-scroll-btn:hover{color:var(--accent)}
+@media(min-width:601px){.tab-scroll-btn{display:flex}}
 
 /* ── MORE DRAWER ── */
 .more-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300}
@@ -805,24 +810,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 </div>
 
 
-<!-- DESKTOP TABS -->
-<div class="tabs" id="desktop-tabs">
-  <div class="tab on" id="dt-dashboard" onclick="goTab('dashboard',this)">📊 Market</div>
-  <div class="tab" id="dt-recommendations" onclick="goTab('recommendations',this)">🎯 Picks</div>
-  <div class="tab" id="dt-sell" onclick="goTab('sell',this)">🔴 Sell Signals</div>
-  <div class="tab" id="dt-scanner" onclick="goTab('scanner',this)">🔭 Scanner</div>
-  <div class="tab" id="dt-backtest" onclick="goTab('backtest',this)">📊 Backtest</div>
-  <div class="tab" id="dt-earnings" onclick="goTab('earnings',this)">📅 Earnings</div>
-  <div class="tab" id="dt-smart-alerts" onclick="goTab('smart-alerts',this)">🔔 Alerts</div>
-  <div class="tab" id="dt-heatmap" onclick="goTab('heatmap',this)">🌡 Heatmap</div>
-  <div class="tab" id="dt-compare" onclick="goTab('compare',this)">⚖️ Compare</div>
-  <div class="tab" id="dt-journal" onclick="goTab('journal',this)">📓 Journal</div>
-  <div class="tab" id="dt-watchlist-alerts" onclick="goTab('watchlist-alerts',this)">🎯 My Alerts</div>
-  <div class="tab" id="dt-paper" onclick="goTab('paper',this)">🧪 Practice</div>
-  <div class="tab" id="dt-learn" onclick="goTab('learn',this)">📚 Learn</div>
-  <div class="tab" id="dt-community" onclick="goTab('community',this)">👥 Community</div>
-  <div class="tab" id="dt-digest" onclick="goTab('digest',this)">📬 Digest</div>
-  <div class="tab" id="dt-pool" onclick="goTab('pool',this)" style="display:none">🔄 Pool</div>
+<!-- DESKTOP TABS with scroll arrows -->
+<div class="tabs-wrap">
+  <button class="tab-scroll-btn" onclick="scrollTabs(-150)" title="Scroll left">‹</button>
+  <div class="tabs" id="desktop-tabs">
+    <div class="tab on" id="dt-dashboard" onclick="goTab('dashboard',this)">📊 Market</div>
+    <div class="tab" id="dt-recommendations" onclick="goTab('recommendations',this)">🎯 Picks</div>
+    <div class="tab" id="dt-sell" onclick="goTab('sell',this)">🔴 Sell Signals</div>
+    <div class="tab" id="dt-scanner" onclick="goTab('scanner',this)">🔭 Scanner</div>
+    <div class="tab" id="dt-backtest" onclick="goTab('backtest',this)">📊 Backtest</div>
+    <div class="tab" id="dt-earnings" onclick="goTab('earnings',this)">📅 Earnings</div>
+    <div class="tab" id="dt-smart-alerts" onclick="goTab('smart-alerts',this)">🔔 Alerts</div>
+    <div class="tab" id="dt-heatmap" onclick="goTab('heatmap',this)">🌡 Heatmap</div>
+    <div class="tab" id="dt-compare" onclick="goTab('compare',this)">⚖️ Compare</div>
+    <div class="tab" id="dt-journal" onclick="goTab('journal',this)">📓 Journal</div>
+    <div class="tab" id="dt-watchlist-alerts" onclick="goTab('watchlist-alerts',this)">🎯 My Alerts</div>
+    <div class="tab" id="dt-paper" onclick="goTab('paper',this)">🧪 Practice</div>
+    <div class="tab" id="dt-learn" onclick="goTab('learn',this)">📚 Learn</div>
+    <div class="tab" id="dt-community" onclick="goTab('community',this)">👥 Community</div>
+    <div class="tab" id="dt-digest" onclick="goTab('digest',this)">📬 Digest</div>
+    <div class="tab" id="dt-pool" onclick="goTab('pool',this)" style="display:none">🔄 Pool</div>
+  </div>
+  <button class="tab-scroll-btn right" onclick="scrollTabs(150)" title="Scroll right">›</button>
 </div>
 
 <!-- DASHBOARD -->
@@ -899,13 +908,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
         </div>
       </div>
     </div>
-    <div class="metrics">
+    <div class="metrics" id="sel-metrics" style="display:none">
       <div class="mc"><div class="mc-l">Selected</div><div class="mc-v" id="sel-t" style="font-size:14px">—</div></div>
       <div class="mc"><div class="mc-l">Price</div><div class="mc-v" id="sel-p" style="font-size:14px">—</div></div>
       <div class="mc"><div class="mc-l">Change</div><div class="mc-v" id="sel-c">—</div></div>
       <div class="mc"><div class="mc-l">Signal</div><div class="mc-v" id="sel-s">—</div></div>
       <div class="mc"><div class="mc-l">Risk</div><div class="mc-v" id="sel-r">—</div></div>
     </div>
+    <!-- Live market summary — shown when no stock selected -->
+    <div id="market-summary" style="margin-bottom:10px"></div>
     <div id="rotation-info" style="display:none;margin-bottom:8px"></div>
     <!-- Signal score explainer -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -929,7 +940,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
       <div class="pill" data-filter="ai" onclick="setFilter('ai',this)">🤖 AI & Chips</div>
       <div class="pill" data-filter="growth" onclick="setFilter('growth',this)">🚀 High Growth</div>
       <div class="pill hot" data-filter="potential" onclick="setFilter('potential',this)">⚡ Emerging</div>
-      <div class="pill" data-filter="crypto" onclick="setFilter('crypto',this)">₿ Crypto</div>
+      <div class="pill" data-filter="crypto" onclick="setFilter('crypto',this)">🪙 Crypto</div>
     </div>
     <div class="wgrid" id="wgrid"></div>
     <div class="note" id="price-source">Prices loading…</div>
@@ -1022,15 +1033,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     </div>
     <button class="bt-run-btn" id="btRunBtn" onclick="runBacktest()">▶ Run Backtest</button>
   </div>
-  <div class="bt-filter-row">
-    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-right:2px">Filter:</span>
+  <div class="bt-filter-row" style="flex-wrap:wrap">
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-right:2px;width:100%;margin-bottom:2px">Filter by sector:</span>
     <button class="bt-pill on" onclick="setBtFilter('all',this)">All</button>
     <button class="bt-pill" onclick="setBtFilter('AI & Chips',this)">AI &amp; Chips</button>
-    <button class="bt-pill" onclick="setBtFilter('High Growth',this)">High growth</button>
-    <button class="bt-pill" onclick="setBtFilter('Emerging',this)">⚡ Emerging</button>
-    <button class="bt-pill" onclick="setBtFilter('Crypto',this)">₿ Crypto</button>
-    <button class="bt-pill" onclick="setBtFilter('Energy',this)">Energy</button>
+    <button class="bt-pill" onclick="setBtFilter('Big Tech',this)">Big Tech</button>
+    <button class="bt-pill" onclick="setBtFilter('Cloud Software',this)">Cloud</button>
+    <button class="bt-pill" onclick="setBtFilter('High Growth',this)">High Growth</button>
     <button class="bt-pill" onclick="setBtFilter('Fintech',this)">Fintech</button>
+    <button class="bt-pill" onclick="setBtFilter('Ad Tech',this)">Ad Tech</button>
+    <button class="bt-pill" onclick="setBtFilter('Emerging',this)">Emerging</button>
+    <button class="bt-pill" onclick="setBtFilter('Healthcare',this)">Healthcare</button>
+    <button class="bt-pill" onclick="setBtFilter('Energy',this)">Energy</button>
+    <button class="bt-pill" onclick="setBtFilter('Crypto',this)">🪙 Crypto</button>
+    <button class="bt-pill" onclick="setBtFilter('Financials',this)">Financials</button>
+    <button class="bt-pill" onclick="setBtFilter('ETF',this)">ETFs</button>
   </div>
   <div id="btStatus" style="font-size:12px;color:var(--text3);margin-bottom:8px"></div>
   <div id="btResults"><div class="no-r">Click ▶ Run Backtest to load 3-month return data</div></div>
@@ -1738,6 +1755,7 @@ function selectDynamicPool(){
 function renderAll(){
   renderRotationInfo();
   renderWatchlist();
+  renderMarketSummary();
   renderHealthScore();
   checkSmartAlerts();
   populateTickerSelect();
@@ -1862,6 +1880,33 @@ function renderBio(bioEl,text,cat){
   // Only update if the element is still in the DOM and visible
   if(!document.getElementById('stockDetail')?.classList.contains('visible'))return;
   bioEl.innerHTML=`<div class="about-bio"><div class="about-bio-label">About this company</div>${text}</div>`;
+}
+
+function scrollTabs(by){
+  const tabs=document.getElementById('desktop-tabs');
+  if(tabs)tabs.scrollBy({left:by,behavior:'smooth'});
+}
+
+function renderMarketSummary(){
+  const el=document.getElementById('market-summary');if(!el)return;
+  if(!pricesLoaded){el.innerHTML='';return;}
+  const loaded=STOCKS.filter(s=>prices[s.t]);
+  if(!loaded.length){el.innerHTML='';return;}
+  const up=loaded.filter(s=>(s.c||0)>0).length;
+  const down=loaded.filter(s=>(s.c||0)<0).length;
+  const flat=loaded.length-up-down;
+  const avgChg=(loaded.reduce((a,s)=>a+(s.c||0),0)/loaded.length).toFixed(2);
+  const topMover=[...loaded].sort((a,b)=>Math.abs(b.c||0)-Math.abs(a.c||0))[0];
+  el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px;background:var(--bg3);border-radius:var(--radius);font-size:12px">
+    <span style="font-weight:600;color:var(--text)">Today's pool:</span>
+    <span class="g">↑ ${up} up</span>
+    <span class="r">↓ ${down} down</span>
+    <span style="color:var(--text3)">${flat} flat</span>
+    <span style="color:var(--text3)">·</span>
+    <span style="color:var(--text2)">Avg ${parseFloat(avgChg)>=0?'+':''}${avgChg}%</span>
+    ${topMover?`<span style="color:var(--text3)">· Top mover: <strong style="color:${(topMover.c||0)>=0?'var(--green)':'var(--red)'}">${topMover.t} ${(topMover.c||0)>=0?'+':''}${(topMover.c||0).toFixed(1)}%</strong></span>`:''}
+    <span style="color:var(--text3);font-size:11px;margin-left:auto">Tap any stock to see details</span>
+  </div>`;
 }
 
 function toggleScoreExplainer(){
@@ -2039,15 +2084,21 @@ function searchSelect(ticker){
 
 function getMarketStatus(){
   const now=new Date();
-  const utc=now.getTime()+(now.getTimezoneOffset()*60000);
-  const et=new Date(utc+(3600000*-5)); // ET (EST)
-  const day=et.getDay();const h=et.getHours();const m=et.getMinutes();const mins=h*60+m;
+  // Proper ET offset — accounts for DST automatically using Intl API
+  const etStr=now.toLocaleString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'numeric',hour12:false,weekday:'short'});
+  const etParts=etStr.split(', ');
+  const dayAbbr=etParts[0]; // e.g. "Mon"
+  const timePart=etParts[1]||''; // e.g. "14:32"
+  const [hStr,mStr]=(timePart||'').split(':');
+  const h=parseInt(hStr)||0;const m=parseInt(mStr)||0;const mins=h*60+m;
+  const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  const day=dayMap[dayAbbr]??now.getDay();
   const isWeekday=day>=1&&day<=5;
   const marketOpen=9*60+30;const marketClose=16*60;
-  if(!isWeekday)return{status:'closed',reason:'weekend',day,et};
-  if(mins<marketOpen)return{status:'pre',reason:'pre-market',opensIn:marketOpen-mins,et};
-  if(mins>=marketClose)return{status:'after',reason:'after-hours',et};
-  return{status:'open',reason:'live',et};
+  if(!isWeekday)return{status:'closed',reason:'weekend',day,mins};
+  if(mins<marketOpen)return{status:'pre',reason:'pre-market',opensIn:marketOpen-mins,mins};
+  if(mins>=marketClose)return{status:'after',reason:'after-hours',mins};
+  return{status:'open',reason:'live',mins};
 }
 function getNextOpenText(ms){
   if(ms.reason==='weekend')return ms.day===0?'Opens Monday at 9:30 AM ET':'Opens Monday at 9:30 AM ET';
@@ -2136,19 +2187,24 @@ function renderWatchlist(){
   }
   const alerts=getAlerts();const notes=getNotes();
   g.innerHTML=list.map(s=>{
-    const sig=s.c>=1.5?'BUY':s.c<=-1.5?'SELL':s.mom?'BUY':'HOLD';
+    const sig=s.c>=1.5?'BUY':s.c<=-1.5?'SELL':s.mom&&s.c>0?'BUY':'HOLD';
     const sC=sig==='BUY'?'b-g':sig==='SELL'?'b-r':'b-n';
     const rC=s.risk==='High'?'b-r':s.risk==='Low'?'b-g':'b-a';
     const bh=[3,5,7,5,9,6,4];
     const bars=bh.map((h,i)=>`<div class="bar" style="height:${s.c>=0?h:bh[6-i]}px;background:${s.c>=0?'#97C459':'#F09595'}"></div>`).join('');
     const px2=s.p>=1000?s.p.toFixed(0):s.p>=100?s.p.toFixed(1):s.p.toFixed(2);
-    const ytdTxt=s.ytd!==undefined?((s.ytd>=0?'+':'')+s.ytd.toFixed(0)+'%'):'—';
-    return`<div class="wc${s.t===selTicker?' sel':''}${s.mom?' mom':''}${alerts[s.t]?' alerted':''}" onclick="selectStock('${s.t}')">
+    const showStreak=s.mom&&s.c>0.3;
+    return`<div class="wc${s.t===selTicker?' sel':''}${showStreak?' mom':''}${alerts[s.t]?' alerted':''}" onclick="selectStock('${s.t}')">
       <div class="wt">${s.t}${notes[s.t]?' <span style="font-size:9px;color:var(--amber)">📝</span>':''}${alerts[s.t]?' <span style="font-size:9px;color:var(--amber)">🔔</span>':''}</div>
       <div class="wn">${s.n}</div>
       <div class="wp">${!prices[s.t]?'…':'$'+px2}</div>
       <div class="wch ${colCls(s.c)}">${!prices[s.t]?'':fmtChg(s.c)}</div>
-      <div class="wbadges"><span class="b ${sC}">${sig}</span><span class="b b-a">YTD ${ytdTxt}</span>${s.mom?'<span class="b b-g">3-day ▲</span>':''}${s.catalyst?'<span class="b b-a">⚡</span>':''}<span class="b ${rC}">${s.risk}</span></div>
+      <div class="wbadges">
+        <span class="b ${sC}">${sig}</span>
+        ${showStreak?'<span class="b b-g">↑ Streak</span>':''}
+        ${s.catalyst?'<span class="b b-a">⚡ News</span>':''}
+        <span class="b ${rC}">${s.risk}</span>
+      </div>
       <div class="mini-bars">${bars}</div>
     </div>`;
   }).join('');
@@ -2161,9 +2217,12 @@ async function selectStock(t){
   document.getElementById('sel-t').textContent=t;
   document.getElementById('sel-p').textContent=p2?'$'+fmt(p2):'—';
   const sc=document.getElementById('sel-c');sc.textContent=fmtChg(c2);sc.className='mc-v '+colCls(c2);
-  const sig=c2>=1.5?'BUY':c2<=-1.5?'SELL':s.mom?'BUY':'HOLD';
+  const sig=c2>=1.5?'BUY':c2<=-1.5?'SELL':s.mom&&c2>0?'BUY':'HOLD';
   const ss=document.getElementById('sel-s');ss.textContent=sig;ss.className='mc-v '+(sig==='BUY'?'g':sig==='SELL'?'r':'a');
   const sr=document.getElementById('sel-r');sr.textContent=s.risk;sr.className='mc-v '+(s.risk==='High'?'r':s.risk==='Low'?'g':'a');
+  // Show metrics, hide summary
+  document.getElementById('sel-metrics').style.display='grid';
+  document.getElementById('market-summary').style.display='none';
   const detail=document.getElementById('stockDetail');detail.classList.add('visible');
   document.getElementById('sd-title').textContent=`${t} — ${s.n}`;
   document.getElementById('sd-subtitle').textContent=`${s.cat} · Risk: ${s.risk} · ${p2?'$'+fmt(p2):''} ${fmtChg(c2)}`;
@@ -2187,7 +2246,13 @@ async function selectStock(t){
   loadChart(t,currentChartDays);
   loadNewsForStock(t);renderAlertPanel(t);renderNotePanel(t);
 }
-function closeDetail(){document.getElementById('stockDetail').classList.remove('visible');selTicker=null;renderWatchlist();}
+function closeDetail(){
+  document.getElementById('stockDetail').classList.remove('visible');
+  selTicker=null;
+  document.getElementById('sel-metrics').style.display='none';
+  document.getElementById('market-summary').style.display='block';
+  renderWatchlist();
+}
 function showSdTab(name,el){
   document.querySelectorAll('.sd-tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.sd-panel').forEach(p=>p.classList.remove('on'));
@@ -2475,7 +2540,7 @@ function renderRecommendations(){
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
-const ALL_PILLS=[{id:'all',label:'🔥 Top 35 today'},{id:'momentum',label:'3-day streak ▲'},{id:'ytd',label:'Top YTD'},{id:'ai',label:'AI & Chips'},{id:'growth',label:'High growth'},{id:'potential',label:'⚡ Emerging'},{id:'crypto',label:'₿ Crypto'}];
+const ALL_PILLS=[{id:'all',label:'🔥 Top picks'},{id:'momentum',label:'📈 Momentum'},{id:'ytd',label:'📅 Top YTD'},{id:'ai',label:'🤖 AI & Chips'},{id:'growth',label:'🚀 High Growth'},{id:'potential',label:'⚡ Emerging'},{id:'crypto',label:'🪙 Crypto'}];
 function getHiddenPills(){try{return JSON.parse(localStorage.getItem('hiddenPills')||'[]');}catch{return[];}}
 function saveHiddenPills(arr){localStorage.setItem('hiddenPills',JSON.stringify(arr));}
 function applyPillVisibility(){const hidden=getHiddenPills();ALL_PILLS.forEach(p=>{const el=document.querySelector(`.pill[data-filter="${p.id}"]`);if(el)el.style.display=hidden.includes(p.id)?'none':''});}
@@ -2617,7 +2682,7 @@ async function hashPassword(pw){const buf=await crypto.subtle.digest('SHA-256',n
 async function checkPassword(){
   const input=document.getElementById('login-input');const err=document.getElementById('login-err');const pw=input.value;
   if(!pw){err.textContent='Please enter your password';return;}
-  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic@2020');
+  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic_007');
   if(hash===correct){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
