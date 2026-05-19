@@ -747,10 +747,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 
 <!-- SETTINGS -->
 <div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
-  <div class="settings-modal">
-    <h3>⚙ Customise Filter Pills</h3>
-    <p>Toggle which pills show on your dashboard</p>
+  <div class="settings-modal" style="width:400px">
+    <h3>⚙ Settings</h3>
+    <p>Customise StockMate to show what matters to you</p>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Filter Pills</div>
     <div id="pillToggles"></div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">Tabs — show or hide</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Market and Picks are always visible. Hide tabs you don't use yet.</div>
+    <div id="tabToggles"></div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">Developer</div>
+    <div class="pill-toggle-row">
+      <span class="pill-toggle-label">Show Pool tab (developer view)</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="pool-tab-toggle" onchange="togglePoolTab(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
     <button class="settings-close" onclick="closeSettings()">Done</button>
   </div>
 </div>
@@ -772,7 +788,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="hdr-right">
     <span class="ts-box" id="ts"></span>
     <button class="search-btn" onclick="openSearch()" title="Search stocks">🔍</button>
-    <button class="reload-btn" onclick="loadAllPrices()">↻ Refresh prices</button>
+    <button class="search-btn" onclick="openSettings()" title="Settings" style="font-size:16px">⚙</button>
+    <button class="reload-btn" onclick="loadAllPrices()">↻ Refresh</button>
   </div>
 </div>
 
@@ -787,37 +804,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="skeleton" style="width:80px;height:16px"></div>
 </div>
 
-<!-- FILTER PILLS -->
-<div class="pills-label">Filter · top 75 by merit from 200-stock universe · updates every session</div>
-<div class="pills">
-  <div class="pill on" data-filter="all" onclick="setFilter('all',this)">🔥 Top 35 today</div>
-  <div class="pill" data-filter="momentum" onclick="setFilter('momentum',this)">3-day streak ▲</div>
-  <div class="pill" data-filter="ytd" onclick="setFilter('ytd',this)">Top YTD</div>
-  <div class="pill" data-filter="ai" onclick="setFilter('ai',this)">AI &amp; Chips</div>
-  <div class="pill" data-filter="growth" onclick="setFilter('growth',this)">High growth</div>
-  <div class="pill hot" data-filter="potential" onclick="setFilter('potential',this)">⚡ Emerging</div>
-  <div class="pill" data-filter="crypto" onclick="setFilter('crypto',this)">₿ Crypto</div>
-  <button class="settings-btn" onclick="openSettings()" title="Customise pills">⚙</button>
-</div>
 
 <!-- DESKTOP TABS -->
-<div class="tabs">
-  <div class="tab on" onclick="goTab('dashboard',this)">Dashboard</div>
-  <div class="tab" onclick="goTab('recommendations',this)">🎯 Recommendations</div>
-  <div class="tab" onclick="goTab('sell',this)">Sell Signals</div>
-  <div class="tab" onclick="goTab('scanner',this)">Breakout Scanner</div>
-  <div class="tab" onclick="goTab('backtest',this)">📊 Backtest</div>
-  <div class="tab" onclick="goTab('earnings',this)">📅 Earnings</div>
-  <div class="tab" onclick="goTab('smart-alerts',this)">🔔 Smart Alerts</div>
-  <div class="tab" onclick="goTab('heatmap',this)">🌡 Heatmap</div>
-  <div class="tab" onclick="goTab('compare',this)">⚖️ Compare</div>
-  <div class="tab" onclick="goTab('journal',this)">📓 Journal</div>
-  <div class="tab" onclick="goTab('watchlist-alerts',this)">🎯 My Alerts</div>
-  <div class="tab" onclick="goTab('paper',this)">🧪 Paper Trade</div>
-  <div class="tab" onclick="goTab('learn',this)">📚 Learn</div>
-  <div class="tab" onclick="goTab('community',this)">👥 Community</div>
-  <div class="tab" onclick="goTab('digest',this)">📬 Weekly Digest</div>
-  <div class="tab" onclick="goTab('pool',this)">🔄 Pool</div>
+<div class="tabs" id="desktop-tabs">
+  <div class="tab on" id="dt-dashboard" onclick="goTab('dashboard',this)">📊 Market</div>
+  <div class="tab" id="dt-recommendations" onclick="goTab('recommendations',this)">🎯 Picks</div>
+  <div class="tab" id="dt-sell" onclick="goTab('sell',this)">🔴 Sell Signals</div>
+  <div class="tab" id="dt-scanner" onclick="goTab('scanner',this)">🔭 Scanner</div>
+  <div class="tab" id="dt-backtest" onclick="goTab('backtest',this)">📊 Backtest</div>
+  <div class="tab" id="dt-earnings" onclick="goTab('earnings',this)">📅 Earnings</div>
+  <div class="tab" id="dt-smart-alerts" onclick="goTab('smart-alerts',this)">🔔 Alerts</div>
+  <div class="tab" id="dt-heatmap" onclick="goTab('heatmap',this)">🌡 Heatmap</div>
+  <div class="tab" id="dt-compare" onclick="goTab('compare',this)">⚖️ Compare</div>
+  <div class="tab" id="dt-journal" onclick="goTab('journal',this)">📓 Journal</div>
+  <div class="tab" id="dt-watchlist-alerts" onclick="goTab('watchlist-alerts',this)">🎯 My Alerts</div>
+  <div class="tab" id="dt-paper" onclick="goTab('paper',this)">🧪 Practice</div>
+  <div class="tab" id="dt-learn" onclick="goTab('learn',this)">📚 Learn</div>
+  <div class="tab" id="dt-community" onclick="goTab('community',this)">👥 Community</div>
+  <div class="tab" id="dt-digest" onclick="goTab('digest',this)">📬 Digest</div>
+  <div class="tab" id="dt-pool" onclick="goTab('pool',this)" style="display:none">🔄 Pool</div>
 </div>
 
 <!-- DASHBOARD -->
@@ -916,6 +921,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
       <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5">When you run <strong>Full Analysis</strong> on the Recommendations tab, analyst ratings, volume, 52-week position, and 3-month history are also added to the score.</div>
     </div>
     <div id="market-status-banner"></div>
+    <!-- FILTER PILLS — inside dashboard -->
+    <div class="pills" style="margin-bottom:10px">
+      <div class="pill on" data-filter="all" onclick="setFilter('all',this)">🔥 Top picks</div>
+      <div class="pill" data-filter="momentum" onclick="setFilter('momentum',this)">📈 Momentum</div>
+      <div class="pill" data-filter="ytd" onclick="setFilter('ytd',this)">📅 Top YTD</div>
+      <div class="pill" data-filter="ai" onclick="setFilter('ai',this)">🤖 AI & Chips</div>
+      <div class="pill" data-filter="growth" onclick="setFilter('growth',this)">🚀 High Growth</div>
+      <div class="pill hot" data-filter="potential" onclick="setFilter('potential',this)">⚡ Emerging</div>
+      <div class="pill" data-filter="crypto" onclick="setFilter('crypto',this)">₿ Crypto</div>
+    </div>
     <div class="wgrid" id="wgrid"></div>
     <div class="note" id="price-source">Prices loading…</div>
   </div>
@@ -958,7 +973,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <input id="portfolio-size" type="number" placeholder="e.g. 10000" style="padding:5px 10px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:var(--mono);width:130px;color:var(--text);background:var(--bg3);outline:none" oninput="renderRecommendations()"/>
     <span style="font-size:11px;color:var(--text3)">Enter total budget to see position sizing per stock</span>
   </div>
-  <div id="rec-content"><div class="no-r">Click ▶ Run Full Analysis to load recommendations</div></div>
+  <div id="rec-content"><div style="text-align:center;padding:24px 16px;color:var(--text3)">
+    <div style="font-size:32px;margin-bottom:10px">⚡</div>
+    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Ready to find your best picks?</div>
+    <div style="font-size:12px;margin-bottom:16px">Tap the button above to run the full analysis — backtest + analyst data in one go. Takes about 30 seconds.</div>
+  </div></div>
 </div>
 
 <!-- SELL SIGNALS -->
@@ -1256,9 +1275,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="more-drawer-handle"></div>
   <div class="more-drawer-title">More features</div>
   <div class="more-drawer-grid">
-    <div class="more-drawer-item" id="md-recommendations" onclick="moreNav('recommendations',this)">
-      <span class="more-item-icon">🎯</span><span class="more-item-label">Picks</span>
-    </div>
     <div class="more-drawer-item" id="md-sell" onclick="moreNav('sell',this)">
       <span class="more-item-icon">🔴</span><span class="more-item-label">Sell Signals</span>
     </div>
@@ -1292,15 +1308,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <div class="more-drawer-item" id="md-digest" onclick="moreNav('digest',this)">
       <span class="more-item-icon">📬</span><span class="more-item-label">Digest</span>
     </div>
+    <div class="more-drawer-item" onclick="closeMoreDrawer();openSettings()">
+      <span class="more-item-icon">⚙</span><span class="more-item-label">Settings</span>
+    </div>
   </div>
 </div>
 
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mob-nav">
   <button class="mob-nav-btn on" id="mn-dashboard" onclick="mobNav('dashboard',this)"><span class="mob-nav-icon">📊</span>Market</button>
+  <button class="mob-nav-btn" id="mn-recommendations" onclick="mobNav('recommendations',this)"><span class="mob-nav-icon">🎯</span>Picks</button>
   <button class="mob-nav-btn" id="mn-journal" onclick="mobNav('journal',this)"><span class="mob-nav-icon">📓</span>Journal</button>
   <button class="mob-nav-btn" id="mn-learn" onclick="mobNav('learn',this)"><span class="mob-nav-icon">📚</span>Learn</button>
-  <button class="mob-nav-btn" id="mn-pool" onclick="mobNav('pool',this)"><span class="mob-nav-icon">🔄</span>Pool</button>
   <button class="mob-nav-btn" id="mn-more" onclick="openMoreDrawer()"><span class="mob-nav-icon">⋯</span>More</button>
 </nav>
 <script>
@@ -2460,13 +2479,65 @@ const ALL_PILLS=[{id:'all',label:'🔥 Top 35 today'},{id:'momentum',label:'3-da
 function getHiddenPills(){try{return JSON.parse(localStorage.getItem('hiddenPills')||'[]');}catch{return[];}}
 function saveHiddenPills(arr){localStorage.setItem('hiddenPills',JSON.stringify(arr));}
 function applyPillVisibility(){const hidden=getHiddenPills();ALL_PILLS.forEach(p=>{const el=document.querySelector(`.pill[data-filter="${p.id}"]`);if(el)el.style.display=hidden.includes(p.id)?'none':''});}
+
+const ALL_TABS=[
+  {id:'sell',label:'🔴 Sell Signals'},
+  {id:'scanner',label:'🔭 Breakout Scanner'},
+  {id:'backtest',label:'📊 Backtest'},
+  {id:'earnings',label:'📅 Earnings Calendar'},
+  {id:'smart-alerts',label:'🔔 Smart Alerts'},
+  {id:'heatmap',label:'🌡 Sector Heatmap'},
+  {id:'compare',label:'⚖️ Compare Stocks'},
+  {id:'journal',label:'📓 Decision Journal'},
+  {id:'watchlist-alerts',label:'🎯 My Alerts'},
+  {id:'paper',label:'🧪 Paper Trading'},
+  {id:'learn',label:'📚 Learning Journey'},
+  {id:'community',label:'👥 Community'},
+  {id:'digest',label:'📬 Weekly Digest'},
+];
+function getHiddenTabs(){try{return JSON.parse(localStorage.getItem('hiddenTabs')||'[]');}catch{return[];}}
+function saveHiddenTabs(arr){localStorage.setItem('hiddenTabs',JSON.stringify(arr));}
+function applyTabVisibility(){
+  const hidden=getHiddenTabs();
+  ALL_TABS.forEach(t=>{
+    const dtEl=document.getElementById('dt-'+t.id);
+    if(dtEl)dtEl.style.display=hidden.includes(t.id)?'none':'';
+    const mdEl=document.getElementById('md-'+t.id);
+    if(mdEl)mdEl.style.display=hidden.includes(t.id)?'none':'';
+  });
+  const poolDt=document.getElementById('dt-pool');
+  if(poolDt)poolDt.style.display=localStorage.getItem('showPool')==='1'?'':'none';
+}
+function togglePoolTab(show){
+  localStorage.setItem('showPool',show?'1':'0');
+  applyTabVisibility();
+}
 function openSettings(){
-  const hidden=getHiddenPills();
-  document.getElementById('pillToggles').innerHTML=ALL_PILLS.map(p=>`<div class="pill-toggle-row"><span class="pill-toggle-label">${p.label}</span><label class="toggle-switch"><input type="checkbox" ${!hidden.includes(p.id)?'checked':''} onchange="togglePill('${p.id}',this.checked)"><span class="toggle-slider"></span></label></div>`).join('');
+  const hiddenPills=getHiddenPills();
+  const hiddenTabs=getHiddenTabs();
+  document.getElementById('pillToggles').innerHTML=ALL_PILLS.map(p=>`
+    <div class="pill-toggle-row">
+      <span class="pill-toggle-label">${p.label}</span>
+      <label class="toggle-switch">
+        <input type="checkbox" ${!hiddenPills.includes(p.id)?'checked':''} onchange="togglePill('${p.id}',this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+  document.getElementById('tabToggles').innerHTML=ALL_TABS.map(t=>`
+    <div class="pill-toggle-row">
+      <span class="pill-toggle-label">${t.label}</span>
+      <label class="toggle-switch">
+        <input type="checkbox" ${!hiddenTabs.includes(t.id)?'checked':''} onchange="toggleTab('${t.id}',this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+  const poolToggle=document.getElementById('pool-tab-toggle');
+  if(poolToggle)poolToggle.checked=localStorage.getItem('showPool')==='1';
   document.getElementById('settingsOverlay').classList.add('open');
 }
-function closeSettings(){document.getElementById('settingsOverlay').classList.remove('open');applyPillVisibility();}
+function closeSettings(){document.getElementById('settingsOverlay').classList.remove('open');applyPillVisibility();applyTabVisibility();}
 function togglePill(id,visible){let hidden=getHiddenPills();if(visible)hidden=hidden.filter(h=>h!==id);else if(!hidden.includes(id))hidden.push(id);saveHiddenPills(hidden);}
+function toggleTab(id,visible){let hidden=getHiddenTabs();if(visible)hidden=hidden.filter(h=>h!==id);else if(!hidden.includes(id))hidden.push(id);saveHiddenTabs(hidden);applyTabVisibility();}
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
 function goTab(id,el){
@@ -2572,6 +2643,7 @@ async function loadCandidates(){
 }
 async function initDashboard(){
   applyPillVisibility();
+  applyTabVisibility();
   await loadCandidates();
   if(CANDIDATES.length>0){
     await loadAllPrices();
