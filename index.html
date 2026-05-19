@@ -685,8 +685,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
           <div class="ob-feature-text"><strong>Signals, not guarantees</strong>A high score means conditions are aligned — it does NOT mean the stock will go up. Always check the news too.</div>
         </div>
         <div class="ob-feature">
-          <div class="ob-feature-icon">✅</div>
-          <div class="ob-feature-text"><strong>Use the Pre-Buy Checklist</strong>Before acting on any signal, tap a stock and run the checklist — it walks you through 5 safety checks first</div>
+          <div class="ob-feature-icon">⚡</div>
+          <div class="ob-feature-text"><strong>One button does it all</strong>On the Picks tab, tap "Run Everything" — it runs the backtest, fetches analyst data, and builds your recommendations in one go</div>
         </div>
         <div class="ob-feature">
           <div class="ob-feature-icon">🧪</div>
@@ -706,19 +706,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <div class="ob-slide" id="ob-slide-3">
       <span class="ob-icon">🚀</span>
       <div class="ob-title">You're ready to go</div>
-      <div class="ob-body">Here's the best way to start:</div>
+      <div class="ob-body">Here's the best way to get started:</div>
       <div class="ob-features">
         <div class="ob-feature">
           <div class="ob-feature-icon">1️⃣</div>
-          <div class="ob-feature-text"><strong>Browse the Dashboard</strong>Tap any stock card to see its bio, live price, signals, and news</div>
+          <div class="ob-feature-text"><strong>Browse the Market tab</strong>Tap any stock card to see its bio, live price, signals, and latest news</div>
         </div>
         <div class="ob-feature">
           <div class="ob-feature-icon">2️⃣</div>
-          <div class="ob-feature-text"><strong>Run the Backtest</strong>Go to 📊 Backtest tab first — it adds 3-month history which makes Recommendations much more accurate</div>
+          <div class="ob-feature-text"><strong>Tap ⚡ Run Everything</strong>On the 🎯 Picks tab — one button runs the full analysis and shows you today's best opportunities with plain-English guidance</div>
         </div>
         <div class="ob-feature">
           <div class="ob-feature-icon">3️⃣</div>
-          <div class="ob-feature-text"><strong>Check Recommendations</strong>Click ▶ Run Full Analysis — you'll get plain-English buy guidance with entry zones and stop losses</div>
+          <div class="ob-feature-text"><strong>Use the Pre-Buy Checklist</strong>Before acting on any signal, tap a stock and run the checklist — it walks you through 5 safety checks first</div>
         </div>
         <div class="ob-feature">
           <div class="ob-feature-icon">4️⃣</div>
@@ -2682,7 +2682,7 @@ async function hashPassword(pw){const buf=await crypto.subtle.digest('SHA-256',n
 async function checkPassword(){
   const input=document.getElementById('login-input');const err=document.getElementById('login-err');const pw=input.value;
   if(!pw){err.textContent='Please enter your password';return;}
-  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic@2020');
+  const hash=await hashPassword(pw);const correct=await hashPassword('Botanic_007');
   if(hash===correct){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main-app').style.display='block';
