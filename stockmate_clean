@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
+<title>StockMate</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#ea580c;--accent-light:rgba(234,88,12,0.10);--accent-border:rgba(234,88,12,0.30);
+  --bg:#f5f7fa;--bg2:#ffffff;--bg3:#eef1f6;--bg4:#e2e7ef;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#0f1923;--text2:#4a5568;--text3:#94a3b8;
+  --green:#0a8f5c;--green-dim:rgba(10,143,92,0.10);--green-border:rgba(10,143,92,0.30);
+  --red:#d42f4d;--red-dim:rgba(212,47,77,0.08);--red-border:rgba(212,47,77,0.25);
+  --amber:#b45309;--amber-dim:rgba(180,83,9,0.08);--amber-border:rgba(180,83,9,0.30);
+  --blue:#1a6fcc;
+  --gold:#b8860b;--gold-dim:rgba(184,134,11,0.10);--gold-border:rgba(184,134,11,0.35);
+  --radius:10px;--radius-lg:14px;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
+  --mono:'Menlo','Consolas',monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;--bg4:#2d3040;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+    --text:#f3f4f6;--text2:#9ca3af;--text3:#6b7280;
+    --accent-light:rgba(234,88,12,0.15);
+    --green-dim:rgba(10,143,92,0.15);--red-dim:rgba(212,47,77,0.12);--amber-dim:rgba(180,83,9,0.12);
+  }
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1a0a00 0%,#2d1200 50%,#1a0a00 100%);display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:20px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.35);text-align:center}
+@media(max-width:480px){.login-box{border-radius:16px;padding:36px 24px}}
+.login-logo{width:64px;height:64px;background:var(--accent);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px}
+.login-title{font-size:24px;font-weight:700;color:#0f1923;margin-bottom:4px}
+.login-sub{font-size:13px;color:#94a3b8;margin-bottom:26px}
+.login-input{width:100%;padding:13px 16px;border:1.5px solid rgba(0,0,0,0.14);border-radius:10px;font-size:16px;font-family:var(--font);color:#0f1923;background:#f9fafb;outline:none;transition:border-color .2s;margin-bottom:14px;text-align:center;letter-spacing:3px}
+.login-input:focus{border-color:var(--accent);background:#fff}
+.login-input.shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.login-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s;margin-bottom:10px}
+.login-btn:hover{opacity:.87}
+.login-err{font-size:12px;color:var(--red);min-height:18px}
+.login-hint{font-size:11px;color:#94a3b8;margin-top:14px}
+
+/* SETTINGS */
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center}
+.settings-overlay.open{display:flex}
+.settings-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:22px;width:340px;max-width:90vw;max-height:90vh;overflow-y:auto}
+.settings-modal h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.settings-modal p{font-size:11px;color:var(--text3);margin-bottom:14px}
+.pill-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.pill-toggle-row:last-of-type{border-bottom:none}
+.pill-toggle-label{font-size:13px;color:var(--text2)}
+.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px)}
+.settings-close{margin-top:14px;width:100%;padding:9px;background:var(--bg3);border:none;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--font)}
+.settings-close:hover{color:var(--text)}
+
+/* APP SHELL */
+.app{max-width:1120px;margin:0 auto;padding:16px 20px 32px}
+@media(max-width:600px){.app{padding:12px 12px 76px}}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulseAnim 2s infinite;flex-shrink:0}
+@keyframes pulseAnim{0%,100%{opacity:1}50%{opacity:.25}}
+.logo-t{font-size:18px;font-weight:700;letter-spacing:-0.4px}
+.logo-s{font-size:11px;color:var(--text3);margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ts-box{font-size:11px;color:var(--text3);font-family:var(--mono);background:var(--bg3);padding:5px 10px;border-radius:6px;border:1px solid var(--border)}
+@media(max-width:600px){.ts-box{display:none}}
+.reload-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--accent-border);color:var(--accent);background:var(--accent-light);font-family:var(--font)}
+.reload-btn:hover{opacity:.8}
+
+/* LOADING */
+.loading-bar{height:2px;background:var(--accent-light);border-radius:1px;margin-bottom:12px;overflow:hidden;position:relative}
+.loading-bar.active::after{content:'';position:absolute;left:-30%;width:30%;height:100%;background:var(--accent);border-radius:1px;animation:slide 1.2s infinite linear}
+@keyframes slide{to{left:130%}}
+
+/* TICKER STRIP */
+.ticker{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px;margin-bottom:12px;border-bottom:1px solid var(--border)}
+.ticker::-webkit-scrollbar{display:none}
+.tick{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.tick-sym{font-size:11px;font-weight:600;color:var(--text3);font-family:var(--mono)}
+.tick-p{font-size:12px;font-weight:600;font-family:var(--mono)}
+.tick-c{font-size:11px;font-weight:600;font-family:var(--mono)}
+.g{color:var(--green)}.r{color:var(--red)}.a{color:var(--amber)}
+.sep{color:var(--border2)}
+
+/* PILLS */
+.pills-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:500}
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+@media(max-width:600px){.pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}.pills::-webkit-scrollbar{display:none}}
+.pill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);color:var(--text2);background:transparent;transition:all .15s;white-space:nowrap;font-family:var(--font);flex-shrink:0}
+.pill:hover{border-color:var(--text3);color:var(--text)}
+.pill.on{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.pill.hot{border-color:var(--amber-border);color:var(--amber)}
+.pill.hot.on{background:var(--amber-dim)}
+.settings-btn{background:none;border:1px solid var(--border2);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;color:var(--text3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font)}
+.settings-btn:hover{border-color:var(--text2);color:var(--text)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:12px;overflow-x:auto;scrollbar-width:none;position:relative}
+.tabs::-webkit-scrollbar{display:none}
+@media(max-width:600px){.tabs{display:none}}
+.tabs-wrap{position:relative}
+.tab-scroll-btn{display:none;position:absolute;top:0;bottom:1px;width:28px;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--bg) 60%,transparent);border:none;cursor:pointer;color:var(--text3);font-size:14px;z-index:5;padding:0}
+.tab-scroll-btn.right{right:0;background:linear-gradient(270deg,var(--bg) 60%,transparent)}
+.tab-scroll-btn:hover{color:var(--accent)}
+@media(min-width:601px){.tab-scroll-btn{display:flex}}
+
+/* MORE DRAWER */
+.more-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300}
+.more-drawer-overlay.open{display:block}
+.more-drawer{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--bg2);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0));max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
+.more-drawer.open{transform:translateY(0)}
+.more-drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.more-drawer-title{font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.more-drawer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.more-drawer-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 8px;background:var(--bg3);border-radius:12px;cursor:pointer;border:1.5px solid transparent;transition:border-color .15s}
+.more-drawer-item:hover,.more-drawer-item.on{border-color:var(--accent);background:var(--accent-light)}
+.more-drawer-item.on .more-item-label{color:var(--accent)}
+.more-item-icon{font-size:22px}
+.more-item-label{font-size:11px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3}
+.tab{padding:8px 15px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;white-space:nowrap;font-family:var(--font);flex-shrink:0}
+.tab:hover{color:var(--text2)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.pg{display:none}.pg.on{display:block}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin-bottom:12px}
+@media(max-width:480px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.mc{background:var(--bg3);border-radius:var(--radius);padding:10px 12px}
+.mc-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:500}
+.mc-v{font-size:17px;font-weight:600}
+.alert{padding:9px 13px;border-radius:var(--radius);font-size:12px;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start;line-height:1.5;border:1px solid}
+.al-g{background:var(--green-dim);color:var(--green);border-color:var(--green-border)}
+.al-a{background:var(--amber-dim);color:var(--amber);border-color:var(--amber-border)}
+.al-r{background:var(--red-dim);color:var(--red);border-color:var(--red-border)}
+
+/* STOCK DETAIL */
+.stock-detail{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:12px;display:none}
+.stock-detail.visible{display:block}
+.sd-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+.sd-title{font-size:18px;font-weight:700}
+.sd-subtitle{font-size:11px;color:var(--text3);margin-top:2px}
+.sd-actions{display:flex;gap:6px;flex-wrap:wrap}
+.sd-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);color:var(--text2);background:var(--bg3);font-family:var(--font);transition:all .15s}
+.sd-btn:hover{border-color:var(--text3);color:var(--text)}
+.sd-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.sd-tab{padding:6px 12px;font-size:11px;font-weight:500;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;font-family:var(--font)}
+.sd-tab:hover{color:var(--text2)}
+.sd-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.sd-panel{display:none}.sd-panel.on{display:block}
+
+/* ABOUT BIO */
+.about-bio{background:var(--bg3);border-radius:8px;border-left:3px solid var(--accent);padding:11px 13px;margin-bottom:14px;font-size:12px;line-height:1.7;color:var(--text2)}
+.about-bio-label{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+
+/* NEWS */
+.news-item{padding:10px 0;border-bottom:1px solid var(--border)}
+.news-item:last-child{border-bottom:none}
+.news-headline{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.4}
+.news-headline a{color:inherit;text-decoration:none}
+.news-headline a:hover{color:var(--blue)}
+.news-meta{font-size:10px;color:var(--text3)}
+
+/* PRICE ALERTS */
+.alert-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.alert-input{padding:6px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:var(--font);color:var(--text);background:var(--bg3);width:130px;outline:none}
+.alert-input:focus{border-color:var(--accent)}
+.alert-set-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--accent);color:#fff;font-family:var(--font)}
+.alert-list{display:flex;flex-direction:column;gap:6px}
+.alert-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg3);border-radius:8px;font-size:12px}
+.alert-row.triggered{background:var(--green-dim);border:1px solid var(--green-border)}
+.alert-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px}
+.alert-del:hover{color:var(--red)}
+.note-textarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:var(--font);color:var(--text);background:var(--bg3);resize:vertical;min-height:80px;outline:none;line-height:1.5}
+.note-textarea:focus{border-color:var(--accent)}
+.note-save-btn{margin-top:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--accent);color:#fff;font-family:var(--font)}
+.note-saved{font-size:11px;color:var(--green);margin-left:8px;opacity:0;transition:opacity .3s}
+.note-saved.show{opacity:1}
+.alert-banner{position:fixed;top:16px;right:16px;z-index:9998;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.alert-toast{background:var(--accent);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:toastIn .3s ease;pointer-events:auto}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+
+/* WATCHLIST */
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-bottom:12px}
+@media(max-width:480px){.wgrid{grid-template-columns:repeat(2,1fr)}}
+.wc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .15s}
+.wc:hover{border-color:var(--border2)}.wc.sel{border:1.5px solid var(--accent)}
+.wc.mom::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
+.wc.alerted{border-color:var(--amber-border)}
+.wt{font-size:13px;font-weight:600}
+.wn{font-size:10px;color:var(--text3);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wp{font-size:17px;font-weight:600;font-family:var(--mono);margin-bottom:2px}
+.wch{font-size:12px;font-weight:600;font-family:var(--mono)}
+.wbadges{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
+.b{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.b-g{background:rgba(10,143,92,.12);color:#0a8f5c}
+.b-r{background:rgba(212,47,77,.1);color:#d42f4d}
+.b-a{background:rgba(180,83,9,.1);color:#b45309}
+.b-n{background:var(--bg3);color:var(--text3)}
+.b-watch{background:rgba(180,83,9,.1);color:#b45309}
+.mini-bars{display:flex;gap:2px;align-items:flex-end;height:14px;margin-top:6px}
+.bar{width:4px;border-radius:2px}
+
+/* TABLES */
+.sbox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:12px}
+.sbox-t{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:5px 8px;color:var(--text3);font-size:10px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:500}
+.tbl td{padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg3)}
+.score-track{background:var(--bg3);border-radius:3px;height:5px;margin-top:3px}
+
+/* SCANNER */
+.scan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px}
+@media(max-width:480px){.scan-grid{grid-template-columns:repeat(2,1fr)}}
+.scan-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;cursor:pointer;transition:border-color .15s}
+.scan-card:hover,.scan-card.top1{border-color:var(--accent)}
+
+/* BACKTEST */
+.bt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;gap:8px;flex-wrap:wrap}
+.bt-run-btn{padding:6px 16px;border-radius:20px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font)}
+.bt-run-btn:disabled{opacity:.5;cursor:default}
+.bt-run-btn:hover:not(:disabled){opacity:.8}
+.bt-filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem;align-items:center}
+@media(max-width:600px){.bt-filter-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}.bt-filter-row::-webkit-scrollbar{display:none}}
+.bt-pill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);color:var(--text2);background:transparent;transition:all .15s;white-space:nowrap;font-family:var(--font);flex-shrink:0}
+.bt-pill.on{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.bt-table{width:100%;border-collapse:collapse}
+.bt-table th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);text-align:left;padding:4px 8px 8px;border-bottom:1px solid var(--border);font-weight:500}
+.bt-table th.num{text-align:right}
+.bt-table td{font-size:12px;padding:9px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.bt-table td.num{text-align:right}
+.bt-table tr:last-child td{border-bottom:none}
+.bt-table tr:hover td{background:var(--bg3)}
+.bt-bar-cell{width:80px}
+.bt-bar-wrap{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden}
+.bt-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+
+/* RECOMMENDATIONS */
+.rec-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:16px}
+@media(max-width:600px){.rec-grid{grid-template-columns:1fr}}
+.rec-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.rec-card.highly{border-color:var(--gold-border);box-shadow:0 2px 16px rgba(184,134,11,.10)}
+.rec-card.high{border-color:var(--green-border)}
+.rec-card.med{border-color:var(--amber-border)}
+.rec-card-header{padding:14px 16px 0}
+.rec-tier-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.rec-ticker-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.rec-ticker{font-size:20px;font-weight:700}
+.rec-price{font-size:14px;font-weight:600;font-family:var(--mono)}
+.rec-name{font-size:11px;color:var(--text3);margin-bottom:10px}
+.rec-score-bar{height:4px;border-radius:2px;margin-bottom:12px;background:var(--bg3);overflow:hidden}
+.rec-score-fill{height:100%;border-radius:2px;transition:width .5s}
+.rec-summary{background:var(--bg3);padding:12px 16px;font-size:12px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)}
+.rec-summary strong{color:var(--text)}
+.trade-guide{padding:12px 16px;border-top:1px solid var(--border)}
+.tg-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px}
+.tg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.tg-item{background:var(--bg3);border-radius:8px;padding:8px 10px;text-align:center}
+.tg-label{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:3px}
+.tg-value{font-size:13px;font-weight:700}
+.tg-sub{font-size:9px;color:var(--text3);margin-top:1px}
+.hold-bar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);margin-bottom:8px}
+.hold-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.hold-fill{height:100%;border-radius:3px;background:var(--accent)}
+.risk-box{margin:0 16px 12px;padding:8px 12px;border-radius:8px;font-size:11px;line-height:1.6;border:1px solid}
+.risk-low{background:var(--green-dim);color:var(--green);border-color:var(--green-border)}
+.risk-med{background:var(--amber-dim);color:var(--amber);border-color:var(--amber-border)}
+.risk-high{background:var(--red-dim);color:var(--red);border-color:var(--red-border)}
+.pos-size{padding:10px 16px 12px;border-top:1px solid var(--border);font-size:11px;color:var(--text2);line-height:1.6}
+.pos-size strong{color:var(--text)}
+
+/* MISC */
+.note{font-size:10px;color:var(--text3);line-height:1.5;padding-top:6px;border-top:1px solid var(--border);margin-top:6px}
+.no-r{padding:24px;text-align:center;color:var(--text3)}
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;border-radius:4px;animation:shimmer 1.5s infinite;height:14px;margin:4px 0}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* MOBILE BOTTOM NAV */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg2);border-top:1px solid var(--border);height:58px;padding-bottom:env(safe-area-inset-bottom,0)}
+@media(max-width:600px){.mob-nav{display:flex}}
+.mob-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--text3);font-size:9px;font-weight:600;font-family:var(--font);cursor:pointer;padding:6px 2px;transition:color .15s;text-transform:uppercase;letter-spacing:.03em}
+.mob-nav-btn.on{color:var(--accent)}
+.mob-nav-icon{font-size:19px;line-height:1}
+
+/* PORTFOLIO HEALTH SCORE */
+.health-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:12px}
+.health-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.health-title{font-size:13px;font-weight:600;color:var(--text)}
+.health-score-ring{width:56px;height:56px;flex-shrink:0}
+.health-score-num{font-size:22px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+.health-verdict{font-size:13px;font-weight:600;margin-bottom:4px}
+.health-items{display:flex;flex-direction:column;gap:6px}
+.health-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);line-height:1.5}
+.health-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+
+/* PRE-BUY CHECKLIST */
+
+
+
+/* SMART ALERTS */
+.smart-alert-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.sa-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sa-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.sa-ticker{font-size:14px;font-weight:700;flex:1}
+.sa-type{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.sa-why{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.sa-action{font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:none;background:var(--accent-light);color:var(--accent);cursor:pointer;font-family:var(--font)}
+.sa-time{font-size:10px;color:var(--text3);margin-top:6px}
+
+/* EARNINGS CALENDAR */
+.earn-week{margin-bottom:20px}
+.earn-week-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.earn-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.earn-card:hover{border-color:var(--accent-border)}
+.earn-row1{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.earn-ticker{font-size:15px;font-weight:700}
+.earn-name{font-size:11px;color:var(--text3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.earn-date{font-size:11px;font-weight:600;color:var(--text2)}
+.earn-body{font-size:12px;color:var(--text2);line-height:1.6}
+.earn-move{font-weight:600}
+.earn-tip{margin-top:6px;font-size:11px;padding:6px 10px;border-radius:7px;line-height:1.5}
+
+/* MARKET STATUS */
+.market-banner{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-lg);margin-bottom:12px;font-size:12px;line-height:1.5;border:1px solid;flex-wrap:wrap}
+.market-banner.closed{background:#1a1a2e;border-color:rgba(255,255,255,0.1);color:#94a3b8}
+.market-banner.open{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.market-banner.pre{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
+.market-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulseAnim 2s infinite}
+.market-closed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.market-closed-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 13px;opacity:.75;position:relative}
+.market-closed-badge{position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;background:#1a1a2e;color:#94a3b8}
+.market-closed-suggest{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;text-align:center}
+.market-suggest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.market-suggest-btn{padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-family:var(--font);transition:border-color .15s;text-align:center}
+.market-suggest-btn:hover{border-color:var(--accent)}
+.market-suggest-icon{font-size:24px;margin-bottom:6px}
+.market-suggest-label{font-size:12px;font-weight:600;color:var(--text);display:block}
+.market-suggest-sub{font-size:10px;color:var(--text3);margin-top:2px;display:block}
+
+/* PAPER TRADING */
+.paper-hero{background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 100%);border-radius:var(--radius-lg);padding:18px;margin-bottom:12px;color:white}
+.paper-hero-label{font-size:11px;opacity:.7;margin-bottom:4px;font-weight:500}
+.paper-hero-value{font-size:30px;font-weight:700;letter-spacing:-1px;margin-bottom:8px}
+.paper-hero-row{display:flex;gap:20px;flex-wrap:wrap}
+.paper-hero-stat label{font-size:10px;opacity:.65;display:block;margin-bottom:2px}
+.paper-hero-stat span{font-size:13px;font-weight:600}
+.paper-positions{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
+.paper-pos-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.paper-pos-row:last-child{border-bottom:none}
+.paper-ticker{font-size:14px;font-weight:700;width:60px;flex-shrink:0}
+.paper-pos-info{flex:1;min-width:0}
+.paper-pos-name{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.paper-pos-shares{font-size:11px;color:var(--text3)}
+.paper-pos-right{text-align:right;flex-shrink:0}
+.paper-pos-val{font-size:13px;font-weight:600}
+.paper-pos-ret{font-size:11px;font-weight:500}
+.paper-trade-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px}
+.paper-form-title{font-size:13px;font-weight:600;margin-bottom:10px}
+.paper-form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.paper-input{padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg3);outline:none;flex:1;min-width:100px}
+.paper-input:focus{border-color:var(--accent)}
+.paper-buy-btn{padding:8px 16px;border-radius:8px;border:none;background:var(--green);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.paper-sell-btn{padding:8px 16px;border-radius:8px;border:none;background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.paper-log{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.paper-log-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.paper-log-row:last-child{border-bottom:none}
+
+/* COMMUNITY WATCHLIST */
+.community-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.community-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.community-row:last-child{border-bottom:none}
+.community-bar-wrap{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.community-bar{height:100%;border-radius:3px;background:var(--accent);transition:width .5s}
+.community-count{font-size:11px;color:var(--text3);width:60px;text-align:right;flex-shrink:0}
+
+/* WEEKLY DIGEST */
+.digest-card{background:linear-gradient(135deg,var(--accent) 0%,#c2410c 100%);border-radius:var(--radius-lg);padding:18px;color:white;margin-bottom:12px}
+.digest-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.digest-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
+.digest-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5}
+.digest-item:last-child{border-bottom:none}
+.digest-item-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* TRUST BAR */
+.trust-bar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg3);border-top:1px solid var(--border);font-size:10px;color:var(--text3);position:sticky;bottom:calc(58px + env(safe-area-inset-bottom,0));z-index:10;flex-wrap:wrap}
+@media(min-width:601px){.trust-bar{position:static;border-radius:0 0 var(--radius) var(--radius);margin-bottom:12px}}
+.trust-bar a{color:var(--text3);text-decoration:underline}
+.signal-explainer{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:12px}
+.signal-explainer-title{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.signal-factor{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.signal-factor:last-child{border-bottom:none}
+.signal-factor-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.signal-factor-fill{height:100%;border-radius:3px;background:var(--accent)}
+.signal-factor-pts{font-size:11px;font-weight:600;color:var(--text3);width:40px;text-align:right;flex-shrink:0}
+.simulated-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+
+/* SECTOR HEATMAP */
+.heatmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+@media(max-width:480px){.heatmap-grid{grid-template-columns:repeat(2,1fr)}}
+.heatmap-cell{border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:transform .15s;position:relative;overflow:hidden}
+.heatmap-cell:hover{transform:scale(1.02)}
+.heatmap-cell-name{font-size:11px;font-weight:600;opacity:.85;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.heatmap-cell-pct{font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px}
+.heatmap-cell-count{font-size:10px;opacity:.7}
+.heatmap-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.3)}
+.heatmap-bar-fill{height:100%;background:rgba(255,255,255,0.6);transition:width .5s}
+
+/* COMPARE MODE */
+.compare-search-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.compare-input{flex:1;min-width:120px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:var(--mono);color:var(--text);background:var(--bg3);outline:none;text-transform:uppercase}
+.compare-input:focus{border-color:var(--accent)}
+.compare-btn{padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:480px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative}
+.compare-card.winner{border-color:var(--green-border);box-shadow:0 2px 12px rgba(10,143,92,0.1)}
+.compare-ticker{font-size:22px;font-weight:700;margin-bottom:2px}
+.compare-name{font-size:11px;color:var(--text3);margin-bottom:12px}
+.compare-stat{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.compare-stat:last-child{border-bottom:none}
+.compare-stat-label{color:var(--text3)}
+.compare-stat-val{font-weight:600}
+.compare-winner-badge{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--green-dim);color:var(--green)}
+.compare-verdict{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.compare-verdict-title{font-size:13px;font-weight:700;margin-bottom:8px}
+.compare-verdict-body{font-size:13px;color:var(--text2);line-height:1.7}
+
+/* DECISION JOURNAL */
+.journal-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.journal-form-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.journal-field{margin-bottom:10px}
+.journal-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:block}
+.journal-input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none}
+.journal-input:focus{border-color:var(--accent)}
+.journal-textarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none;resize:vertical;min-height:70px;line-height:1.5}
+.journal-textarea:focus{border-color:var(--accent)}
+.journal-row{display:flex;gap:8px;flex-wrap:wrap}
+.journal-save-btn{padding:9px 18px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.journal-entry{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px}
+.journal-entry-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.journal-entry-ticker{font-size:15px;font-weight:700}
+.journal-entry-type{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.journal-entry-date{font-size:11px;color:var(--text3);margin-left:auto}
+.journal-entry-body{font-size:12px;color:var(--text2);line-height:1.6}
+.journal-entry-outcome{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
+.journal-del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px}
+.journal-del-btn:hover{color:var(--red)}
+
+/* SMART WATCHLIST ALERTS */
+.smart-alert-builder{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.sab-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.sab-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+.sab-select{padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none;cursor:pointer}
+.sab-select:focus{border-color:var(--accent)}
+.sab-input{padding:8px 10px;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-family:var(--mono);color:var(--text);background:var(--bg3);outline:none;width:90px}
+.sab-input:focus{border-color:var(--accent)}
+.sab-add-btn{padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.sab-alert-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;font-size:12px}
+.sab-alert-row.triggered{background:var(--green-dim);border:1px solid var(--green-border)}
+.sab-alert-text{flex:1;color:var(--text2);line-height:1.5}
+.sab-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px}
+.sab-del:hover{color:var(--red)}
+
+/* ONBOARDING */
+#onboarding-screen{position:fixed;inset:0;z-index:10000;background:linear-gradient(160deg,#1a0a00 0%,#2d1200 60%,#0a0a1a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:var(--font)}
+.ob-slides{width:100%;max-width:420px;position:relative}
+.ob-slide{display:none;text-align:center;animation:obFade .4s ease}
+.ob-slide.active{display:block}
+@keyframes obFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ob-icon{font-size:56px;margin-bottom:20px;display:block}
+.ob-title{font-size:24px;font-weight:700;color:white;margin-bottom:10px;letter-spacing:-0.4px;line-height:1.2}
+.ob-body{font-size:14px;color:rgba(255,255,255,0.7);line-height:1.7;margin-bottom:28px}
+.ob-body strong{color:white}
+.ob-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;text-align:left}
+.ob-feature{display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px}
+.ob-feature-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.ob-feature-text{font-size:13px;color:rgba(255,255,255,0.85);line-height:1.5}
+.ob-feature-text strong{color:white;display:block;margin-bottom:2px}
+.ob-next-btn{width:100%;padding:15px;background:var(--accent);color:white;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s;margin-bottom:12px}
+.ob-next-btn:hover{opacity:.88}
+.ob-skip{font-size:13px;color:rgba(255,255,255,0.4);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px 8px}
+.ob-skip:hover{color:rgba(255,255,255,0.7)}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:24px}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.25);transition:all .2s}
+.ob-dot.active{background:var(--accent);width:18px;border-radius:3px}
+.ob-disclaimer{font-size:10px;color:rgba(255,255,255,0.3);text-align:center;line-height:1.5;max-width:320px;margin:0 auto}
+
+/* SEARCH */
+.search-btn{background:none;border:1px solid var(--border2);border-radius:10px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px;transition:all .15s;flex-shrink:0}
+.search-btn:hover{border-color:var(--accent);color:var(--accent)}
+.search-overlay{display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column}
+.search-overlay.open{display:flex}
+.search-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.search-input-wrap{flex:1;position:relative}
+.search-input{width:100%;padding:10px 14px;border:1.5px solid var(--accent);border-radius:10px;font-size:16px;font-family:var(--font);color:var(--text);background:var(--bg3);outline:none}
+.search-cancel{padding:8px 12px;border:none;background:none;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap}
+.search-results{flex:1;overflow-y:auto;padding:8px 0}
+.search-result-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.search-result-item:hover,.search-result-item:active{background:var(--bg3)}
+.search-result-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;background:var(--accent-light);color:var(--accent)}
+.search-result-info{flex:1;min-width:0}
+.search-result-ticker{font-size:14px;font-weight:700}
+.search-result-name{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-result-cat{font-size:10px;color:var(--text3);margin-top:1px}
+.search-result-right{text-align:right;flex-shrink:0}
+.search-result-price{font-size:14px;font-weight:600;font-family:var(--mono)}
+.search-result-chg{font-size:12px;font-weight:500}
+.search-empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.search-empty-icon{font-size:36px;margin-bottom:10px}
+.search-section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:10px 16px 4px}
+
+/* PRICE CHART */
+.chart-wrap{background:var(--bg3);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.chart-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.chart-range-btns{display:flex;gap:4px}
+.chart-range-btn{padding:3px 8px;border-radius:6px;border:1px solid var(--border2);background:none;font-size:11px;font-weight:500;cursor:pointer;color:var(--text3);font-family:var(--font);transition:all .15s}
+.chart-range-btn.on{background:var(--accent);color:white;border-color:var(--accent)}
+.chart-svg{width:100%;height:80px;display:block;overflow:visible}
+.chart-loading{text-align:center;padding:20px;font-size:12px;color:var(--text3)}
+.chart-price-labels{display:flex;justify-content:space-between;margin-top:4px}
+.chart-price-label{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.chart-stats-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.chart-stat{font-size:11px;color:var(--text3)}.chart-stat strong{color:var(--text)}
+
+/* RUN ALL BUTTON */
+.run-all-btn{display:flex;align-items:center;gap:10px;width:100%;padding:14px 18px;background:linear-gradient(135deg,var(--accent) 0%,#c2410c 100%);color:white;border:none;border-radius:var(--radius-lg);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);margin-bottom:14px;transition:opacity .15s;justify-content:center}
+.run-all-btn:hover{opacity:.9}
+.run-all-btn:disabled{opacity:.6;cursor:default}
+.run-all-btn-icon{font-size:20px}
+.run-all-progress{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px;display:none}
+.run-all-step{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.run-all-step:last-child{border-bottom:none}
+.run-all-step-icon{width:20px;text-align:center;flex-shrink:0}
+.run-all-step-label{flex:1;color:var(--text2)}
+.run-all-step-status{font-size:11px;font-weight:600}
+
+/* JOURNAL OUTCOMES */
+.outcome-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.outcome-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border2);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);background:none;color:var(--text3);transition:all .15s}
+.outcome-btn:hover{border-color:var(--text2);color:var(--text)}
+.outcome-btn.won{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.outcome-btn.lost{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
+.outcome-btn.pending{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
+.journal-pnl{font-size:12px;font-weight:600;padding:4px 0}
+</style>
+</head>
+<body>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="search-overlay">
+  <div class="search-header">
+    <div class="search-input-wrap">
+      <input class="search-input" id="search-input" type="text" placeholder="Search ticker or company name…" oninput="runSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"/>
+    </div>
+    <button class="search-cancel" onclick="closeSearch()">Cancel</button>
+  </div>
+  <div class="search-results" id="search-results">
+    <div class="search-empty">
+      <div class="search-empty-icon">🔍</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Search any stock</div>
+      <div style="font-size:12px">Type a ticker like NVDA or a company name like Apple</div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING (shown once to new users) — trading-focused, no learning references -->
+<div id="onboarding-screen" style="display:none">
+  <div class="ob-slides">
+
+    <!-- Slide 1: Welcome -->
+    <div class="ob-slide active" id="ob-slide-1">
+      <span class="ob-icon">📈</span>
+      <div class="ob-title">Welcome to StockMate</div>
+      <div class="ob-body">Your personal trading dashboard — <strong>signals, screening, and analysis</strong> for self-directed investors who want to move fast and stay informed.</div>
+      <div class="ob-features">
+        <div class="ob-feature">
+          <div class="ob-feature-icon">🔍</div>
+          <div class="ob-feature-text"><strong>Dynamic stock pool</strong>Top 75 from 200 candidates — scored and ranked every session by momentum signals</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">🎯</div>
+          <div class="ob-feature-text"><strong>Recommendations with trade guides</strong>Entry zone, stop loss, target price, and position sizing — all in one place</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">🧪</div>
+          <div class="ob-feature-text"><strong>Paper trade before you commit</strong>Practice with $10,000 of virtual money using live prices before risking real capital</div>
+        </div>
+      </div>
+      <div class="ob-dots">
+        <div class="ob-dot active"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+      </div>
+      <button class="ob-next-btn" onclick="obNext(2)">Get started →</button>
+      <button class="ob-skip" onclick="obFinish()">Skip intro</button>
+    </div>
+
+    <!-- Slide 2: How it works -->
+    <div class="ob-slide" id="ob-slide-2">
+      <span class="ob-icon">🧭</span>
+      <div class="ob-title">How StockMate works</div>
+      <div class="ob-body">StockMate scores each stock using <strong>momentum signals</strong> — not tips or predictions. Here's the workflow:</div>
+      <div class="ob-features">
+        <div class="ob-feature">
+          <div class="ob-feature-icon">📊</div>
+          <div class="ob-feature-text"><strong>Signals, not guarantees</strong>A high score means conditions are aligned — it does NOT mean the stock will go up. Always check the news too.</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">⚡</div>
+          <div class="ob-feature-text"><strong>One button does it all</strong>On the Picks tab, tap "Run Everything" — backtest + analyst data + recommendations in one go. Takes ~30 seconds.</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">📓</div>
+          <div class="ob-feature-text"><strong>Log every decision</strong>Use the Journal tab to record why you bought or sold. Reviewing your own reasoning is how you improve over time.</div>
+        </div>
+      </div>
+      <div class="ob-dots">
+        <div class="ob-dot"></div>
+        <div class="ob-dot active"></div>
+        <div class="ob-dot"></div>
+      </div>
+      <button class="ob-next-btn" onclick="obNext(3)">Next →</button>
+      <button class="ob-skip" onclick="obFinish()">Skip intro</button>
+    </div>
+
+    <!-- Slide 3: Get started -->
+    <div class="ob-slide" id="ob-slide-3">
+      <span class="ob-icon">🚀</span>
+      <div class="ob-title">You're ready to go</div>
+      <div class="ob-body">Here's the fastest way to get value from StockMate:</div>
+      <div class="ob-features">
+        <div class="ob-feature">
+          <div class="ob-feature-icon">1️⃣</div>
+          <div class="ob-feature-text"><strong>Browse the Market tab</strong>Tap any stock card to see its bio, live price, chart, signals, and latest news</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">2️⃣</div>
+          <div class="ob-feature-text"><strong>Tap ⚡ Run Everything on the Picks tab</strong>One button runs the full backtest + analyst analysis and builds today's ranked recommendations</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">3️⃣</div>
+          <div class="ob-feature-text"><strong>Check Earnings &amp; Alerts</strong>Before acting on any signal, check whether the stock has upcoming earnings — that changes the risk profile completely</div>
+        </div>
+        <div class="ob-feature">
+          <div class="ob-feature-icon">4️⃣</div>
+          <div class="ob-feature-text"><strong>Log your decisions in the Journal</strong>Track every trade decision — what you bought, why, and whether it worked. The best traders review their own patterns.</div>
+        </div>
+      </div>
+      <div class="ob-dots">
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot active"></div>
+      </div>
+      <button class="ob-next-btn" onclick="obFinish()">Let's go 🎉</button>
+      <div class="ob-disclaimer">⚠ StockMate provides algorithmic signals for informational purposes only. This is not financial advice. Never invest money you cannot afford to lose.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📈</div>
+    <div class="login-title">StockMate</div>
+    <div class="login-sub">Investing, made for humans</div>
+    <input class="login-input" id="login-input" type="password" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkPassword()" autofocus/>
+    <button class="login-btn" onclick="checkPassword()">Unlock StockMate →</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-hint">🔒 Private · Your portfolio data stays private</div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-modal" style="width:400px">
+    <h3>⚙ Settings</h3>
+    <p>Customise StockMate to show what matters to you</p>
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Filter Pills</div>
+    <div id="pillToggles"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">Tabs — show or hide</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Market and Picks are always visible. Hide tabs you don't use.</div>
+    <div id="tabToggles"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">Developer</div>
+    <div class="pill-toggle-row">
+      <span class="pill-toggle-label">Show Pool tab (developer view)</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="pool-tab-toggle" onchange="togglePoolTab(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <button class="settings-close" onclick="closeSettings()">Done</button>
+  </div>
+</div>
+
+<div class="alert-banner" id="alertBanner"></div>
+
+<div class="app" id="main-app" style="display:none">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-mark">📈</div>
+    <div class="pulse"></div>
+    <div>
+      <div class="logo-t">StockMate</div>
+      <div class="logo-s" id="pool-status">Loading dynamic pool…</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="ts-box" id="ts"></span>
+    <button class="search-btn" onclick="openSearch()" title="Search stocks">🔍</button>
+    <button class="search-btn" onclick="openSettings()" title="Settings" style="font-size:16px">⚙</button>
+    <button class="reload-btn" onclick="loadAllPrices()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="loading-bar" id="loader"></div>
+<div id="price-status" style="display:none"></div>
+
+<!-- TICKER STRIP -->
+<div class="ticker" id="ticker-strip">
+  <div class="skeleton" style="width:80px;height:16px"></div>
+  <div class="skeleton" style="width:80px;height:16px"></div>
+  <div class="skeleton" style="width:80px;height:16px"></div>
+  <div class="skeleton" style="width:80px;height:16px"></div>
+</div>
+
+<!-- DESKTOP TABS -->
+<div class="tabs-wrap">
+  <button class="tab-scroll-btn" onclick="scrollTabs(-150)" title="Scroll left">‹</button>
+  <div class="tabs" id="desktop-tabs">
+    <div class="tab on" id="dt-dashboard" onclick="goTab('dashboard',this)">📊 Market</div>
+    <div class="tab" id="dt-recommendations" onclick="goTab('recommendations',this)">🎯 Picks</div>
+    <div class="tab" id="dt-sell" onclick="goTab('sell',this)">🔴 Sell Signals</div>
+    <div class="tab" id="dt-scanner" onclick="goTab('scanner',this)">🔭 Scanner</div>
+    <div class="tab" id="dt-backtest" onclick="goTab('backtest',this)">📊 Backtest</div>
+    <div class="tab" id="dt-earnings" onclick="goTab('earnings',this)">📅 Earnings</div>
+    <div class="tab" id="dt-smart-alerts" onclick="goTab('smart-alerts',this)">🔔 Alerts</div>
+    <div class="tab" id="dt-heatmap" onclick="goTab('heatmap',this)">🌡 Heatmap</div>
+    <div class="tab" id="dt-compare" onclick="goTab('compare',this)">⚖️ Compare</div>
+    <div class="tab" id="dt-journal" onclick="goTab('journal',this)">📓 Journal</div>
+    <div class="tab" id="dt-watchlist-alerts" onclick="goTab('watchlist-alerts',this)">🎯 My Alerts</div>
+    <div class="tab" id="dt-paper" onclick="goTab('paper',this)">🧪 Practice</div>
+    <div class="tab" id="dt-community" onclick="goTab('community',this)">👥 Community</div>
+    <div class="tab" id="dt-digest" onclick="goTab('digest',this)">📬 Digest</div>
+    <div class="tab" id="dt-pool" onclick="goTab('pool',this)" style="display:none">🔄 Pool</div>
+  </div>
+  <button class="tab-scroll-btn right" onclick="scrollTabs(150)" title="Scroll right">›</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="pg on">
+  <div class="stock-detail" id="stockDetail">
+    <div class="sd-header">
+      <div>
+        <div class="sd-title" id="sd-title">—</div>
+        <div class="sd-subtitle" id="sd-subtitle">—</div>
+      </div>
+      <div class="sd-actions">
+        <button class="sd-btn" onclick="showSdTab('alert',document.querySelectorAll('.sd-tab')[1])">🔔 Set Alert</button>
+        <button class="sd-btn" onclick="showSdTab('note',document.querySelectorAll('.sd-tab')[2])">📝 Note</button>
+        <button class="sd-btn" onclick="closeDetail()">✕ Close</button>
+      </div>
+    </div>
+    <div id="sd-bio"></div>
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <div class="chart-title">Price chart</div>
+        <div class="chart-range-btns">
+          <button class="chart-range-btn on" onclick="setChartRange(30,this)">1M</button>
+          <button class="chart-range-btn" onclick="setChartRange(60,this)">2M</button>
+          <button class="chart-range-btn" onclick="setChartRange(90,this)">3M</button>
+        </div>
+      </div>
+      <div id="chart-container"><div class="chart-loading">Loading chart…</div></div>
+    </div>
+    <div class="sd-tabs">
+      <div class="sd-tab on" onclick="showSdTab('news',this)">📰 News</div>
+      <div class="sd-tab" onclick="showSdTab('alert',this)">🔔 Price Alert</div>
+      <div class="sd-tab" onclick="showSdTab('note',this)">📝 Note</div>
+    </div>
+    <div class="sd-panel on" id="sd-news"><div id="news-content"><div style="font-size:12px;color:var(--text3);padding:8px 0">Loading news…</div></div></div>
+    <div class="sd-panel" id="sd-alert">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Get notified when price hits your target. Checked every 5 minutes.</div>
+      <div class="alert-form">
+        <input class="alert-input" id="alert-above-input" type="number" step="0.01" placeholder="Alert above $"/>
+        <input class="alert-input" id="alert-below-input" type="number" step="0.01" placeholder="Alert below $"/>
+        <button class="alert-set-btn" onclick="saveAlert()">Set Alert</button>
+      </div>
+      <div class="alert-list" id="alert-list"></div>
+    </div>
+    <div class="sd-panel" id="sd-note">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Your private notes — saved in browser storage.</div>
+      <textarea class="note-textarea" id="note-textarea" placeholder="e.g. Waiting for pullback to $180. Check after May 15 earnings."></textarea>
+      <div style="display:flex;align-items:center">
+        <button class="note-save-btn" onclick="saveNote()">Save Note</button>
+        <span class="note-saved" id="note-saved">Saved ✓</span>
+      </div>
+    </div>
+  </div>
+  <div id="watch-view">
+    <div class="health-card" id="health-card" style="display:none">
+      <div class="health-header">
+        <div class="health-title">Portfolio Health</div>
+        <div style="font-size:10px;color:var(--text3)">Updates when prices load</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="flex-shrink:0">
+          <svg class="health-score-ring" viewBox="0 0 56 56">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="5"/>
+            <circle id="health-ring" cx="28" cy="28" r="24" fill="none" stroke="var(--green)" stroke-width="5"
+              stroke-dasharray="150.8" stroke-dashoffset="150.8" stroke-linecap="round"
+              transform="rotate(-90 28 28)" style="transition:stroke-dashoffset .6s,stroke .4s"/>
+            <text id="health-score-num" x="28" y="29" class="health-score-num" fill="var(--text)" font-size="13" font-weight="700" text-anchor="middle" dominant-baseline="middle">—</text>
+          </svg>
+        </div>
+        <div style="flex:1">
+          <div class="health-verdict" id="health-verdict">Loading…</div>
+          <div class="health-items" id="health-items"></div>
+        </div>
+      </div>
+    </div>
+    <div class="metrics" id="sel-metrics" style="display:none">
+      <div class="mc"><div class="mc-l">Selected</div><div class="mc-v" id="sel-t" style="font-size:14px">—</div></div>
+      <div class="mc"><div class="mc-l">Price</div><div class="mc-v" id="sel-p" style="font-size:14px">—</div></div>
+      <div class="mc"><div class="mc-l">Change</div><div class="mc-v" id="sel-c">—</div></div>
+      <div class="mc"><div class="mc-l">Signal</div><div class="mc-v" id="sel-s">—</div></div>
+      <div class="mc"><div class="mc-l">Risk</div><div class="mc-v" id="sel-r">—</div></div>
+    </div>
+    <div id="market-summary" style="margin-bottom:10px"></div>
+    <div id="rotation-info" style="display:none;margin-bottom:8px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text3)">Stocks ranked by signal score — <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="toggleScoreExplainer()">how is this calculated?</span></div>
+    </div>
+    <div class="signal-explainer" id="score-explainer" style="display:none">
+      <div class="signal-explainer-title">📊 How the signal score works <span style="margin-left:auto;font-size:11px;color:var(--text3);cursor:pointer" onclick="toggleScoreExplainer()">✕ Close</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Each stock is scored 0–99 based on 4 signals. A higher score means more signals are aligned — it does <strong>not</strong> mean the stock will go up. Always check the news before acting.</div>
+      <div class="signal-factor"><span style="width:130px;color:var(--text2)">📈 Price momentum</span><div class="signal-factor-bar"><div class="signal-factor-fill" style="width:70%"></div></div><span class="signal-factor-pts">Max 30pts</span></div>
+      <div class="signal-factor"><span style="width:130px;color:var(--text2)">🔁 3-day streak</span><div class="signal-factor-bar"><div class="signal-factor-fill" style="width:67%"></div></div><span class="signal-factor-pts">Max 20pts</span></div>
+      <div class="signal-factor"><span style="width:130px;color:var(--text2)">⚡ Catalyst/news</span><div class="signal-factor-bar"><div class="signal-factor-fill" style="width:50%"></div></div><span class="signal-factor-pts">Max 15pts</span></div>
+      <div class="signal-factor"><span style="width:130px;color:var(--text2)">📅 Earnings soon</span><div class="signal-factor-bar"><div class="signal-factor-fill" style="width:50%"></div></div><span class="signal-factor-pts">Max 15pts</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5">When you run <strong>Full Analysis</strong> on the Recommendations tab, analyst ratings, volume, 52-week position, and 3-month history are also added to the score.</div>
+    </div>
+    <div id="market-status-banner"></div>
+    <div class="pills" style="margin-bottom:10px">
+      <div class="pill on" data-filter="all" onclick="setFilter('all',this)">🔥 Top picks</div>
+      <div class="pill" data-filter="momentum" onclick="setFilter('momentum',this)">📈 Momentum</div>
+      <div class="pill" data-filter="ytd" onclick="setFilter('ytd',this)">📅 Top YTD</div>
+      <div class="pill" data-filter="ai" onclick="setFilter('ai',this)">🤖 AI & Chips</div>
+      <div class="pill" data-filter="growth" onclick="setFilter('growth',this)">🚀 High Growth</div>
+      <div class="pill hot" data-filter="potential" onclick="setFilter('potential',this)">⚡ Emerging</div>
+      <div class="pill" data-filter="crypto" onclick="setFilter('crypto',this)">🪙 Crypto</div>
+    </div>
+    <div class="wgrid" id="wgrid"></div>
+    <div class="note" id="price-source">Prices loading…</div>
+  </div>
+</div>
+
+<!-- RECOMMENDATIONS -->
+<div id="tab-recommendations" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)">🎯 Buy Recommendations</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">Plain-English guidance · entry zone · stop loss · hold duration.</div>
+      <div style="font-size:11px;color:var(--amber);margin-top:4px">⚠ Algorithmic signals only — not financial advice. Always do your own research.</div>
+    </div>
+    <button class="bt-run-btn" id="recRunBtn" onclick="loadFundamentalsAndRender()">▶ Run Full Analysis</button>
+  </div>
+  <button class="run-all-btn" id="run-all-btn" onclick="runAll()">
+    <span class="run-all-btn-icon">⚡</span>
+    <span>Run Everything — Backtest + Full Analysis in one click</span>
+  </button>
+  <div class="run-all-progress" id="run-all-progress">
+    <div class="run-all-step" id="ras-1"><span class="run-all-step-icon">📊</span><span class="run-all-step-label">Running 3-month backtest…</span><span class="run-all-step-status" id="ras-1-status" style="color:var(--text3)">Waiting</span></div>
+    <div class="run-all-step" id="ras-2"><span class="run-all-step-icon">🎯</span><span class="run-all-step-label">Fetching analyst data &amp; earnings…</span><span class="run-all-step-status" id="ras-2-status" style="color:var(--text3)">Waiting</span></div>
+    <div class="run-all-step" id="ras-3"><span class="run-all-step-icon">✅</span><span class="run-all-step-label">Building recommendations…</span><span class="run-all-step-status" id="ras-3-status" style="color:var(--text3)">Waiting</span></div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--text2);font-weight:500">Your portfolio size:</span>
+    <input id="portfolio-size" type="number" placeholder="e.g. 10000" style="padding:5px 10px;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-family:var(--mono);width:130px;color:var(--text);background:var(--bg3);outline:none" oninput="renderRecommendations()"/>
+    <span style="font-size:11px;color:var(--text3)">Enter total budget to see position sizing per stock</span>
+  </div>
+  <div id="rec-content"><div style="text-align:center;padding:24px 16px;color:var(--text3)">
+    <div style="font-size:32px;margin-bottom:10px">⚡</div>
+    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Ready to find your best picks?</div>
+    <div style="font-size:12px;margin-bottom:16px">Tap the button above to run the full analysis — backtest + analyst data in one go. Takes about 30 seconds.</div>
+  </div></div>
+</div>
+
+<!-- SELL SIGNALS -->
+<div id="tab-sell" class="pg">
+  <div style="font-size:11px;color:var(--amber);padding:8px 0 10px;line-height:1.5">⚠ Exit signals are algorithmic only — not financial advice. A high exit score means conditions are unfavourable, not that the stock will definitely fall.</div>
+  <div class="sbox"><div class="sbox-t">Top 20 by exit risk</div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Stock</th><th>Price</th><th>Today</th><th>Key exit triggers</th><th>Score /100</th><th>Action</th></tr></thead><tbody id="sell-rows"></tbody></table></div></div>
+  <div class="sbox"><div class="sbox-t">Full pool sell scan</div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Ticker</th><th>Price</th><th>Change</th><th>Overbought?</th><th>3-day fall?</th><th>Score</th><th>Action</th></tr></thead><tbody id="sell-all-rows"></tbody></table></div></div>
+</div>
+
+<!-- SCANNER -->
+<div id="tab-scanner" class="pg">
+  <div style="font-size:11px;color:var(--amber);padding:8px 0 4px;line-height:1.5">⚠ Convergence scores are algorithmic signals — not buy recommendations.</div>
+  <div class="alert al-a" style="margin-bottom:12px"><span>◎</span><span>Convergence score 0–100 across 7 signals: RSI + MACD + Volume spike + 3-day streak + Catalyst + Upcoming earnings + Analyst upgrade. Score 70+ = high-conviction setup.</span></div>
+  <div class="scan-grid" id="scan-top"></div>
+  <div class="sbox"><div class="sbox-t">Full pool — live convergence scores</div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Ticker</th><th>Live Price</th><th>Change</th><th>3-day ▲</th><th>Catalyst</th><th>Score</th><th>Signal</th></tr></thead><tbody id="scan-rows"></tbody></table></div></div>
+</div>
+
+<!-- BACKTEST -->
+<div id="tab-backtest" class="pg">
+  <div class="bt-header">
+    <div><div style="font-size:15px;font-weight:600;color:var(--text)">3-Month Backtest</div><div style="font-size:11px;color:var(--text3);margin-top:3px">How each stock performed over the last 3 months</div></div>
+    <button class="bt-run-btn" id="btRunBtn" onclick="runBacktest()">▶ Run Backtest</button>
+  </div>
+  <div class="bt-filter-row" style="flex-wrap:wrap">
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-right:2px;width:100%;margin-bottom:2px">Filter by sector:</span>
+    <button class="bt-pill on" onclick="setBtFilter('all',this)">All</button>
+    <button class="bt-pill" onclick="setBtFilter('AI & Chips',this)">AI &amp; Chips</button>
+    <button class="bt-pill" onclick="setBtFilter('Big Tech',this)">Big Tech</button>
+    <button class="bt-pill" onclick="setBtFilter('Cloud Software',this)">Cloud</button>
+    <button class="bt-pill" onclick="setBtFilter('High Growth',this)">High Growth</button>
+    <button class="bt-pill" onclick="setBtFilter('Fintech',this)">Fintech</button>
+    <button class="bt-pill" onclick="setBtFilter('Ad Tech',this)">Ad Tech</button>
+    <button class="bt-pill" onclick="setBtFilter('Emerging',this)">Emerging</button>
+    <button class="bt-pill" onclick="setBtFilter('Healthcare',this)">Healthcare</button>
+    <button class="bt-pill" onclick="setBtFilter('Energy',this)">Energy</button>
+    <button class="bt-pill" onclick="setBtFilter('Crypto',this)">🪙 Crypto</button>
+    <button class="bt-pill" onclick="setBtFilter('Financials',this)">Financials</button>
+    <button class="bt-pill" onclick="setBtFilter('ETF',this)">ETFs</button>
+  </div>
+  <div id="btStatus" style="font-size:12px;color:var(--text3);margin-bottom:8px"></div>
+  <div id="btResults"><div class="no-r">Click ▶ Run Backtest to load 3-month return data</div></div>
+</div>
+
+<!-- PAPER TRADING -->
+<div id="tab-paper" class="pg">
+  <div class="paper-hero">
+    <div class="paper-hero-label">Virtual Portfolio Value</div>
+    <div class="paper-hero-value" id="paper-total">$10,000.00</div>
+    <div class="paper-hero-row">
+      <div class="paper-hero-stat"><label>Cash available</label><span id="paper-cash">$10,000.00</span></div>
+      <div class="paper-hero-stat"><label>Total return</label><span id="paper-return">$0.00 (0.00%)</span></div>
+      <div class="paper-hero-stat"><label>vs S&P 500</label><span id="paper-vs-spy">—</span></div>
+      <div class="paper-hero-stat"><label>Trades made</label><span id="paper-trades">0</span></div>
+    </div>
+  </div>
+  <div class="alert al-a" style="margin-bottom:12px"><span>🧪</span><span><strong>Paper trading uses real live prices</strong> but virtual money. Perfect for practising before you invest real money.</span></div>
+  <div class="paper-trade-form">
+    <div class="paper-form-title">Place a trade</div>
+    <div class="paper-form-row">
+      <input class="paper-input" id="paper-ticker-input" placeholder="Ticker (e.g. NVDA)" style="max-width:140px" oninput="this.value=this.value.toUpperCase()"/>
+      <input class="paper-input" id="paper-shares-input" type="number" placeholder="Shares" style="max-width:100px" min="0.01" step="0.01"/>
+      <button class="paper-buy-btn" onclick="paperTrade('buy')">Buy</button>
+      <button class="paper-sell-btn" onclick="paperTrade('sell')">Sell</button>
+    </div>
+    <div id="paper-trade-msg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+  </div>
+  <div class="sbox-t" style="padding:0 4px 8px">Your positions</div>
+  <div class="paper-positions" id="paper-positions"><div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">No positions yet — place your first trade above</div></div>
+  <div class="sbox-t" style="padding:12px 4px 8px">Trade history</div>
+  <div class="paper-log" id="paper-log"><div style="padding:14px;text-align:center;color:var(--text3);font-size:12px">No trades yet</div></div>
+  <div style="text-align:right;margin-top:8px"><button onclick="resetPaperPortfolio()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--font)">Reset paper portfolio</button></div>
+</div>
+
+<!-- COMMUNITY WATCHLIST -->
+<div id="tab-community" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px">👥 Community Watchlist <span class="simulated-badge">Simulated data</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">What investors are watching — anonymous signal, no hype, no names</div>
+    <div style="font-size:11px;color:var(--amber);margin-top:6px;padding:6px 10px;background:var(--amber-dim);border-radius:8px;line-height:1.5">⚠ Community data is currently <strong>simulated</strong> based on stock scores.</div>
+  </div>
+  <div class="alert al-g" style="margin-bottom:12px"><span>🔒</span><span>All data is anonymous and aggregated. No usernames, no individual tracking.</span></div>
+  <div id="community-content"><div class="no-r">Load prices to see community data</div></div>
+</div>
+
+<!-- WEEKLY DIGEST -->
+<div id="tab-digest" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">📬 Weekly Digest</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Your personalised weekly summary — top signals, earnings to watch, sector trends</div>
+  </div>
+  <div id="digest-content"><div class="no-r">Load prices to generate your weekly digest</div></div>
+</div>
+
+<!-- SECTOR HEATMAP -->
+<div id="tab-heatmap" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:15px;font-weight:600;color:var(--text)">🌡 Sector Heatmap</div><div style="font-size:11px;color:var(--text3);margin-top:3px">Which sectors are hot and cold right now</div></div>
+    <button class="bt-run-btn" onclick="renderHeatmap()">↻ Refresh</button>
+  </div>
+  <div id="heatmap-content"><div class="no-r">Load prices to see sector heatmap</div></div>
+</div>
+
+<!-- COMPARE MODE -->
+<div id="tab-compare" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">⚖️ Compare Stocks</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Side-by-side comparison with a plain-English verdict</div>
+  </div>
+  <div class="compare-search-row">
+    <input class="compare-input" id="compare-a" placeholder="Ticker A (e.g. NVDA)" oninput="this.value=this.value.toUpperCase()"/>
+    <input class="compare-input" id="compare-b" placeholder="Ticker B (e.g. MSFT)" oninput="this.value=this.value.toUpperCase()"/>
+    <button class="compare-btn" onclick="runCompare()">Compare →</button>
+  </div>
+  <div id="compare-content"><div class="no-r">Enter two tickers above to compare them</div></div>
+</div>
+
+<!-- DECISION JOURNAL -->
+<div id="tab-journal" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">📓 Decision Journal</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Log every buy and sell decision · track what worked · learn from every trade</div>
+  </div>
+  <div class="journal-form">
+    <div class="journal-form-title">Log a new decision</div>
+    <div class="journal-row" style="margin-bottom:10px">
+      <div class="journal-field" style="flex:1;min-width:100px"><label class="journal-label">Ticker</label><input class="journal-input" id="jnl-ticker" placeholder="e.g. NVDA" oninput="this.value=this.value.toUpperCase()"/></div>
+      <div class="journal-field" style="flex:1;min-width:100px"><label class="journal-label">Action</label><select class="journal-input sab-select" id="jnl-action"><option value="BUY">BUY</option><option value="SELL">SELL</option><option value="WATCH">WATCHING</option></select></div>
+      <div class="journal-field" style="flex:1;min-width:100px"><label class="journal-label">Price</label><input class="journal-input" id="jnl-price" type="number" step="0.01" placeholder="$0.00"/></div>
+    </div>
+    <div class="journal-field"><label class="journal-label">Why are you making this decision?</label><textarea class="journal-textarea" id="jnl-why" placeholder="e.g. 3-day momentum streak, strong earnings beat, sector rotation into AI..."></textarea></div>
+    <div class="journal-field"><label class="journal-label">What signal triggered it? (optional)</label><input class="journal-input" id="jnl-signal" placeholder="e.g. Breakout scanner score 87, 3-day streak, analyst upgrade"/></div>
+    <div class="journal-row"><button class="journal-save-btn" onclick="saveJournalEntry()">Save entry →</button></div>
+    <div id="jnl-msg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+  </div>
+  <div id="journal-entries"><div class="no-r">No journal entries yet — log your first decision above</div></div>
+</div>
+
+<!-- SMART WATCHLIST ALERTS -->
+<div id="tab-watchlist-alerts" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">🎯 My Watchlist Alerts</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Multi-condition alerts — get notified when exactly the right setup appears</div>
+  </div>
+  <div class="alert al-a" style="margin-bottom:12px"><span>💡</span><span>Alerts are checked every 5 minutes while the app is open.</span></div>
+  <div class="smart-alert-builder">
+    <div class="sab-title">Build a new alert</div>
+    <div class="sab-row">
+      <select class="sab-select" id="sab-ticker-select" style="flex:1;min-width:120px"><option value="">Select stock…</option></select>
+      <select class="sab-select" id="sab-condition">
+        <option value="price_above">Price above $</option>
+        <option value="price_below">Price below $</option>
+        <option value="change_above">Day change above %</option>
+        <option value="change_below">Day change below %</option>
+        <option value="streak_3">3-day streak starts</option>
+        <option value="streak_end">3-day streak ends</option>
+        <option value="before_earnings">7 days before earnings</option>
+      </select>
+      <input class="sab-input" id="sab-value" type="number" step="0.01" placeholder="Value"/>
+      <button class="sab-add-btn" onclick="addSmartAlert()">Add Alert</button>
+    </div>
+    <div id="sab-msg" style="font-size:12px;color:var(--text3);min-height:16px"></div>
+  </div>
+  <div id="watchlist-alerts-list"><div class="no-r">No alerts set yet</div></div>
+</div>
+
+<!-- POOL (developer) -->
+<div id="tab-pool" class="pg">
+  <div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:600;color:var(--text)">🔄 Dynamic Pool</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:3px">Top 75 selected by merit from 200-stock universe</div>
+  </div>
+  <div id="pool-content"><div class="no-r">Load prices to see pool composition</div></div>
+</div>
+
+<!-- EARNINGS CALENDAR -->
+<div id="tab-earnings" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:15px;font-weight:600;color:var(--text)">📅 Earnings Calendar</div><div style="font-size:11px;color:var(--text3);margin-top:3px">Upcoming earnings · plain-English impact previews</div></div>
+  </div>
+  <div class="alert al-a" style="margin-bottom:12px"><span>💡</span><span>Stocks often move 10–20% on earnings day. Consider your position size carefully before these dates.</span></div>
+  <div id="earnings-content"><div class="no-r">Load prices to populate earnings calendar</div></div>
+</div>
+
+<!-- SMART ALERTS -->
+<div id="tab-smart-alerts" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:15px;font-weight:600;color:var(--text)">🔔 Smart Alerts</div><div style="font-size:11px;color:var(--text3);margin-top:3px">Not just what moved — but why, and what to do about it</div></div>
+    <button class="bt-run-btn" onclick="generateSmartAlerts()">↻ Refresh</button>
+  </div>
+  <div id="smart-alerts-content"><div class="no-r">Load prices to generate smart alerts</div></div>
+</div>
+
+</div><!-- end .app -->
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <span>⚠ Not financial advice</span>
+  <span>·</span>
+  <span>All signals are algorithmic — always do your own research</span>
+  <span>·</span>
+  <span>Past performance does not guarantee future results</span>
+  <span>·</span>
+  <span>Never invest money you cannot afford to lose</span>
+</div>
+
+<!-- MORE DRAWER (mobile) -->
+<div class="more-drawer-overlay" id="more-overlay" onclick="closeMoreDrawer()"></div>
+<div class="more-drawer" id="more-drawer">
+  <div class="more-drawer-handle"></div>
+  <div class="more-drawer-title">More features</div>
+  <div class="more-drawer-grid">
+    <div class="more-drawer-item" id="md-sell" onclick="moreNav('sell',this)"><span class="more-item-icon">🔴</span><span class="more-item-label">Sell Signals</span></div>
+    <div class="more-drawer-item" id="md-scanner" onclick="moreNav('scanner',this)"><span class="more-item-icon">🔭</span><span class="more-item-label">Scanner</span></div>
+    <div class="more-drawer-item" id="md-backtest" onclick="moreNav('backtest',this)"><span class="more-item-icon">📊</span><span class="more-item-label">Backtest</span></div>
+    <div class="more-drawer-item" id="md-earnings" onclick="moreNav('earnings',this)"><span class="more-item-icon">📅</span><span class="more-item-label">Earnings</span></div>
+    <div class="more-drawer-item" id="md-smart-alerts" onclick="moreNav('smart-alerts',this)"><span class="more-item-icon">🔔</span><span class="more-item-label">Alerts</span></div>
+    <div class="more-drawer-item" id="md-heatmap" onclick="moreNav('heatmap',this)"><span class="more-item-icon">🌡</span><span class="more-item-label">Heatmap</span></div>
+    <div class="more-drawer-item" id="md-compare" onclick="moreNav('compare',this)"><span class="more-item-icon">⚖️</span><span class="more-item-label">Compare</span></div>
+    <div class="more-drawer-item" id="md-watchlist-alerts" onclick="moreNav('watchlist-alerts',this)"><span class="more-item-icon">🎯</span><span class="more-item-label">My Alerts</span></div>
+    <div class="more-drawer-item" id="md-paper" onclick="moreNav('paper',this)"><span class="more-item-icon">🧪</span><span class="more-item-label">Practice</span></div>
+    <div class="more-drawer-item" id="md-community" onclick="moreNav('community',this)"><span class="more-item-icon">👥</span><span class="more-item-label">Community</span></div>
+    <div class="more-drawer-item" id="md-digest" onclick="moreNav('digest',this)"><span class="more-item-icon">📬</span><span class="more-item-label">Digest</span></div>
+    <div class="more-drawer-item" onclick="closeMoreDrawer();openSettings()"><span class="more-item-icon">⚙</span><span class="more-item-label">Settings</span></div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV — Learn tab removed, Journal promoted -->
+<nav class="mob-nav">
+  <button class="mob-nav-btn on" id="mn-dashboard" onclick="mobNav('dashboard',this)"><span class="mob-nav-icon">📊</span>Market</button>
+  <button class="mob-nav-btn" id="mn-recommendations" onclick="mobNav('recommendations',this)"><span class="mob-nav-icon">🎯</span>Picks</button>
+  <button class="mob-nav-btn" id="mn-journal" onclick="mobNav('journal',this)"><span class="mob-nav-icon">📓</span>Journal</button>
+  <button class="mob-nav-btn" id="mn-paper" onclick="mobNav('paper',this)"><span class="mob-nav-icon">🧪</span>Practice</button>
+  <button class="mob-nav-btn" id="mn-more" onclick="openMoreDrawer()"><span class="mob-nav-icon">⋯</span>More</button>
+</nav>
+
