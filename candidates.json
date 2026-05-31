@@ -1,186 +1,3056 @@
 [
-  {"t":"NVDA","n":"NVIDIA Corp","cat":"AI & Chips","risk":"Med"},
-  {"t":"AMD","n":"Advanced Micro Devices","cat":"AI & Chips","risk":"Med"},
-  {"t":"AVGO","n":"Broadcom Inc","cat":"AI & Chips","risk":"Low"},
-  {"t":"TSM","n":"Taiwan Semiconductor","cat":"AI & Chips","risk":"Med"},
-  {"t":"QCOM","n":"Qualcomm","cat":"AI & Chips","risk":"Med"},
-  {"t":"INTC","n":"Intel Corp","cat":"AI & Chips","risk":"Med"},
-  {"t":"AMAT","n":"Applied Materials","cat":"AI & Chips","risk":"Med"},
-  {"t":"LRCX","n":"Lam Research","cat":"AI & Chips","risk":"Med"},
-  {"t":"KLAC","n":"KLA Corp","cat":"AI & Chips","risk":"Med"},
-  {"t":"MRVL","n":"Marvell Technology","cat":"AI & Chips","risk":"Med"},
-  {"t":"ASML","n":"ASML Holding","cat":"AI & Chips","risk":"Low"},
-  {"t":"SMCI","n":"Super Micro Computer","cat":"AI & Chips","risk":"High"},
-  {"t":"ARM","n":"Arm Holdings","cat":"AI & Chips","risk":"High"},
-  {"t":"MPWR","n":"Monolithic Power Systems","cat":"AI & Chips","risk":"Med"},
-  {"t":"WOLF","n":"Wolfspeed","cat":"AI & Chips","risk":"High"},
-
-  {"t":"MSFT","n":"Microsoft","cat":"Big Tech","risk":"Low"},
-  {"t":"AAPL","n":"Apple Inc","cat":"Big Tech","risk":"Low"},
-  {"t":"AMZN","n":"Amazon","cat":"Big Tech","risk":"Low"},
-  {"t":"GOOGL","n":"Alphabet Class A","cat":"Big Tech","risk":"Low"},
-  {"t":"META","n":"Meta Platforms","cat":"Big Tech","risk":"Low"},
-  {"t":"NFLX","n":"Netflix","cat":"Big Tech","risk":"Low"},
-  {"t":"TSLA","n":"Tesla","cat":"Big Tech","risk":"High"},
-  {"t":"ORCL","n":"Oracle Corp","cat":"Big Tech","risk":"Low"},
-  {"t":"IBM","n":"IBM Corp","cat":"Big Tech","risk":"Low"},
-  {"t":"ADBE","n":"Adobe Inc","cat":"Big Tech","risk":"Low"},
-  {"t":"CRM","n":"Salesforce","cat":"Big Tech","risk":"Low"},
-  {"t":"NOW","n":"ServiceNow","cat":"Big Tech","risk":"Med"},
-  {"t":"INTU","n":"Intuit Inc","cat":"Big Tech","risk":"Low"},
-  {"t":"PANW","n":"Palo Alto Networks","cat":"Big Tech","risk":"Med"},
-  {"t":"CRWD","n":"CrowdStrike","cat":"Big Tech","risk":"Med"},
-
-  {"t":"SNOW","n":"Snowflake","cat":"Cloud Software","risk":"High"},
-  {"t":"DDOG","n":"Datadog","cat":"Cloud Software","risk":"High"},
-  {"t":"MDB","n":"MongoDB","cat":"Cloud Software","risk":"High"},
-  {"t":"NET","n":"Cloudflare","cat":"Cloud Software","risk":"High"},
-  {"t":"ZS","n":"Zscaler","cat":"Cloud Software","risk":"High"},
-  {"t":"OKTA","n":"Okta Inc","cat":"Cloud Software","risk":"High"},
-  {"t":"HUBS","n":"HubSpot","cat":"Cloud Software","risk":"Med"},
-  {"t":"TEAM","n":"Atlassian","cat":"Cloud Software","risk":"Med"},
-  {"t":"ESTC","n":"Elastic NV","cat":"Cloud Software","risk":"High"},
-  {"t":"GTLB","n":"GitLab","cat":"Cloud Software","risk":"High"},
-  {"t":"PATH","n":"UiPath","cat":"Cloud Software","risk":"High"},
-  {"t":"AI","n":"C3.ai","cat":"Cloud Software","risk":"High"},
-  {"t":"PLTR","n":"Palantir Technologies","cat":"Cloud Software","risk":"High"},
-  {"t":"S","n":"SentinelOne","cat":"Cloud Software","risk":"High"},
-  {"t":"DOCN","n":"DigitalOcean","cat":"Cloud Software","risk":"High"},
-
-  {"t":"SHOP","n":"Shopify","cat":"High Growth","risk":"High"},
-  {"t":"MELI","n":"MercadoLibre","cat":"High Growth","risk":"Med"},
-  {"t":"SE","n":"Sea Limited","cat":"High Growth","risk":"High"},
-  {"t":"GRAB","n":"Grab Holdings","cat":"High Growth","risk":"High"},
-  {"t":"ABNB","n":"Airbnb","cat":"High Growth","risk":"Med"},
-  {"t":"UBER","n":"Uber Technologies","cat":"High Growth","risk":"Med"},
-  {"t":"LYFT","n":"Lyft Inc","cat":"High Growth","risk":"High"},
-  {"t":"DASH","n":"DoorDash","cat":"High Growth","risk":"High"},
-  {"t":"RBLX","n":"Roblox Corp","cat":"High Growth","risk":"High"},
-  {"t":"U","n":"Unity Software","cat":"High Growth","risk":"High"},
-  {"t":"DUOL","n":"Duolingo","cat":"High Growth","risk":"High"},
-  {"t":"CELH","n":"Celsius Holdings","cat":"High Growth","risk":"High"},
-  {"t":"ONON","n":"On Holding AG","cat":"High Growth","risk":"Med"},
-  {"t":"LULU","n":"Lululemon Athletica","cat":"High Growth","risk":"Med"},
-  {"t":"NKE","n":"Nike Inc","cat":"High Growth","risk":"Low"},
-
-  {"t":"SQ","n":"Block Inc","cat":"Fintech","risk":"High"},
-  {"t":"PYPL","n":"PayPal Holdings","cat":"Fintech","risk":"Med"},
-  {"t":"V","n":"Visa Inc","cat":"Fintech","risk":"Low"},
-  {"t":"MA","n":"Mastercard","cat":"Fintech","risk":"Low"},
-  {"t":"AFRM","n":"Affirm Holdings","cat":"Fintech","risk":"High"},
-  {"t":"SOFI","n":"SoFi Technologies","cat":"Fintech","risk":"High"},
-  {"t":"HOOD","n":"Robinhood Markets","cat":"Fintech","risk":"High"},
-  {"t":"COIN","n":"Coinbase Global","cat":"Fintech","risk":"High"},
-  {"t":"NU","n":"Nu Holdings","cat":"Fintech","risk":"High"},
-  {"t":"ADYEY","n":"Adyen NV","cat":"Fintech","risk":"Med"},
-  {"t":"FIS","n":"Fidelity National Info","cat":"Fintech","risk":"Low"},
-  {"t":"GPN","n":"Global Payments","cat":"Fintech","risk":"Med"},
-  {"t":"FLUT","n":"Flutter Entertainment","cat":"Fintech","risk":"Med"},
-  {"t":"FISV","n":"Fiserv Inc","cat":"Fintech","risk":"Low"},
-  {"t":"WEX","n":"WEX Inc","cat":"Fintech","risk":"Med"},
-
-  {"t":"TTD","n":"The Trade Desk","cat":"Ad Tech","risk":"Med"},
-  {"t":"MGNI","n":"Magnite Inc","cat":"Ad Tech","risk":"High"},
-  {"t":"DV","n":"DoubleVerify","cat":"Ad Tech","risk":"High"},
-  {"t":"IAS","n":"Integral Ad Science","cat":"Ad Tech","risk":"High"},
-  {"t":"APP","n":"Applovin Corp","cat":"Ad Tech","risk":"High"},
-  {"t":"APPS","n":"Digital Turbine","cat":"Ad Tech","risk":"High"},
-  {"t":"PUBM","n":"PubMatic","cat":"Ad Tech","risk":"High"},
-
-  {"t":"RKLB","n":"Rocket Lab USA","cat":"Emerging","risk":"High"},
-  {"t":"ASTS","n":"AST SpaceMobile","cat":"Emerging","risk":"High"},
-  {"t":"LUNR","n":"Intuitive Machines","cat":"Emerging","risk":"High"},
-  {"t":"RDW","n":"Redwire Corp","cat":"Emerging","risk":"High"},
-  {"t":"ACHR","n":"Archer Aviation","cat":"Emerging","risk":"High"},
-  {"t":"JOBY","n":"Joby Aviation","cat":"Emerging","risk":"High"},
-  {"t":"LILM","n":"Lilium NV","cat":"Emerging","risk":"High"},
-  {"t":"IONQ","n":"IonQ Inc","cat":"Emerging","risk":"High"},
-  {"t":"QBTS","n":"D-Wave Quantum","cat":"Emerging","risk":"High"},
-  {"t":"RGTI","n":"Rigetti Computing","cat":"Emerging","risk":"High"},
-  {"t":"QUBT","n":"Quantum Computing Inc","cat":"Emerging","risk":"High"},
-  {"t":"BBAI","n":"BigBear.ai Holdings","cat":"Emerging","risk":"High"},
-  {"t":"SOUN","n":"SoundHound AI","cat":"Emerging","risk":"High"},
-  {"t":"NVTS","n":"Navitas Semiconductor","cat":"Emerging","risk":"High"},
-  {"t":"AEVA","n":"Aeva Technologies","cat":"Emerging","risk":"High"},
-
-  {"t":"MRNA","n":"Moderna Inc","cat":"Healthcare","risk":"High"},
-  {"t":"BNTX","n":"BioNTech SE","cat":"Healthcare","risk":"High"},
-  {"t":"NVAX","n":"Novavax Inc","cat":"Healthcare","risk":"High"},
-  {"t":"REGN","n":"Regeneron Pharma","cat":"Healthcare","risk":"Med"},
-  {"t":"VRTX","n":"Vertex Pharmaceuticals","cat":"Healthcare","risk":"Med"},
-  {"t":"ILMN","n":"Illumina Inc","cat":"Healthcare","risk":"Med"},
-  {"t":"ISRG","n":"Intuitive Surgical","cat":"Healthcare","risk":"Low"},
-  {"t":"DXCM","n":"DexCom Inc","cat":"Healthcare","risk":"Med"},
-  {"t":"PODD","n":"Insulet Corp","cat":"Healthcare","risk":"Med"},
-  {"t":"ALGN","n":"Align Technology","cat":"Healthcare","risk":"Med"},
-  {"t":"HOLX","n":"Hologic Inc","cat":"Healthcare","risk":"Low"},
-  {"t":"IBRX","n":"ImmunityBio Inc","cat":"Healthcare","risk":"High"},
-  {"t":"CELC","n":"Celcuity Inc","cat":"Healthcare","risk":"High"},
-  {"t":"RXRX","n":"Recursion Pharma","cat":"Healthcare","risk":"High"},
-  {"t":"TWST","n":"Twist Bioscience","cat":"Healthcare","risk":"High"},
-
-  {"t":"XOM","n":"ExxonMobil","cat":"Energy","risk":"Low"},
-  {"t":"CVX","n":"Chevron Corp","cat":"Energy","risk":"Low"},
-  {"t":"OXY","n":"Occidental Petroleum","cat":"Energy","risk":"Med"},
-  {"t":"COP","n":"ConocoPhillips","cat":"Energy","risk":"Low"},
-  {"t":"DVN","n":"Devon Energy","cat":"Energy","risk":"Med"},
-  {"t":"FANG","n":"Diamondback Energy","cat":"Energy","risk":"Med"},
-  {"t":"MPC","n":"Marathon Petroleum","cat":"Energy","risk":"Med"},
-  {"t":"VLO","n":"Valero Energy","cat":"Energy","risk":"Med"},
-  {"t":"HAL","n":"Halliburton","cat":"Energy","risk":"Med"},
-  {"t":"SLB","n":"SLB (Schlumberger)","cat":"Energy","risk":"Med"},
-  {"t":"FRO","n":"Frontline PLC","cat":"Energy","risk":"Med"},
-  {"t":"KOS","n":"Kosmos Energy","cat":"Energy","risk":"High"},
-  {"t":"TRGP","n":"Targa Resources","cat":"Energy","risk":"Med"},
-  {"t":"LNG","n":"Cheniere Energy","cat":"Energy","risk":"Med"},
-  {"t":"AR","n":"Antero Resources","cat":"Energy","risk":"High"},
-
-  {"t":"BTC-USD","n":"Bitcoin","cat":"Crypto","risk":"High"},
-  {"t":"ETH-USD","n":"Ethereum","cat":"Crypto","risk":"High"},
-  {"t":"SOL-USD","n":"Solana","cat":"Crypto","risk":"High"},
-  {"t":"BNB-USD","n":"BNB","cat":"Crypto","risk":"High"},
-  {"t":"XRP-USD","n":"XRP","cat":"Crypto","risk":"High"},
-  {"t":"COIN","n":"Coinbase Global","cat":"Crypto","risk":"High"},
-  {"t":"MSTR","n":"MicroStrategy","cat":"Crypto","risk":"High"},
-  {"t":"MARA","n":"Marathon Digital","cat":"Crypto","risk":"High"},
-  {"t":"RIOT","n":"Riot Platforms","cat":"Crypto","risk":"High"},
-  {"t":"WULF","n":"TeraWulf Inc","cat":"Crypto","risk":"High"},
-  {"t":"CLSK","n":"CleanSpark Inc","cat":"Crypto","risk":"High"},
-  {"t":"HUT","n":"Hut 8 Corp","cat":"Crypto","risk":"High"},
-  {"t":"CIFR","n":"Cipher Mining","cat":"Crypto","risk":"High"},
-  {"t":"BTBT","n":"Bit Digital","cat":"Crypto","risk":"High"},
-  {"t":"BITO","n":"ProShares Bitcoin ETF","cat":"Crypto","risk":"High"},
-
-  {"t":"JPM","n":"JPMorgan Chase","cat":"Financials","risk":"Low"},
-  {"t":"GS","n":"Goldman Sachs","cat":"Financials","risk":"Low"},
-  {"t":"MS","n":"Morgan Stanley","cat":"Financials","risk":"Low"},
-  {"t":"BAC","n":"Bank of America","cat":"Financials","risk":"Low"},
-  {"t":"BLK","n":"BlackRock Inc","cat":"Financials","risk":"Low"},
-  {"t":"SCHW","n":"Charles Schwab","cat":"Financials","risk":"Low"},
-  {"t":"AXP","n":"American Express","cat":"Financials","risk":"Low"},
-  {"t":"BX","n":"Blackstone Inc","cat":"Financials","risk":"Med"},
-  {"t":"KKR","n":"KKR & Co","cat":"Financials","risk":"Med"},
-  {"t":"APO","n":"Apollo Global Mgmt","cat":"Financials","risk":"Med"},
-
-  {"t":"SPY","n":"S&P 500 ETF","cat":"ETF","risk":"Low"},
-  {"t":"QQQ","n":"Nasdaq 100 ETF","cat":"ETF","risk":"Low"},
-  {"t":"TQQQ","n":"ProShares UltraPro QQQ","cat":"ETF","risk":"High"},
-  {"t":"SQQQ","n":"ProShares UltraPro Short QQQ","cat":"ETF","risk":"High"},
-  {"t":"GLD","n":"SPDR Gold ETF","cat":"ETF","risk":"Low"},
-  {"t":"SLV","n":"iShares Silver ETF","cat":"ETF","risk":"Med"},
-  {"t":"USO","n":"US Oil Fund ETF","cat":"ETF","risk":"Med"},
-  {"t":"ARKK","n":"ARK Innovation ETF","cat":"ETF","risk":"High"},
-  {"t":"SOXL","n":"Direxion Semi Bull 3X","cat":"ETF","risk":"High"},
-  {"t":"BOTZ","n":"Global Robotics & AI ETF","cat":"ETF","risk":"Med"},
-
-  {"t":"NBIS","n":"Nebius Group","cat":"AI & Chips","risk":"High"},
-  {"t":"AXTI","n":"AXT Inc","cat":"AI & Chips","risk":"High"},
-  {"t":"BW","n":"Babcock & Wilcox","cat":"Emerging","risk":"High"},
-  {"t":"NOC","n":"Northrop Grumman","cat":"Emerging","risk":"Low"},
-  {"t":"LMT","n":"Lockheed Martin","cat":"Emerging","risk":"Low"},
-  {"t":"RTX","n":"RTX Corp","cat":"Emerging","risk":"Low"},
-  {"t":"HII","n":"Huntington Ingalls","cat":"Emerging","risk":"Low"},
-  {"t":"SNDK","n":"SanDisk Corp","cat":"AI & Chips","risk":"Med"},
-  {"t":"WDC","n":"Western Digital","cat":"AI & Chips","risk":"Med"},
-  {"t":"STX","n":"Seagate Technology","cat":"AI & Chips","risk":"Med"}
+  {
+    "t": "MMM",
+    "n": "3M",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "AOS",
+    "n": "A. O. Smith",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "ABT",
+    "n": "Abbott",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "ABBV",
+    "n": "AbbVie",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "ACN",
+    "n": "Accenture",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "ADBE",
+    "n": "Adobe",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "AMD",
+    "n": "AMD",
+    "cat": "AI & Chips",
+    "risk": "High"
+  },
+  {
+    "t": "AES",
+    "n": "AES Corp",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "AFL",
+    "n": "Aflac",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "A",
+    "n": "Agilent",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "APD",
+    "n": "Air Products",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "ABNB",
+    "n": "Airbnb",
+    "cat": "High Growth",
+    "risk": "Med"
+  },
+  {
+    "t": "AKAM",
+    "n": "Akamai",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "ALB",
+    "n": "Albemarle",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "ARE",
+    "n": "Alexandria RE",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "ALGN",
+    "n": "Align Technology",
+    "cat": "Healthcare",
+    "risk": "High"
+  },
+  {
+    "t": "ALLE",
+    "n": "Allegion",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "LNT",
+    "n": "Alliant Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "ALL",
+    "n": "Allstate",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "GOOGL",
+    "n": "Alphabet A",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "GOOG",
+    "n": "Alphabet C",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "MO",
+    "n": "Altria",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "AMZN",
+    "n": "Amazon",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "AMCR",
+    "n": "Amcor",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "AEE",
+    "n": "Ameren",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "AAL",
+    "n": "American Airlines",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "AEP",
+    "n": "American Electric Power",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "AXP",
+    "n": "American Express",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "AIG",
+    "n": "American Int Group",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "AMT",
+    "n": "American Tower",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "AWK",
+    "n": "American Water Works",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "AMP",
+    "n": "Ameriprise Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "AME",
+    "n": "AMETEK",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "AMGN",
+    "n": "Amgen",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "APH",
+    "n": "Amphenol",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "ADI",
+    "n": "Analog Devices",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "ANSS",
+    "n": "Ansys",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "AON",
+    "n": "Aon",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "APA",
+    "n": "APA Corp",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "APO",
+    "n": "Apollo Global",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "AAPL",
+    "n": "Apple",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "AMAT",
+    "n": "Applied Materials",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "APTV",
+    "n": "Aptiv",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "ACGL",
+    "n": "Arch Capital",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "ADM",
+    "n": "Archer-Daniels",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "ANET",
+    "n": "Arista Networks",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "AJG",
+    "n": "Arthur J. Gallagher",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "AIZ",
+    "n": "Assurant",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "T",
+    "n": "AT&T",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "ATO",
+    "n": "Atmos Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "ADSK",
+    "n": "Autodesk",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "AZO",
+    "n": "AutoZone",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "AVB",
+    "n": "AvalonBay",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "AVY",
+    "n": "Avery Dennison",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "AXON",
+    "n": "Axon Enterprise",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "BKR",
+    "n": "Baker Hughes",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "BALL",
+    "n": "Ball Corp",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "BAC",
+    "n": "Bank of America",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "BAX",
+    "n": "Baxter International",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "BDX",
+    "n": "Becton Dickinson",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "BRK.B",
+    "n": "Berkshire Hathaway",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "BBY",
+    "n": "Best Buy",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "BIIB",
+    "n": "Biogen",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "BLK",
+    "n": "BlackRock",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "BX",
+    "n": "Blackstone",
+    "cat": "Financials",
+    "risk": "Med"
+  },
+  {
+    "t": "BA",
+    "n": "Boeing",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "BKNG",
+    "n": "Booking Holdings",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "BSX",
+    "n": "Boston Scientific",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "BMY",
+    "n": "Bristol Myers Squibb",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "AVGO",
+    "n": "Broadcom",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "BR",
+    "n": "Broadridge Financial",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "BRO",
+    "n": "Brown & Brown",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "BF.B",
+    "n": "Brown-Forman",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "BLDR",
+    "n": "Builders FirstSource",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "BG",
+    "n": "Bunge Global",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CDNS",
+    "n": "Cadence Design",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "CZR",
+    "n": "Caesars Entertainment",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "CPT",
+    "n": "Camden Property",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "CPB",
+    "n": "Campbell Soup",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "COF",
+    "n": "Capital One",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CAH",
+    "n": "Cardinal Health",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "KMX",
+    "n": "CarMax",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "CCL",
+    "n": "Carnival",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "CARR",
+    "n": "Carrier Global",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "CAT",
+    "n": "Caterpillar",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "CBOE",
+    "n": "Cboe Global",
+    "cat": "Fintech",
+    "risk": "Low"
+  },
+  {
+    "t": "CBRE",
+    "n": "CBRE Group",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "CDW",
+    "n": "CDW Corp",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "COR",
+    "n": "Cencora",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "CNC",
+    "n": "Centene",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "CNP",
+    "n": "CenterPoint Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "CF",
+    "n": "CF Industries",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "CRL",
+    "n": "Charles River Labs",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "SCHW",
+    "n": "Charles Schwab",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CHTR",
+    "n": "Charter Communications",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "CVX",
+    "n": "Chevron",
+    "cat": "Energy",
+    "risk": "Low"
+  },
+  {
+    "t": "CMG",
+    "n": "Chipotle",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "CB",
+    "n": "Chubb",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CHD",
+    "n": "Church & Dwight",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CI",
+    "n": "Cigna",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "CINF",
+    "n": "Cincinnati Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CTAS",
+    "n": "Cintas",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "CSCO",
+    "n": "Cisco",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "C",
+    "n": "Citigroup",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CFG",
+    "n": "Citizens Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CLX",
+    "n": "Clorox",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CME",
+    "n": "CME Group",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CMS",
+    "n": "CMS Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "KO",
+    "n": "Coca-Cola",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CTSH",
+    "n": "Cognizant",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "CL",
+    "n": "Colgate-Palmolive",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CMCSA",
+    "n": "Comcast",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "CAG",
+    "n": "Conagra Brands",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "COP",
+    "n": "ConocoPhillips",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "ED",
+    "n": "Consolidated Edison",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "STZ",
+    "n": "Constellation Brands",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CEG",
+    "n": "Constellation Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "COO",
+    "n": "Cooper Companies",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "CPRT",
+    "n": "Copart",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "GLW",
+    "n": "Corning",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "CPAY",
+    "n": "Corpay",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "CTLT",
+    "n": "Catalent",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "COST",
+    "n": "Costco",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "CTRA",
+    "n": "Coterra Energy",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "CRWD",
+    "n": "CrowdStrike",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "CCI",
+    "n": "Crown Castle",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "CSX",
+    "n": "CSX Corp",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "CMI",
+    "n": "Cummins",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "CVS",
+    "n": "CVS Health",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "DHR",
+    "n": "Danaher",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "DRI",
+    "n": "Darden Restaurants",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "DVA",
+    "n": "DaVita",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "DAY",
+    "n": "Dayforce",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "DECK",
+    "n": "Deckers Outdoor",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "DE",
+    "n": "Deere & Company",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "DAL",
+    "n": "Delta Air Lines",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "DVN",
+    "n": "Devon Energy",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "DXCM",
+    "n": "DexCom",
+    "cat": "Healthcare",
+    "risk": "High"
+  },
+  {
+    "t": "FANG",
+    "n": "Diamondback Energy",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "DLR",
+    "n": "Digital Realty",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "DFS",
+    "n": "Discover Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "DASH",
+    "n": "DoorDash",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "DOV",
+    "n": "Dover",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "DOW",
+    "n": "Dow Inc",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "DHI",
+    "n": "D.R. Horton",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "DTE",
+    "n": "DTE Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "DUK",
+    "n": "Duke Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "DD",
+    "n": "DuPont",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "EMN",
+    "n": "Eastman Chemical",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "ETN",
+    "n": "Eaton",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "EBAY",
+    "n": "eBay",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "ECL",
+    "n": "Ecolab",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "EIX",
+    "n": "Edison International",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "EW",
+    "n": "Edwards Lifesciences",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "EA",
+    "n": "Electronic Arts",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "ELV",
+    "n": "Elevance Health",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "LLY",
+    "n": "Eli Lilly",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "EMR",
+    "n": "Emerson Electric",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "ENPH",
+    "n": "Enphase Energy",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "ETR",
+    "n": "Entergy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "EOG",
+    "n": "EOG Resources",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "EPAM",
+    "n": "EPAM Systems",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "EQT",
+    "n": "EQT Corp",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "EFX",
+    "n": "Equifax",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "EQIX",
+    "n": "Equinix",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "EQR",
+    "n": "Equity Residential",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "ESS",
+    "n": "Essex Property",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "EL",
+    "n": "Estee Lauder",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "ETSY",
+    "n": "Etsy",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "EG",
+    "n": "Everest Group",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "EVRG",
+    "n": "Evergy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "ES",
+    "n": "Eversource Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "EXC",
+    "n": "Exelon",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "EXPE",
+    "n": "Expedia",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "EXPD",
+    "n": "Expeditors",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "EXR",
+    "n": "Extra Space Storage",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "XOM",
+    "n": "ExxonMobil",
+    "cat": "Energy",
+    "risk": "Low"
+  },
+  {
+    "t": "FFIV",
+    "n": "F5 Inc",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "FDS",
+    "n": "FactSet",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "FICO",
+    "n": "Fair Isaac",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "FAST",
+    "n": "Fastenal",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "FRT",
+    "n": "Federal Realty",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "FDX",
+    "n": "FedEx",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "FIS",
+    "n": "Fidelity NIS",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "FITB",
+    "n": "Fifth Third Bancorp",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "FSLR",
+    "n": "First Solar",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "FE",
+    "n": "FirstEnergy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "FI",
+    "n": "Fiserv",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "FMC",
+    "n": "FMC Corp",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "F",
+    "n": "Ford Motor",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "FTNT",
+    "n": "Fortinet",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "FTV",
+    "n": "Fortive",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "FOXA",
+    "n": "Fox Corp A",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "FOX",
+    "n": "Fox Corp B",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "BEN",
+    "n": "Franklin Resources",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "FCX",
+    "n": "Freeport-McMoRan",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "GRMN",
+    "n": "Garmin",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "IT",
+    "n": "Gartner",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "GE",
+    "n": "GE Aerospace",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "GEHC",
+    "n": "GE HealthCare",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "GEV",
+    "n": "GE Vernova",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "GEN",
+    "n": "Gen Digital",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "GNRC",
+    "n": "Generac",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "GD",
+    "n": "General Dynamics",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "GIS",
+    "n": "General Mills",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "GM",
+    "n": "General Motors",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "GPC",
+    "n": "Genuine Parts",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "GILD",
+    "n": "Gilead Sciences",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "GPN",
+    "n": "Global Payments",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "GL",
+    "n": "Globe Life",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "GDDY",
+    "n": "GoDaddy",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "GS",
+    "n": "Goldman Sachs",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "HAL",
+    "n": "Halliburton",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "HIG",
+    "n": "Hartford Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "HAS",
+    "n": "Hasbro",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "HCA",
+    "n": "HCA Healthcare",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "DOC",
+    "n": "Healthpeak",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "HSIC",
+    "n": "Henry Schein",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "HSY",
+    "n": "Hershey",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "HES",
+    "n": "Hess Corp",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "HPE",
+    "n": "HP Enterprise",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "HLT",
+    "n": "Hilton",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "HOLX",
+    "n": "Hologic",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "HD",
+    "n": "Home Depot",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "HON",
+    "n": "Honeywell",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "HRL",
+    "n": "Hormel Foods",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "HST",
+    "n": "Host Hotels",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "HWM",
+    "n": "Howmet Aerospace",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "HPQ",
+    "n": "HP Inc",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "HUBB",
+    "n": "Hubbell",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "HUM",
+    "n": "Humana",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "HBAN",
+    "n": "Huntington Bancshares",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "HII",
+    "n": "Huntington Ingalls",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "IBM",
+    "n": "IBM",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "IEX",
+    "n": "IDEX Corp",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "IDXX",
+    "n": "IDEXX Labs",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "ITW",
+    "n": "Illinois Tool Works",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "INCY",
+    "n": "Incyte",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "IR",
+    "n": "Ingersoll Rand",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "PODD",
+    "n": "Insulet",
+    "cat": "Healthcare",
+    "risk": "High"
+  },
+  {
+    "t": "INTC",
+    "n": "Intel",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "ICE",
+    "n": "Intercontinental Exchange",
+    "cat": "Fintech",
+    "risk": "Low"
+  },
+  {
+    "t": "IFF",
+    "n": "Intl Flavors",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "IP",
+    "n": "International Paper",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "IPG",
+    "n": "Interpublic Group",
+    "cat": "Ad Tech",
+    "risk": "High"
+  },
+  {
+    "t": "INTU",
+    "n": "Intuit",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "ISRG",
+    "n": "Intuitive Surgical",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "IVZ",
+    "n": "Invesco",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "INVH",
+    "n": "Invitation Homes",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "IQV",
+    "n": "IQVIA",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "IRM",
+    "n": "Iron Mountain",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "JBAL",
+    "n": "J.B. Hunt Transport",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "JKHY",
+    "n": "Jack Henry",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "J",
+    "n": "Jacobs Solutions",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "JNJ",
+    "n": "Johnson & Johnson",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "JCI",
+    "n": "Johnson Controls",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "JPM",
+    "n": "JPMorgan Chase",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "JNPR",
+    "n": "Juniper Networks",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "K",
+    "n": "Kellanova",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "KEY",
+    "n": "KeyCorp",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "KEYS",
+    "n": "Keysight",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "KMB",
+    "n": "Kimberly-Clark",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "KIM",
+    "n": "Kimco Realty",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "KMI",
+    "n": "Kinder Morgan",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "KKR",
+    "n": "KKR",
+    "cat": "Financials",
+    "risk": "Med"
+  },
+  {
+    "t": "KLAC",
+    "n": "KLA Corp",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "KHC",
+    "n": "Kraft Heinz",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "KR",
+    "n": "Kroger",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "LHX",
+    "n": "L3Harris Tech",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "LH",
+    "n": "Laboratory Corp",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "LRCX",
+    "n": "Lam Research",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "LW",
+    "n": "Lamb Weston",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "LVS",
+    "n": "Las Vegas Sands",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "LDOS",
+    "n": "Leidos",
+    "cat": "Big Tech",
+    "risk": "Low"
+  },
+  {
+    "t": "LEN",
+    "n": "Lennar",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "LNC",
+    "n": "Lincoln National",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "LIN",
+    "n": "Linde",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "LYV",
+    "n": "Live Nation",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "LKQ",
+    "n": "LKQ Corp",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "LMT",
+    "n": "Lockheed Martin",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "L",
+    "n": "Loews",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "LOW",
+    "n": "Lowe's",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "LULU",
+    "n": "Lululemon",
+    "cat": "High Growth",
+    "risk": "Med"
+  },
+  {
+    "t": "LYB",
+    "n": "LyondellBasell",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "MTB",
+    "n": "M&T Bank",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "MRO",
+    "n": "Marathon Oil",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "MPC",
+    "n": "Marathon Petroleum",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "MKTX",
+    "n": "MarketAxess",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "MAR",
+    "n": "Marriott",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "MMC",
+    "n": "Marsh McLennan",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "MLM",
+    "n": "Martin Marietta",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "MAS",
+    "n": "Masco",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "MA",
+    "n": "Mastercard",
+    "cat": "Fintech",
+    "risk": "Low"
+  },
+  {
+    "t": "MTCH",
+    "n": "Match Group",
+    "cat": "Ad Tech",
+    "risk": "High"
+  },
+  {
+    "t": "MKC",
+    "n": "McCormick",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "MCD",
+    "n": "McDonald's",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "MCK",
+    "n": "McKesson",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "MDT",
+    "n": "Medtronic",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "MRK",
+    "n": "Merck",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "META",
+    "n": "Meta Platforms",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "MET",
+    "n": "MetLife",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "MTD",
+    "n": "Mettler-Toledo",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "MGM",
+    "n": "MGM Resorts",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "MCHP",
+    "n": "Microchip Tech",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "MU",
+    "n": "Micron Technology",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "MSFT",
+    "n": "Microsoft",
+    "cat": "Cloud Software",
+    "risk": "Low"
+  },
+  {
+    "t": "MAA",
+    "n": "Mid-America Apartment",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "MRNA",
+    "n": "Moderna",
+    "cat": "Healthcare",
+    "risk": "High"
+  },
+  {
+    "t": "MHK",
+    "n": "Mohawk Industries",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "MOH",
+    "n": "Molina Healthcare",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "TAP",
+    "n": "Molson Coors",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "MDLZ",
+    "n": "Mondelez",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "MPWR",
+    "n": "Monolithic Power",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "MNST",
+    "n": "Monster Beverage",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "MCO",
+    "n": "Moody's",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "MS",
+    "n": "Morgan Stanley",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "MOS",
+    "n": "Mosaic",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "MSI",
+    "n": "Motorola Solutions",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "MSCI",
+    "n": "MSCI Inc",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "NDAQ",
+    "n": "Nasdaq Inc",
+    "cat": "Fintech",
+    "risk": "Low"
+  },
+  {
+    "t": "NTAP",
+    "n": "NetApp",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "NFLX",
+    "n": "Netflix",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "NEM",
+    "n": "Newmont",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "NWSA",
+    "n": "News Corp A",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "NWS",
+    "n": "News Corp B",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "NEE",
+    "n": "NextEra Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "NKE",
+    "n": "Nike",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "NI",
+    "n": "NiSource",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "NDSN",
+    "n": "Nordson",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "NSC",
+    "n": "Norfolk Southern",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "NOC",
+    "n": "Northrop Grumman",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "NCLH",
+    "n": "Norwegian Cruise",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "NRG",
+    "n": "NRG Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "NUE",
+    "n": "Nucor",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "NVDA",
+    "n": "NVIDIA",
+    "cat": "AI & Chips",
+    "risk": "High"
+  },
+  {
+    "t": "NVR",
+    "n": "NVR Inc",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "NXPI",
+    "n": "NXP Semiconductors",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "ORLY",
+    "n": "O'Reilly Auto",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "OXY",
+    "n": "Occidental Petroleum",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "ODFL",
+    "n": "Old Dominion Freight",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "OMC",
+    "n": "Omnicom Group",
+    "cat": "Ad Tech",
+    "risk": "High"
+  },
+  {
+    "t": "ON",
+    "n": "ON Semiconductor",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "OKE",
+    "n": "ONEOK",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "ORCL",
+    "n": "Oracle",
+    "cat": "Cloud Software",
+    "risk": "Low"
+  },
+  {
+    "t": "OTIS",
+    "n": "Otis Worldwide",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "PCAR",
+    "n": "PACCAR",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "PKG",
+    "n": "Packaging Corp",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "PANW",
+    "n": "Palo Alto Networks",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "PARA",
+    "n": "Paramount Global",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "PH",
+    "n": "Parker Hannifin",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "PAYX",
+    "n": "Paychex",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "PAYC",
+    "n": "Paycom Software",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "PYPL",
+    "n": "PayPal",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "PNR",
+    "n": "Pentair",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "PEP",
+    "n": "PepsiCo",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "PFE",
+    "n": "Pfizer",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "PCG",
+    "n": "PG&E",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "PM",
+    "n": "Philip Morris",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "PSX",
+    "n": "Phillips 66",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "PNW",
+    "n": "Pinnacle West",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "PLTR",
+    "n": "Palantir",
+    "cat": "AI & Chips",
+    "risk": "High"
+  },
+  {
+    "t": "PNC",
+    "n": "PNC Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "POOL",
+    "n": "Pool Corp",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "PPG",
+    "n": "PPG Industries",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "PPL",
+    "n": "PPL Corp",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "PFG",
+    "n": "Principal Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "PG",
+    "n": "Procter & Gamble",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "PGR",
+    "n": "Progressive",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "PLD",
+    "n": "Prologis",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "PRU",
+    "n": "Prudential Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "PEG",
+    "n": "Public Service Enterprise",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "PSTG",
+    "n": "Pure Storage",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "PVH",
+    "n": "PVH Corp",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "QCOM",
+    "n": "Qualcomm",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "PWR",
+    "n": "Quanta Services",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "RJF",
+    "n": "Raymond James",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "RTX",
+    "n": "RTX Corp",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "O",
+    "n": "Realty Income",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "REG",
+    "n": "Regency Centers",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "REGN",
+    "n": "Regeneron",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "RF",
+    "n": "Regions Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "RSG",
+    "n": "Republic Services",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "RMD",
+    "n": "ResMed",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "RVTY",
+    "n": "Revvity",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "ROK",
+    "n": "Rockwell Automation",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "ROL",
+    "n": "Rollins",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "ROP",
+    "n": "Roper Technologies",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "ROST",
+    "n": "Ross Stores",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "RCL",
+    "n": "Royal Caribbean",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "SPGI",
+    "n": "S&P Global",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "CRM",
+    "n": "Salesforce",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "SBAC",
+    "n": "SBA Communications",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "SLB",
+    "n": "Schlumberger",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "STX",
+    "n": "Seagate",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "SRE",
+    "n": "Sempra",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "NOW",
+    "n": "ServiceNow",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "SHW",
+    "n": "Sherwin-Williams",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "SPG",
+    "n": "Simon Property",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "SWKS",
+    "n": "Skyworks",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "SJM",
+    "n": "Smucker",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "SNA",
+    "n": "Snap-on",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "SOLV",
+    "n": "Solventum",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "SO",
+    "n": "Southern Company",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "LUV",
+    "n": "Southwest Airlines",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "SWK",
+    "n": "Stanley Black & Decker",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "SBUX",
+    "n": "Starbucks",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "STT",
+    "n": "State Street",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "STLD",
+    "n": "Steel Dynamics",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "STE",
+    "n": "Steris",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "SYK",
+    "n": "Stryker",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "SMCI",
+    "n": "Super Micro Computer",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "SYF",
+    "n": "Synchrony Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "SNPS",
+    "n": "Synopsys",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "SYY",
+    "n": "Sysco",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "TMUS",
+    "n": "T-Mobile",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "TDY",
+    "n": "Teledyne",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "TFX",
+    "n": "Teleflex",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "TER",
+    "n": "Teradyne",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "TSLA",
+    "n": "Tesla",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "TXN",
+    "n": "Texas Instruments",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "TXT",
+    "n": "Textron",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "TMO",
+    "n": "Thermo Fisher",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "TJX",
+    "n": "TJX Companies",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "TSCO",
+    "n": "Tractor Supply",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "TT",
+    "n": "Trane Technologies",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "TDG",
+    "n": "TransDigm",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "TRV",
+    "n": "Travelers Companies",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "TRGP",
+    "n": "Targa Resources",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "TFC",
+    "n": "Truist Financial",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "TYL",
+    "n": "Tyler Technologies",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "TSN",
+    "n": "Tyson Foods",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "USB",
+    "n": "U.S. Bancorp",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "UBER",
+    "n": "Uber",
+    "cat": "High Growth",
+    "risk": "Med"
+  },
+  {
+    "t": "UDR",
+    "n": "UDR Inc",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "ULTA",
+    "n": "Ulta Beauty",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "UNP",
+    "n": "Union Pacific",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "UAL",
+    "n": "United Airlines",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "UPS",
+    "n": "United Parcel Service",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "URI",
+    "n": "United Rentals",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "UNH",
+    "n": "UnitedHealth",
+    "cat": "Healthcare",
+    "risk": "Low"
+  },
+  {
+    "t": "UHS",
+    "n": "Universal Health Services",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "VLO",
+    "n": "Valero Energy",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "VTR",
+    "n": "Ventas",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "VRSN",
+    "n": "VeriSign",
+    "cat": "Cloud Software",
+    "risk": "Med"
+  },
+  {
+    "t": "VRSK",
+    "n": "Verisk Analytics",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "VZ",
+    "n": "Verizon",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "VRTX",
+    "n": "Vertex Pharmaceuticals",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "VTRS",
+    "n": "Viatris",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "VIAV",
+    "n": "Viavi Solutions",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "V",
+    "n": "Visa",
+    "cat": "Fintech",
+    "risk": "Low"
+  },
+  {
+    "t": "VST",
+    "n": "Vistra",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "VMC",
+    "n": "Vulcan Materials",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "WAB",
+    "n": "Wabtec",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "WBA",
+    "n": "Walgreens Boots",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "WMT",
+    "n": "Walmart",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "DIS",
+    "n": "Walt Disney",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "WBD",
+    "n": "Warner Bros Discovery",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "WM",
+    "n": "Waste Management",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "WAT",
+    "n": "Waters Corp",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "WEC",
+    "n": "WEC Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "WFC",
+    "n": "Wells Fargo",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "WELL",
+    "n": "Welltower",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "WST",
+    "n": "West Pharmaceutical",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "WDC",
+    "n": "Western Digital",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "WRK",
+    "n": "WestRock",
+    "cat": "Materials",
+    "risk": "Med"
+  },
+  {
+    "t": "WY",
+    "n": "Weyerhaeuser",
+    "cat": "Real Estate",
+    "risk": "Low"
+  },
+  {
+    "t": "WMB",
+    "n": "Williams Companies",
+    "cat": "Energy",
+    "risk": "Med"
+  },
+  {
+    "t": "WTW",
+    "n": "Willis Towers Watson",
+    "cat": "Financials",
+    "risk": "Low"
+  },
+  {
+    "t": "WYNN",
+    "n": "Wynn Resorts",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "XEL",
+    "n": "Xcel Energy",
+    "cat": "Utilities",
+    "risk": "Low"
+  },
+  {
+    "t": "XYL",
+    "n": "Xylem",
+    "cat": "Industrials",
+    "risk": "Low"
+  },
+  {
+    "t": "YUM",
+    "n": "Yum! Brands",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "ZBRA",
+    "n": "Zebra Technologies",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "ZBH",
+    "n": "Zimmer Biomet",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "ZTS",
+    "n": "Zoetis",
+    "cat": "Healthcare",
+    "risk": "Med"
+  },
+  {
+    "t": "DELL",
+    "n": "Dell Technologies",
+    "cat": "AI & Chips",
+    "risk": "Med"
+  },
+  {
+    "t": "TTD",
+    "n": "The Trade Desk",
+    "cat": "Ad Tech",
+    "risk": "High"
+  },
+  {
+    "t": "COIN",
+    "n": "Coinbase",
+    "cat": "Crypto",
+    "risk": "High"
+  },
+  {
+    "t": "SHOP",
+    "n": "Shopify",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "MELI",
+    "n": "MercadoLibre",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "DDOG",
+    "n": "Datadog",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "NET",
+    "n": "Cloudflare",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "SNOW",
+    "n": "Snowflake",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "MDB",
+    "n": "MongoDB",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "OKTA",
+    "n": "Okta",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "ZS",
+    "n": "Zscaler",
+    "cat": "Cloud Software",
+    "risk": "High"
+  },
+  {
+    "t": "APP",
+    "n": "AppLovin",
+    "cat": "Ad Tech",
+    "risk": "High"
+  },
+  {
+    "t": "HOOD",
+    "n": "Robinhood",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "SOFI",
+    "n": "SoFi Technologies",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "NU",
+    "n": "Nubank",
+    "cat": "Fintech",
+    "risk": "Med"
+  },
+  {
+    "t": "DUOL",
+    "n": "Duolingo",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "RBLX",
+    "n": "Roblox",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "CELH",
+    "n": "Celsius Holdings",
+    "cat": "Consumer",
+    "risk": "Low"
+  },
+  {
+    "t": "ONON",
+    "n": "On Holding",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "ATZ.TO",
+    "n": "Aritzia",
+    "cat": "High Growth",
+    "risk": "High"
+  },
+  {
+    "t": "NOVO.TO",
+    "n": "Novo Nordisk CDR",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "BTC-USD",
+    "n": "Bitcoin",
+    "cat": "Crypto",
+    "risk": "Med"
+  },
+  {
+    "t": "ETH-USD",
+    "n": "Ethereum",
+    "cat": "Crypto",
+    "risk": "Med"
+  },
+  {
+    "t": "SOL-USD",
+    "n": "Solana",
+    "cat": "Crypto",
+    "risk": "Med"
+  },
+  {
+    "t": "MSTR",
+    "n": "MicroStrategy",
+    "cat": "Crypto",
+    "risk": "High"
+  },
+  {
+    "t": "MARA",
+    "n": "Marathon Digital",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "RIOT",
+    "n": "Riot Platforms",
+    "cat": "Big Tech",
+    "risk": "Med"
+  },
+  {
+    "t": "SPY",
+    "n": "S&P 500 ETF",
+    "cat": "ETF",
+    "risk": "Med"
+  },
+  {
+    "t": "QQQ",
+    "n": "Nasdaq 100 ETF",
+    "cat": "ETF",
+    "risk": "Med"
+  },
+  {
+    "t": "GLD",
+    "n": "Gold ETF",
+    "cat": "ETF",
+    "risk": "Med"
+  },
+  {
+    "t": "SQQQ",
+    "n": "ProShares Short QQQ",
+    "cat": "ETF",
+    "risk": "Med"
+  },
+  {
+    "t": "TQQQ",
+    "n": "ProShares Ultra QQQ",
+    "cat": "ETF",
+    "risk": "Med"
+  },
+  {
+    "t": "ARKK",
+    "n": "ARK Innovation ETF",
+    "cat": "ETF",
+    "risk": "Med"
+  },
+  {
+    "t": "SOXL",
+    "n": "Semiconductor Bull 3X",
+    "cat": "ETF",
+    "risk": "Med"
+  }
 ]
