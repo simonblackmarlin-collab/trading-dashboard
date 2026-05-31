@@ -886,6 +886,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     </div>
     <button class="bt-run-btn" id="recRunBtn" onclick="loadFundamentalsAndRender()">▶ Run Full Analysis</button>
   </div>
+  <!-- PRICES LOADING BANNER -->
+  <div id="picks-loading-banner" style="display:none;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--amber);align-items:center;gap:8px">
+    <span style="font-size:16px">⏳</span>
+    <span><strong>Prices still loading</strong> — scores will improve once all stocks are loaded. Wait for the ✓ in the status bar above, then click ⚡ Run Everything for full rankings.</span>
+  </div>
   <button class="run-all-btn" id="run-all-btn" onclick="runAll()">
     <span class="run-all-btn-icon">⚡</span>
     <span>Run Everything — Backtest + Full Analysis in one click</span>
@@ -1142,7 +1147,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 
 
 <!-- LESSON MODAL -->
-<div class="lesson-modal-overlay" id="lesson-overlay" onclick="if(event.target===this)closeLesson()">
+<div class="lesson-modal-overlay" id="lesson-overlay" style="display:none" onclick="if(event.target===this)closeLesson()">
   <div class="lesson-modal">
     <button class="lesson-close-btn" onclick="closeLesson()">✕</button>
     <div class="lesson-modal-title" id="lesson-title"></div>
@@ -1153,7 +1158,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 </div>
 
 <!-- PRE-BUY CHECKLIST OVERLAY -->
-<div class="checklist-overlay" id="checklist-overlay" onclick="if(event.target===this)closeChecklist()">
+<div class="checklist-overlay" id="checklist-overlay" style="display:none" onclick="if(event.target===this)closeChecklist()">
   <div class="checklist-sheet">
     <div class="checklist-handle"></div>
     <div class="checklist-title" id="cl-title">Pre-Buy Checklist</div>
@@ -1362,7 +1367,10 @@ async function loadAllPrices(){
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
   selectDynamicPool();
   const fl=Object.keys(prices).length,ff=tickers.filter(t=>!prices[t]);
-  if(fl>=total*0.9)updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
+  if(fl>=total*0.9){
+    updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
+    const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
+  }
   else updateStatus(`⚠ ${fl}/${total} loaded · Missing: ${ff.slice(0,6).join(', ')}`,'r');
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
 }
@@ -2108,6 +2116,14 @@ async function runAll(){
 
 function renderRecommendations(){
   const container=document.getElementById('rec-content');
+  // Show loading banner if prices still coming in
+  const banner=document.getElementById('picks-loading-banner');
+  if(banner){
+    const totalCandidates=CANDIDATES.length||0;
+    const loadedCount=Object.keys(prices).length;
+    const stillLoading=totalCandidates>0&&loadedCount<totalCandidates*0.95;
+    banner.style.display=stillLoading?'flex':'none';
+  }
   if(!pricesLoaded){container.innerHTML='<div class="no-r">Load prices first</div>';return;}
   const catGroups={};btData.forEach(s=>{const cat=s.cat||'Other';if(!catGroups[cat])catGroups[cat]=[];catGroups[cat].push(s.pct);});
   const catAvgs=Object.fromEntries(Object.entries(catGroups).map(([cat,pcts])=>[cat,pcts.reduce((a,b)=>a+b,0)/pcts.length]));
