@@ -1400,20 +1400,59 @@ function exitScore(s){
   return{score:Math.min(score,99),action:score>=55?'SELL':score>=35?'WATCH':'HOLD',ob,fall};
 }
 function compositeScore(s,fund,btEntry,catAvgs){
-  const momScore=s.score||calcMomentumScore(s);const scanScore=buyScore(s);
-  const btScore=btEntry?Math.max(0,Math.min(25,btEntry.pct/3)):0;
-  const catBonus=(catAvgs[s.cat]||0)>20?10:(catAvgs[s.cat]||0)>0?5:0;
-  const riskAdj=s.risk==='High'?-8:s.risk==='Low'?5:0;
-  let fundScore=0,earningsPenalty=0;
-  if(fund){
-    const rat=fund.analystRating;
-    if(rat==='strong_buy')fundScore+=15;else if(rat==='buy')fundScore+=10;else if(rat==='hold')fundScore+=2;else if(rat==='sell'||rat==='strong_sell')fundScore-=10;
-    if(fund.upside>30)fundScore+=10;else if(fund.upside>15)fundScore+=7;else if(fund.upside>5)fundScore+=3;else if(fund.upside<0)fundScore-=5;
-    if(fund.pctFrom52High>-5)fundScore+=8;else if(fund.pctFrom52High>-15)fundScore+=4;else if(fund.pctFrom52High<-50)fundScore-=5;
-    if(fund.volumeRatio>2)fundScore+=7;else if(fund.volumeRatio>1.5)fundScore+=4;else if(fund.volumeRatio<0.5)fundScore-=3;
-    if(fund.daysToEarnings!==null&&fund.daysToEarnings>=0&&fund.daysToEarnings<=7)earningsPenalty=-15;
+  const c=s.c||0;
+  const hasFund=!!fund;
+  const hasBt=!!btEntry;
+
+  // ── BASE SCORE: meaningful without any extra data ─────────────────────────
+  // Momentum tier (0-50 pts)
+  let base=0;
+  if(c>3)base=50;
+  else if(c>2)base=45;
+  else if(c>1.5)base=40;
+  else if(c>1)base=35;
+  else if(c>0.5)base=30;
+  else if(c>0)base=25;
+  else if(c>-0.5)base=18;
+  else if(c>-1.5)base=10;
+  else base=5;
+
+  // Streak bonus (up to +20 pts)
+  if(s.mom&&c>0)base+=20;
+  else if(s.mom)base+=10;
+
+  // Risk adjustment (-5 to +5)
+  if(s.risk==='Low')base+=5;
+  else if(s.risk==='High')base-=5;
+
+  // Catalyst/earnings signal
+  if(s.catalyst)base+=8;
+  if(s.earn)base-=5; // earnings risk
+
+  // ── FULL ANALYSIS BONUS: adds up to ~35 more pts ─────────────────────────
+  let fundScore=0,btScore=0,earningsPenalty=0;
+
+  if(hasBt){
+    btScore=Math.max(0,Math.min(20,btEntry.pct/4));
   }
-  return Math.min(99,Math.max(0,Math.round((momScore*0.28)+(scanScore*0.20)+btScore+catBonus+(s.mom?5:0)+riskAdj+fundScore+earningsPenalty)));
+
+  if(hasFund){
+    const rat=fund.analystRating;
+    if(rat==='strong_buy')fundScore+=15;
+    else if(rat==='buy')fundScore+=10;
+    else if(rat==='hold')fundScore+=2;
+    else if(rat==='sell'||rat==='strong_sell')fundScore-=8;
+    if(fund.upside>30)fundScore+=8;
+    else if(fund.upside>15)fundScore+=5;
+    else if(fund.upside>5)fundScore+=2;
+    else if(fund.upside<0)fundScore-=4;
+    if(fund.volumeRatio>2)fundScore+=6;
+    else if(fund.volumeRatio>1.5)fundScore+=3;
+    else if(fund.volumeRatio<0.5)fundScore-=3;
+    if(fund.daysToEarnings!==null&&fund.daysToEarnings>=0&&fund.daysToEarnings<=7)earningsPenalty=-10;
+  }
+
+  return Math.min(99,Math.max(0,Math.round(base+btScore+fundScore+earningsPenalty)));
 }
 
 function buildTradeGuide(s,fund,btEntry,score){
@@ -2006,6 +2045,7 @@ async function runBacktest(){
     }catch{return null;}
   }));
   btData=results.filter(Boolean).sort((a,b)=>b.pct-a.pct);
+  try{localStorage.setItem('sm_btData',JSON.stringify({data:btData,ts:Date.now()}));}catch{}
   btn.disabled=false;btn.textContent='↻ Re-run';
   status.textContent=`${btData.length} stocks loaded · 3-month return`;
   renderBtResults();
@@ -2042,6 +2082,7 @@ async function loadFundamentalsAndRender(){
     done++;if(done%5===0)document.getElementById('rec-content').innerHTML=`<div class="alert al-a"><span>⏳</span><span>Loading fundamentals… ${done}/${top30.length}</span></div>`;
     await sleep(300);
   }));
+  try{localStorage.setItem('sm_fundamentals',JSON.stringify({data:fundamentals,ts:Date.now()}));}catch{}
   btn.disabled=false;btn.textContent='↻ Re-run Analysis';renderRecommendations();
 }
 
@@ -2078,11 +2119,11 @@ function renderRecommendations(){
     const guide=buildTradeGuide(s,fund,btEntry,score);
     const summary=guide?buildSummary(s,fund,btEntry,catAvgs,score,guide):'';
     return{...s,c,score,fund,btPct:btEntry?btEntry.pct:null,guide,summary};
-  }).filter(s=>prices[s.t]&&s.score>15).sort((a,b)=>b.score-a.score);
+  }).filter(s=>prices[s.t]&&s.score>10).sort((a,b)=>b.score-a.score);
   if(!scored.length){container.innerHTML='<div class="no-r">Not enough data — load prices and run backtest first</div>';return;}
-  const highly=scored.filter(s=>s.score>=75).slice(0,5);
-  const high=scored.filter(s=>s.score>=55&&s.score<75).slice(0,4);
-  const med=scored.filter(s=>s.score>=35&&s.score<55).slice(0,3);
+  const highly=scored.filter(s=>s.score>=65).slice(0,5);
+  const high=scored.filter(s=>s.score>=45&&s.score<65).slice(0,4);
+  const med=scored.filter(s=>s.score>=25&&s.score<45).slice(0,3);
   function renderCard(s,tier){
     const p=px(s.t)||s.p||0;const pStr=p>=1000?p.toFixed(0):p>=100?p.toFixed(1):p.toFixed(2);
     const tierColor=tier==='highly'?'var(--gold)':tier==='high'?'var(--green)':'var(--amber)';
@@ -2213,6 +2254,19 @@ async function checkPassword(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
+function restoreCachedData(){
+  const MAX_AGE=8*60*60*1000; // 8 hours
+  const now=Date.now();
+  try{
+    const bt=JSON.parse(localStorage.getItem('sm_btData')||'null');
+    if(bt&&(now-bt.ts)<MAX_AGE&&bt.data?.length){btData=bt.data;console.log(`Restored ${btData.length} backtest records from cache`);}
+  }catch{}
+  try{
+    const fund=JSON.parse(localStorage.getItem('sm_fundamentals')||'null');
+    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){Object.assign(fundamentals,fund.data);console.log(`Restored fundamentals for ${Object.keys(fund.data).length} stocks from cache`);}
+  }catch{}
+}
+
 async function loadCandidates(){
   try{
     const res=await fetch('/candidates.json?v='+Date.now());
@@ -2225,6 +2279,7 @@ async function loadCandidates(){
 }
 async function initDashboard(){
   applyPillVisibility();applyTabVisibility();
+  restoreCachedData();
   await loadCandidates();
   fetchPremarket().then(()=>renderMarketBanner());
   if(CANDIDATES.length>0){
