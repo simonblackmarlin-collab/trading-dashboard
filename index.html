@@ -1350,50 +1350,64 @@ function applyPriceData(t, data){
   }
 }
 
+async function yahooFetchBatch(tickers){
+  const fields='regularMarketPrice,regularMarketChangePercent,regularMarketPreviousClose,regularMarketVolume,averageDailyVolume3Month,regularMarketOpen,regularMarketDayHigh,regularMarketDayLow';
+  try{
+    const url=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(tickers.join(','))}&fields=${fields}`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
+    if(!r.ok)return null;
+    const d=await r.json();
+    const results=d?.quoteResponse?.result||[];
+    const out={};
+    results.forEach(q=>{
+      if(!q.symbol||!q.regularMarketPrice)return;
+      out[q.symbol]={
+        price:q.regularMarketPrice,
+        changePercent:q.regularMarketChangePercent||0,
+        prev:q.regularMarketPreviousClose||q.regularMarketPrice,
+        volume:q.regularMarketVolume||0,
+        avgVolume:q.averageDailyVolume3Month||0,
+        open:q.regularMarketOpen||0,
+        high:q.regularMarketDayHigh||0,
+        low:q.regularMarketDayLow||0,
+      };
+    });
+    return Object.keys(out).length>0?out:null;
+  }catch{return null;}
+}
+
 async function loadAllPrices(){
   setLoading(true);
   const tickers=[...new Set(STOCKS.map(s=>s.t))];
   const total=tickers.length;
+  let loaded=0;
   updateStatus(`Loading prices for ${total} stocks…`,'a');
 
-  // ── BULK LOAD via /api/quotes (parallel Finnhub server-side, 15 at a time) ──
-  const BATCH=120; // Vercel function handles up to 120 per call
-  let loaded=0;
-  const failed=[];
-
+  // ── BULK via Yahoo Finance direct from browser (~6-8s for 509 stocks) ─────
+  // Browser IPs are NOT blocked by Yahoo — only cloud/server IPs are
+  const BATCH=100;
   for(let i=0;i<tickers.length;i+=BATCH){
     const batch=tickers.slice(i,i+BATCH);
-    try{
-      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(batch.join(','))}`,{signal:AbortSignal.timeout(30000)});
-      if(r.ok){
-        const d=await r.json();
-        const quotes=d.quotes||{};
-        batch.forEach(t=>{
-          if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
-          else failed.push(t);
-        });
-      }else{
-        batch.forEach(t=>failed.push(t));
-      }
-    }catch{
-      batch.forEach(t=>failed.push(t));
+    const quotes=await yahooFetchBatch(batch);
+    if(quotes){
+      batch.forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
     }
     updateStatus(`Loading… ${loaded}/${total} priced`,'a');
     updateTickerStrip();
     if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
-    if(i+BATCH<tickers.length)await sleep(500);
+    if(i+BATCH<tickers.length)await sleep(300);
   }
 
-  // ── FALLBACK: any missed tickers via individual Finnhub (capped at 30) ────
-  if(failed.length>0){
-    const toRetry=failed.slice(0,30); // cap — don't hang forever
-    updateStatus(`Retrying ${toRetry.length} tickers…`,'a');
-    for(let i=0;i<toRetry.length;i+=5){
-      const batch=toRetry.slice(i,i+5);
-      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
-      results.forEach((data,idx)=>{if(data){applyPriceData(toRetry[i+idx],data);loaded++;}});
-      await sleep(1500);
-    }
+  // ── Last resort if Yahoo completely failed ────────────────────────────────
+  if(loaded<total*0.5){
+    updateStatus(`Yahoo unavailable · trying backup for top stocks…`,'r');
+    try{
+      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(tickers.slice(0,75).join(','))}`,{signal:AbortSignal.timeout(25000)});
+      if(r.ok){
+        const d=await r.json();const quotes=d.quotes||{};
+        tickers.slice(0,75).forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
+      }
+    }catch{}
   }
 
   pricesLoaded=true;setLoading(false);
@@ -1404,8 +1418,8 @@ async function loadAllPrices(){
   if(fl>=total*0.9){
     updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
     const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-  } else {
-    updateStatus(`⚠ ${fl}/${total} loaded · some tickers unavailable`,'r');
+  }else{
+    updateStatus(`⚠ ${fl}/${total} loaded · ${new Date().toLocaleTimeString()}`,'r');
   }
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
 }
@@ -2296,23 +2310,17 @@ function moreNav(id,el){document.querySelectorAll('.more-drawer-item').forEach(i
 function updateClock(){document.getElementById('ts').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,60000);
 setInterval(async ()=>{
-  // Bulk refresh active pool — one /api/quotes call for all 75 stocks
+  // Bulk refresh active pool — one Yahoo call, ~1s for all 75 stocks
   const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
-  try{
-    const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(20000)});
-    if(r.ok){
-      const d=await r.json();
-      const quotes=d.quotes||{};
-      activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
-    }
-  }catch{
-    // Fallback: parallel Finnhub
-    for(let i=0;i<activeTickers.length;i+=5){
-      const batch=activeTickers.slice(i,i+5);
-      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
-      results.forEach((data,idx)=>{if(data)applyPriceData(activeTickers[i+idx],data);});
-      await sleep(1500);
-    }
+  const quotes=await yahooFetchBatch(activeTickers);
+  if(quotes){
+    activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
+  }else{
+    // Yahoo failed — use /api/quotes backup
+    try{
+      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(20000)});
+      if(r.ok){const d=await r.json();const q=d.quotes||{};activeTickers.forEach(t=>{if(q[t])applyPriceData(t,q[t]);});}
+    }catch{}
   }
   checkAllAlerts();
   applyLastKnownChanges();
