@@ -1309,10 +1309,16 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const POOL_SIZE=75,DISPLAY_TOP=35;
 
 // ── FETCH HELPERS ─────────────────────────────────────────────────────────────
-async function fetchPrice(symbol){
+async function fetchPrice(symbol,retries=2){
   try{
     const r=await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}`,{signal:AbortSignal.timeout(10000)});
-    if(!r.ok)return null;const d=await r.json();
+    if(r.status===429){
+      // Rate limited — back off and retry
+      if(retries>0){await sleep(5000);return fetchPrice(symbol,retries-1);}
+      return null;
+    }
+    if(!r.ok)return null;
+    const d=await r.json();
     if(!d||d.error||!d.price)return null;
     return{price:d.price,prev:d.prev,change:d.change,changePercent:d.changePercent};
   }catch{return null;}
@@ -1333,45 +1339,72 @@ async function fetchNews(symbol){
 }
 
 // ── LOAD PRICES ───────────────────────────────────────────────────────────────
+function applyPriceData(t, data){
+  prices[t]=data;
+  const s=STOCKS.find(x=>x.t===t);
+  if(s){s.mom=data.changePercent>0.5;s.ytd=s.ytdBase?((data.price-s.ytdBase)/s.ytdBase*100):0;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
+  const sc=CANDIDATES.find(x=>x.t===t);
+  if(sc){sc.mom=data.changePercent>0.5;sc.c=parseFloat(data.changePercent.toFixed(2));sc.p=data.price;}
+  if(Math.abs(data.changePercent)>0.05){
+    try{const cache=JSON.parse(localStorage.getItem('sm_lastChange')||'{}');cache[t]={c:parseFloat(data.changePercent.toFixed(2)),ts:Date.now()};localStorage.setItem('sm_lastChange',JSON.stringify(cache));}catch{}
+  }
+}
+
 async function loadAllPrices(){
   setLoading(true);
   const tickers=[...new Set(STOCKS.map(s=>s.t))];
-  const total=tickers.length;let loaded=0,failed=[];
-  updateStatus(`Connecting… loading 0 / ${total}`,'a');
-  for(const t of tickers){
-    const data=await fetchPrice(t);
-    if(data){
-      prices[t]=data;
-      const s=STOCKS.find(x=>x.t===t);
-      if(s){s.mom=data.changePercent>0.5;s.ytd=s.ytdBase?((data.price-s.ytdBase)/s.ytdBase*100):0;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
-      const sc=CANDIDATES.find(x=>x.t===t);
-      if(sc){sc.mom=data.changePercent>0.5;sc.c=parseFloat(data.changePercent.toFixed(2));sc.p=data.price;}
-      loaded++;updateStatus(`Loading ${loaded} / ${total} — ${t} ✓`,'a');updateTickerStrip();
-    }else{failed.push(t);}
-    await sleep(200);
+  const total=tickers.length;
+  updateStatus(`Loading prices for all ${total} stocks…`,'a');
+
+  // ── BULK LOAD via Yahoo Finance (6 calls for 509 stocks) ─────────────────
+  const BATCH=100;
+  let loaded=0;
+  const failed=[];
+
+  for(let i=0;i<tickers.length;i+=BATCH){
+    const batch=tickers.slice(i,i+BATCH);
+    try{
+      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(batch.join(','))}`,{signal:AbortSignal.timeout(15000)});
+      if(r.ok){
+        const d=await r.json();
+        const quotes=d.quotes||{};
+        batch.forEach(t=>{
+          if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
+          else{failed.push(t);}
+        });
+        updateStatus(`Loading… ${loaded}/${total} priced`,'a');
+        updateTickerStrip();
+        if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
+      } else {
+        batch.forEach(t=>failed.push(t));
+      }
+    }catch{
+      batch.forEach(t=>failed.push(t));
+    }
+    if(i+BATCH<tickers.length) await sleep(500); // small gap between batches
   }
+
+  // ── FALLBACK: retry failed tickers one by one via Finnhub ────────────────
   if(failed.length>0){
-    updateStatus(`Retrying ${failed.length} tickers…`,'a');await sleep(3000);
+    updateStatus(`Retrying ${failed.length} tickers via Finnhub…`,'a');
     for(const t of failed){
       const data=await fetchPrice(t);
-      if(data){
-        prices[t]=data;
-        const s=STOCKS.find(x=>x.t===t);if(s){s.mom=data.changePercent>0.5;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
-        const sc=CANDIDATES.find(x=>x.t===t);if(sc){sc.mom=data.changePercent>0.5;sc.c=parseFloat(data.changePercent.toFixed(2));sc.p=data.price;}
-        loaded++;updateTickerStrip();
-      }
-      await sleep(400);
+      if(data){applyPriceData(t,data);loaded++;}
+      await sleep(1100);
     }
   }
+
   pricesLoaded=true;setLoading(false);
+  applyLastKnownChanges();
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
   selectDynamicPool();
-  const fl=Object.keys(prices).length,ff=tickers.filter(t=>!prices[t]);
+  const fl=Object.keys(prices).length;
   if(fl>=total*0.9){
     updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
     const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
+  } else {
+    updateStatus(`⚠ ${fl}/${total} loaded · some tickers unavailable`,'r');
   }
-  else updateStatus(`⚠ ${fl}/${total} loaded · Missing: ${ff.slice(0,6).join(', ')}`,'r');
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
 }
 function setLoading(on){document.getElementById('loader').classList.toggle('active',on);}
@@ -2116,13 +2149,26 @@ async function runAll(){
 
 function renderRecommendations(){
   const container=document.getElementById('rec-content');
+  const totalCandidates=CANDIDATES.length||0;
+  const loadedCount=Object.keys(prices).length;
+  const stillLoading=totalCandidates>0&&!pricesLoaded;
   // Show loading banner if prices still coming in
   const banner=document.getElementById('picks-loading-banner');
-  if(banner){
-    const totalCandidates=CANDIDATES.length||0;
-    const loadedCount=Object.keys(prices).length;
-    const stillLoading=totalCandidates>0&&loadedCount<totalCandidates*0.95;
-    banner.style.display=stillLoading?'flex':'none';
+  if(banner) banner.style.display=stillLoading?'flex':'none';
+  if(stillLoading){
+    const pct=totalCandidates?Math.round((loadedCount/totalCandidates)*100):0;
+    const eta=Math.round(((totalCandidates-loadedCount)*1.1));
+    container.innerHTML=`
+      <div style="padding:24px 16px;text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">⏳</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Scoring all ${totalCandidates} stocks…</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${loadedCount} of ${totalCandidates} priced · ~${eta}s remaining</div>
+        <div style="background:var(--bg3);border-radius:8px;height:8px;overflow:hidden;max-width:280px;margin:0 auto">
+          <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:8px;transition:width .3s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:10px">${pct}% complete — Picks will appear automatically</div>
+      </div>`;
+    return;
   }
   if(!pricesLoaded){container.innerHTML='<div class="no-r">Load prices first</div>';return;}
   const catGroups={};btData.forEach(s=>{const cat=s.cat||'Other';if(!catGroups[cat])catGroups[cat]=[];catGroups[cat].push(s.pct);});
@@ -2191,7 +2237,11 @@ function renderRecommendations(){
   if(!btData.length)warnings.push('💡 Run the 📊 Backtest tab first for more accurate recommendations.');
   if(!Object.keys(fundamentals).length)warnings.push('💡 Click ▶ Run Full Analysis to include analyst targets and earnings data.');
   container.innerHTML=`
-    ${warnings.map(w=>`<div class="alert al-a" style="margin-bottom:8px"><span>ℹ</span><span>${w}</span></div>`).join('')}
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+    <span>📊 ${STOCKS.length} stocks scored from ${CANDIDATES.length} candidates</span>
+    <span>Updated ${new Date().toLocaleTimeString()}</span>
+  </div>
+  ${warnings.map(w=>`<div class="alert al-a" style="margin-bottom:8px"><span>ℹ</span><span>${w}</span></div>`).join('')}
     ${highly.length>0?`<div class="rec-section-title" style="color:var(--gold)">⭐ Highly Recommended</div><div class="rec-grid">${highly.map(s=>renderCard(s,'highly')).join('')}</div>`:''}
     ${high.length>0?`<div class="rec-section-title" style="color:var(--green)">✅ High Confidence</div><div class="rec-grid">${high.map(s=>renderCard(s,'high')).join('')}</div>`:''}
     ${med.length>0?`<div class="rec-section-title" style="color:var(--amber)">⚡ Worth Watching</div><div class="rec-grid">${med.map(s=>renderCard(s,'med')).join('')}</div>`:''}
@@ -2243,7 +2293,26 @@ function moreNav(id,el){document.querySelectorAll('.more-drawer-item').forEach(i
 // ── CLOCK & AUTO-REFRESH ──────────────────────────────────────────────────────
 function updateClock(){document.getElementById('ts').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,60000);
-setInterval(()=>{loadAllPrices();checkAllAlerts();},5*60*1000);
+setInterval(async ()=>{
+  // Bulk refresh active pool — one API call for all 75 stocks
+  const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
+  try{
+    const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(15000)});
+    if(r.ok){
+      const d=await r.json();
+      const quotes=d.quotes||{};
+      activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
+    }
+  }catch{
+    // Fallback to individual Finnhub calls if bulk fails
+    for(const t of activeTickers){const data=await fetchPrice(t);if(data)applyPriceData(t,data);await sleep(1100);}
+  }
+  checkAllAlerts();
+  applyLastKnownChanges();
+  STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+  renderAll();updateTickerStrip();
+  updateStatus(`✓ Refreshed ${activeTickers.length} stocks · ${new Date().toLocaleTimeString()}`,'g');
+},5*60*1000);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSearch();closeMoreDrawer();}});
 
 // ── AUTH & ONBOARDING ─────────────────────────────────────────────────────────
@@ -2272,14 +2341,44 @@ async function checkPassword(){
 // ── INIT ──────────────────────────────────────────────────────────────────────
 function restoreCachedData(){
   const MAX_AGE=8*60*60*1000; // 8 hours
+  const CHANGE_MAX_AGE=4*24*60*60*1000; // 4 days — covers full weekend
   const now=Date.now();
   try{
     const bt=JSON.parse(localStorage.getItem('sm_btData')||'null');
-    if(bt&&(now-bt.ts)<MAX_AGE&&bt.data?.length){btData=bt.data;console.log(`Restored ${btData.length} backtest records from cache`);}
+    if(bt&&(now-bt.ts)<MAX_AGE&&bt.data?.length){btData=bt.data;}
   }catch{}
   try{
     const fund=JSON.parse(localStorage.getItem('sm_fundamentals')||'null');
-    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){Object.assign(fundamentals,fund.data);console.log(`Restored fundamentals for ${Object.keys(fund.data).length} stocks from cache`);}
+    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){Object.assign(fundamentals,fund.data);}
+  }catch{}
+}
+
+function applyLastKnownChanges(){
+  // When API returns 0% change (weekend/after-hours), use last known meaningful change
+  const CHANGE_MAX_AGE=4*24*60*60*1000; // 4 days
+  const now=Date.now();
+  try{
+    const cache=JSON.parse(localStorage.getItem('sm_lastChange')||'{}');
+    let applied=0;
+    CANDIDATES.forEach(s=>{
+      const cached=cache[s.t];
+      if(!cached||(now-cached.ts)>CHANGE_MAX_AGE)return;
+      // Only apply if current API value is basically zero (closed market)
+      const currentC=s.c||0;
+      if(Math.abs(currentC)<0.05&&Math.abs(cached.c)>0.05){
+        s.c=cached.c;
+        s.mom=cached.c>0.5;
+        // Also update STOCKS entry
+        const st=STOCKS.find(x=>x.t===s.t);
+        if(st){st.c=cached.c;st.mom=cached.c>0.5;}
+        applied++;
+      }
+    });
+    if(applied>0){
+      console.log(`Applied last known change% for ${applied} stocks`);
+      // Recalculate scores with restored values
+      STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+    }
   }catch{}
 }
 
@@ -2289,8 +2388,8 @@ async function loadCandidates(){
     if(!res.ok)throw new Error('Could not load candidates.json');
     CANDIDATES=await res.json();
     CANDIDATES.forEach(s=>{s.p=0;s.c=0;s.ytd=0;s.mom=false;s.score=0;});
-    STOCKS=[...CANDIDATES].slice(0,POOL_SIZE);
-    document.getElementById('pool-status').textContent=`Dynamic pool · loading ${CANDIDATES.length} candidates…`;
+    // Don't slice here — initDashboard sets STOCKS = all candidates for full scoring
+    document.getElementById('pool-status').textContent=`Loading prices for ${CANDIDATES.length} candidates…`;
   }catch(e){updateStatus('⚠ Could not load candidates.json — check GitHub upload','r');}
 }
 async function initDashboard(){
@@ -2299,27 +2398,18 @@ async function initDashboard(){
   await loadCandidates();
   fetchPremarket().then(()=>renderMarketBanner());
   if(CANDIDATES.length>0){
+    // Load ALL candidates so pool selection is based on full universe
+    STOCKS=[...CANDIDATES]; // temp — all candidates for price fetching
     await loadAllPrices();
-    selectDynamicPool();STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+    // Now select pool from full scored universe — pure merit
+    selectDynamicPool();
+    STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
     setFilter('all',document.querySelector('.pill[data-filter="all"]'));
-    renderAll();renderPoolTab();backgroundLoadRemaining();
+    renderAll();renderPoolTab();
+    // No background loader needed — all prices already loaded
   }
 }
-async function backgroundLoadRemaining(){
-  const loaded=new Set(Object.keys(prices));
-  const remaining=CANDIDATES.filter(s=>!loaded.has(s.t));
-  if(!remaining.length){selectDynamicPool();renderAll();renderPoolTab();return;}
-  updateStatus(`Background: scoring ${remaining.length} more candidates…`,'a');
-  for(const s of remaining){
-    const data=await fetchPrice(s.t);
-    if(data){prices[s.t]=data;s.mom=data.changePercent>0.5;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;s.score=calcMomentumScore(s);}
-    await sleep(200);
-  }
-  selectDynamicPool();STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-  renderAll();renderWatchlist();renderPoolTab();
-  updateStatus(`✓ Dynamic pool updated · ${STOCKS.length} from ${CANDIDATES.length} candidates · ${new Date().toLocaleTimeString()}`,'g');
-  updateTickerStrip();
-}
+
 if(sessionStorage.getItem('td_auth')==='1'){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('main-app').style.display='block';
