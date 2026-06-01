@@ -1354,11 +1354,10 @@ async function loadAllPrices(){
   setLoading(true);
   const tickers=[...new Set(STOCKS.map(s=>s.t))];
   const total=tickers.length;
-  updateStatus(`Loading prices for ${total} stocks…`,'a');
+  updateStatus(`Loading prices for all ${total} stocks…`,'a');
 
-  // Load all via /api/quotes in batches of 20 (server-side parallel Finnhub)
-  // Each batch takes ~2-3s server-side, well within Vercel 10s timeout
-  const BATCH=20;
+  // ── BULK LOAD via Yahoo Finance (6 calls for 509 stocks) ─────────────────
+  const BATCH=100;
   let loaded=0;
   const failed=[];
 
@@ -1371,29 +1370,27 @@ async function loadAllPrices(){
         const quotes=d.quotes||{};
         batch.forEach(t=>{
           if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
-          else failed.push(t);
+          else{failed.push(t);}
         });
-      }else{
+        updateStatus(`Loading… ${loaded}/${total} priced`,'a');
+        updateTickerStrip();
+        if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
+      } else {
         batch.forEach(t=>failed.push(t));
       }
     }catch{
       batch.forEach(t=>failed.push(t));
     }
-    updateStatus(`Loading… ${loaded}/${total} priced`,'a');
-    updateTickerStrip();
-    if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
-    if(i+BATCH<tickers.length)await sleep(1000); // 1s between batches = 20 calls/s but server-side so safe
+    if(i+BATCH<tickers.length) await sleep(500); // small gap between batches
   }
 
-  // Retry failed via individual Finnhub (capped at 30)
+  // ── FALLBACK: retry failed tickers one by one via Finnhub ────────────────
   if(failed.length>0){
-    const toRetry=failed.slice(0,30);
-    updateStatus(`Retrying ${toRetry.length} tickers…`,'a');
-    for(let i=0;i<toRetry.length;i+=5){
-      const batch=toRetry.slice(i,i+5);
-      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
-      results.forEach((data,idx)=>{if(data){applyPriceData(toRetry[i+idx],data);loaded++;}});
-      await sleep(5000);
+    updateStatus(`Retrying ${failed.length} tickers via Finnhub…`,'a');
+    for(const t of failed){
+      const data=await fetchPrice(t);
+      if(data){applyPriceData(t,data);loaded++;}
+      await sleep(1100);
     }
   }
 
@@ -1405,40 +1402,10 @@ async function loadAllPrices(){
   if(fl>=total*0.9){
     updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
     const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-  }else{
-    updateStatus(`⚠ ${fl}/${total} loaded · ${new Date().toLocaleTimeString()}`,'r');
+  } else {
+    updateStatus(`⚠ ${fl}/${total} loaded · some tickers unavailable`,'r');
   }
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
-}
-
-async function pollUntilReady(){
-  // Poll /api/snapshot every 10s until cache is built
-  for(let attempt=0;attempt<60;attempt++){
-    await sleep(10000);
-    try{
-      const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(10000)});
-      if(r.ok){
-        const d=await r.json();
-        if(!d.loading&&d.count>0){
-          const quotes=d.quotes||{};
-          const tickers=[...new Set(STOCKS.map(s=>s.t))];
-          let loaded=0;
-          tickers.forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
-          updateStatus(`✓ ${loaded}/${tickers.length} loaded · ${new Date().toLocaleTimeString()}`,'g');
-          pricesLoaded=true;setLoading(false);
-          applyLastKnownChanges();
-          STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-          selectDynamicPool();
-          const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-          renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
-          return;
-        }
-        updateStatus(`⏳ Cache building… ${d.count||0} stocks ready so far`,'a');
-      }
-    }catch{}
-  }
-  updateStatus(`⚠ Cache build timed out — try refreshing the page`,'r');
-  setLoading(false);
 }
 function setLoading(on){document.getElementById('loader').classList.toggle('active',on);}
 function updateStatus(msg,type){const el=document.getElementById('price-status');el.style.display='block';el.className=`alert al-${type||'a'}`;el.innerHTML=`<span>${msg}</span>`;}
@@ -2327,16 +2294,19 @@ function moreNav(id,el){document.querySelectorAll('.more-drawer-item').forEach(i
 function updateClock(){document.getElementById('ts').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,60000);
 setInterval(async ()=>{
-  // Refresh from snapshot cache — instant if warm
+  // Bulk refresh active pool — one API call for all 75 stocks
+  const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
   try{
-    const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(10000)});
+    const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(15000)});
     if(r.ok){
       const d=await r.json();
       const quotes=d.quotes||{};
-      const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
       activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
     }
-  }catch{}
+  }catch{
+    // Fallback to individual Finnhub calls if bulk fails
+    for(const t of activeTickers){const data=await fetchPrice(t);if(data)applyPriceData(t,data);await sleep(1100);}
+  }
   checkAllAlerts();
   applyLastKnownChanges();
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
