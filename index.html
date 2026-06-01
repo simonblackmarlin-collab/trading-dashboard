@@ -1350,78 +1350,92 @@ function applyPriceData(t, data){
   }
 }
 
-async function yahooFetchBatch(tickers){
-  const fields='regularMarketPrice,regularMarketChangePercent,regularMarketPreviousClose,regularMarketVolume,averageDailyVolume3Month,regularMarketOpen,regularMarketDayHigh,regularMarketDayLow';
-  try{
-    const url=`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(tickers.join(','))}&fields=${fields}`;
-    const r=await fetch(url,{signal:AbortSignal.timeout(12000)});
-    if(!r.ok)return null;
-    const d=await r.json();
-    const results=d?.quoteResponse?.result||[];
-    const out={};
-    results.forEach(q=>{
-      if(!q.symbol||!q.regularMarketPrice)return;
-      out[q.symbol]={
-        price:q.regularMarketPrice,
-        changePercent:q.regularMarketChangePercent||0,
-        prev:q.regularMarketPreviousClose||q.regularMarketPrice,
-        volume:q.regularMarketVolume||0,
-        avgVolume:q.averageDailyVolume3Month||0,
-        open:q.regularMarketOpen||0,
-        high:q.regularMarketDayHigh||0,
-        low:q.regularMarketDayLow||0,
-      };
-    });
-    return Object.keys(out).length>0?out:null;
-  }catch{return null;}
-}
-
 async function loadAllPrices(){
   setLoading(true);
   const tickers=[...new Set(STOCKS.map(s=>s.t))];
   const total=tickers.length;
-  let loaded=0;
   updateStatus(`Loading prices for ${total} stocks…`,'a');
 
-  // ── BULK via Yahoo Finance direct from browser (~6-8s for 509 stocks) ─────
-  // Browser IPs are NOT blocked by Yahoo — only cloud/server IPs are
-  const BATCH=100;
-  for(let i=0;i<tickers.length;i+=BATCH){
-    const batch=tickers.slice(i,i+BATCH);
-    const quotes=await yahooFetchBatch(batch);
-    if(quotes){
-      batch.forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
-    }
-    updateStatus(`Loading… ${loaded}/${total} priced`,'a');
-    updateTickerStrip();
-    if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
-    if(i+BATCH<tickers.length)await sleep(300);
-  }
+  // ── PRIMARY: server-side cache via /api/snapshot (instant if warm) ───────
+  try{
+    const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(15000)});
+    if(r.ok){
+      const d=await r.json();
 
-  // ── Last resort if Yahoo completely failed ────────────────────────────────
-  if(loaded<total*0.5){
-    updateStatus(`Yahoo unavailable · trying backup for top stocks…`,'r');
-    try{
-      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(tickers.slice(0,75).join(','))}`,{signal:AbortSignal.timeout(25000)});
-      if(r.ok){
-        const d=await r.json();const quotes=d.quotes||{};
-        tickers.slice(0,75).forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
+      if(d.loading){
+        // Cache is cold — being built server-side, poll every 10s
+        updateStatus(`⏳ Building price cache for first time (~8 mins) — will be instant next time`,'a');
+        await pollUntilReady();
+        return;
       }
-    }catch{}
+
+      // Got prices — apply them
+      const quotes=d.quotes||{};
+      let loaded=0;
+      tickers.forEach(t=>{
+        if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
+      });
+      updateStatus(`✓ ${loaded}/${total} loaded · ${d.stale?'refreshing…':'live'} · ${new Date().toLocaleTimeString()}`,'g');
+      pricesLoaded=true;setLoading(false);
+      applyLastKnownChanges();
+      STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+      selectDynamicPool();
+      const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
+      renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
+      return;
+    }
+  }catch(e){
+    console.warn('Snapshot failed:',e.message);
   }
 
+  // ── FALLBACK: direct Finnhub calls (capped at 60 stocks) ─────────────────
+  // Only if /api/snapshot is unavailable — covers 60 most important stocks
+  updateStatus(`Loading top stocks via Finnhub…`,'a');
+  let loaded=0;
+  const cap=Math.min(tickers.length,60);
+  for(let i=0;i<cap;i+=5){
+    const batch=tickers.slice(i,i+5);
+    const results=await Promise.all(batch.map(t=>fetchPrice(t)));
+    results.forEach((data,idx)=>{if(data){applyPriceData(tickers[i+idx],data);loaded++;}});
+    updateStatus(`Loading… ${loaded}/${cap} priced`,'a');
+    await sleep(5000);
+  }
   pricesLoaded=true;setLoading(false);
   applyLastKnownChanges();
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
   selectDynamicPool();
-  const fl=Object.keys(prices).length;
-  if(fl>=total*0.9){
-    updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
-    const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-  }else{
-    updateStatus(`⚠ ${fl}/${total} loaded · ${new Date().toLocaleTimeString()}`,'r');
-  }
+  updateStatus(`✓ ${loaded} stocks loaded (fallback mode) · ${new Date().toLocaleTimeString()}`,'r');
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
+}
+
+async function pollUntilReady(){
+  // Poll /api/snapshot every 10s until cache is built
+  for(let attempt=0;attempt<60;attempt++){
+    await sleep(10000);
+    try{
+      const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(10000)});
+      if(r.ok){
+        const d=await r.json();
+        if(!d.loading&&d.count>0){
+          const quotes=d.quotes||{};
+          const tickers=[...new Set(STOCKS.map(s=>s.t))];
+          let loaded=0;
+          tickers.forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
+          updateStatus(`✓ ${loaded}/${tickers.length} loaded · ${new Date().toLocaleTimeString()}`,'g');
+          pricesLoaded=true;setLoading(false);
+          applyLastKnownChanges();
+          STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+          selectDynamicPool();
+          const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
+          renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
+          return;
+        }
+        updateStatus(`⏳ Cache building… ${d.count||0} stocks ready so far`,'a');
+      }
+    }catch{}
+  }
+  updateStatus(`⚠ Cache build timed out — try refreshing the page`,'r');
+  setLoading(false);
 }
 function setLoading(on){document.getElementById('loader').classList.toggle('active',on);}
 function updateStatus(msg,type){const el=document.getElementById('price-status');el.style.display='block';el.className=`alert al-${type||'a'}`;el.innerHTML=`<span>${msg}</span>`;}
@@ -2310,18 +2324,16 @@ function moreNav(id,el){document.querySelectorAll('.more-drawer-item').forEach(i
 function updateClock(){document.getElementById('ts').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,60000);
 setInterval(async ()=>{
-  // Bulk refresh active pool — one Yahoo call, ~1s for all 75 stocks
-  const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
-  const quotes=await yahooFetchBatch(activeTickers);
-  if(quotes){
-    activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
-  }else{
-    // Yahoo failed — use /api/quotes backup
-    try{
-      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(20000)});
-      if(r.ok){const d=await r.json();const q=d.quotes||{};activeTickers.forEach(t=>{if(q[t])applyPriceData(t,q[t]);});}
-    }catch{}
-  }
+  // Refresh from snapshot cache — instant if warm
+  try{
+    const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(10000)});
+    if(r.ok){
+      const d=await r.json();
+      const quotes=d.quotes||{};
+      const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
+      activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
+    }
+  }catch{}
   checkAllAlerts();
   applyLastKnownChanges();
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
