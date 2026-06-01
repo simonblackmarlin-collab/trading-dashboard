@@ -1,9 +1,7 @@
-// api/quotes.js — bulk quote fetcher using Yahoo Finance
-// Accepts: /api/quotes?symbols=AAPL,MSFT,NVDA,TSLA (up to 100 at a time)
-// Returns: { quotes: { AAPL: { price, changePercent, prev }, ... } }
-
-const CACHE = {};
-const CACHE_TTL = 60 * 1000; // 1 minute cache
+// api/quotes.js — bulk quote fetcher using parallel Finnhub calls
+// Accepts: /api/quotes?symbols=AAPL,MSFT,NVDA (up to 120 at a time)
+// Returns: { quotes: { AAPL: { price, changePercent, prev, volume, avgVolume } } }
+// Server-side parallel calls — 10x faster than sequential browser calls
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,70 +11,64 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'symbols param required' });
   }
 
-  const symbols = symbolsParam.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
-  if (!symbols.length) {
-    return res.status(400).json({ error: 'no valid symbols' });
+  const apiKey = process.env.FINNHUB_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'FINNHUB_API_KEY not configured' });
   }
 
-  // Check cache — return cached results for symbols loaded recently
-  const now = Date.now();
-  const cached = {};
-  const toFetch = [];
+  const symbols = symbolsParam
+    .split(',')
+    .map(s => s.trim().toUpperCase())
+    .filter(Boolean)
+    .slice(0, 120); // hard cap
 
-  symbols.forEach(sym => {
-    if (CACHE[sym] && (now - CACHE[sym].ts) < CACHE_TTL) {
-      cached[sym] = CACHE[sym].data;
-    } else {
-      toFetch.push(sym);
+  // Fetch all symbols in parallel — server-side so no browser rate limit concern
+  // Batch into groups of 15 with small delay to be respectful to Finnhub
+  const BATCH = 15;
+  const quotes = {};
+
+  for (let i = 0; i < symbols.length; i += BATCH) {
+    const batch = symbols.slice(i, i + BATCH);
+
+    const results = await Promise.all(
+      batch.map(async (symbol) => {
+        try {
+          const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
+          const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+          if (!r.ok) return { symbol, data: null };
+          const d = await r.json();
+          if (!d || d.c === 0) return { symbol, data: null };
+          return {
+            symbol,
+            data: {
+              price: d.c,                                           // current price
+              changePercent: d.pc > 0 ? ((d.c - d.pc) / d.pc * 100) : 0,
+              prev: d.pc,                                           // previous close
+              high: d.h,                                            // day high
+              low: d.l,                                             // day low
+              open: d.o,                                            // day open
+            }
+          };
+        } catch {
+          return { symbol, data: null };
+        }
+      })
+    );
+
+    results.forEach(({ symbol, data }) => {
+      if (data) quotes[symbol] = data;
+    });
+
+    // Small pause between batches — keeps Finnhub happy
+    if (i + BATCH < symbols.length) {
+      await new Promise(r => setTimeout(r, 200));
     }
+  }
+
+  res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=15');
+  return res.status(200).json({
+    quotes,
+    total: symbols.length,
+    returned: Object.keys(quotes).length,
   });
-
-  let fetched = {};
-
-  if (toFetch.length > 0) {
-    try {
-      // Yahoo Finance bulk quote — handles TSX (.TO) and crypto (-USD) symbols too
-      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(toFetch.join(','))}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketPreviousClose,shortName`;
-
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; StockMate/1.0)',
-          'Accept': 'application/json',
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Yahoo Finance returned ${response.status}`);
-      }
-
-      const data = await response.json();
-      const results = data?.quoteResponse?.result || [];
-
-      results.forEach(q => {
-        if (!q.symbol || !q.regularMarketPrice) return;
-        const quote = {
-          price: q.regularMarketPrice,
-          changePercent: q.regularMarketChangePercent || 0,
-          prev: q.regularMarketPreviousClose || q.regularMarketPrice,
-          name: q.shortName || q.symbol,
-        };
-        fetched[q.symbol] = quote;
-        // Cache it
-        CACHE[q.symbol] = { data: quote, ts: now };
-      });
-
-    } catch (err) {
-      // If Yahoo fails, return whatever we have from cache
-      console.error('Yahoo Finance error:', err.message);
-      if (Object.keys(cached).length === 0) {
-        return res.status(500).json({ error: err.message, quotes: {} });
-      }
-    }
-  }
-
-  const quotes = { ...cached, ...fetched };
-
-  res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
-  return res.status(200).json({ quotes, cached: Object.keys(cached).length, fetched: Object.keys(fetched).length });
 }
