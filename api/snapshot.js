@@ -1,138 +1,40 @@
-// api/snapshot.js — server-side price cache using Upstash Redis
-// Returns all stock prices instantly from cache (< 1 second)
-// Cache built server-side using Finnhub, refreshed every 60 seconds
+// api/snapshot.js — server-side price cache using Upstash REST API
+// Designed for Vercel Hobby (10s function timeout)
+// Each call fetches one batch of 5 stocks and saves to cache
+// Repeated calls (via polling) build the cache incrementally
 
 const CACHE_KEY = 'stockmate_prices_v1';
-const CACHE_TTL = 60; // seconds
+const PROGRESS_KEY = 'stockmate_progress_v1';
+const CACHE_TTL = 60; // seconds before prices are considered stale
+const BATCH_SIZE = 5; // stocks per call — fits in 10s timeout
+const DELAY_MS = 1100; // 1.1s between calls = ~54/min, safe under 60/min limit
 
-// Upstash REST API — uses env vars injected by Vercel
 async function kvGet(key) {
-  const url = `${process.env.KV_REST_API_URL}/get/${key}`;
-  const r = await fetch(url, {
-    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
-    signal: AbortSignal.timeout(5000),
-  });
-  if (!r.ok) return null;
-  const d = await r.json();
-  return d.result || null;
-}
-
-async function kvSet(key, value, exSeconds) {
-  const url = `${process.env.KV_REST_API_URL}/set/${key}`;
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ value, ex: exSeconds }),
-    signal: AbortSignal.timeout(5000),
-  });
-  return r.ok;
-}
-
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-
-  const apiKey = process.env.FINNHUB_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'FINNHUB_API_KEY not set' });
-  if (!process.env.KV_REST_API_URL) return res.status(500).json({ error: 'KV not configured' });
-
-  // ── Try cache first ───────────────────────────────────────────────────────
   try {
-    const raw = await kvGet(CACHE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const age = (Date.now() - parsed.ts) / 1000;
-
-      if (age < CACHE_TTL) {
-        // Fresh — return instantly
-        res.setHeader('Cache-Control', `s-maxage=${Math.round(CACHE_TTL - age)}`);
-        res.setHeader('X-Cache', 'HIT');
-        res.setHeader('X-Cache-Age', `${age.toFixed(1)}s`);
-        return res.status(200).json({
-          quotes: parsed.quotes,
-          count: Object.keys(parsed.quotes).length,
-          ts: parsed.ts,
-          cached: true,
-        });
-      }
-
-      // Stale — return immediately and refresh in background
-      res.setHeader('X-Cache', 'STALE');
-      res.status(200).json({
-        quotes: parsed.quotes,
-        count: Object.keys(parsed.quotes).length,
-        ts: parsed.ts,
-        cached: true,
-        stale: true,
-      });
-      refreshCache(apiKey).catch(console.error);
-      return;
-    }
-  } catch (e) {
-    console.error('KV read error:', e.message);
-  }
-
-  // ── No cache — cold start ─────────────────────────────────────────────────
-  const symbols = await getSymbols();
-  refreshCache(apiKey).catch(console.error);
-
-  res.setHeader('X-Cache', 'MISS');
-  return res.status(202).json({
-    quotes: {},
-    count: 0,
-    loading: true,
-    total: symbols.length,
-    message: `Building price cache for ${symbols.length} stocks — polls every 10s until ready`,
-  });
+    const url = `${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`;
+    const r = await fetch(url, {
+      headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.result || null;
+  } catch { return null; }
 }
 
-async function refreshCache(apiKey) {
-  const symbols = await getSymbols();
-  const quotes = {};
-  const BATCH = 5;
-  const DELAY = 5000; // 5 calls per 5s = 60/min — safe for Finnhub free tier
-
-  for (let i = 0; i < symbols.length; i += BATCH) {
-    const batch = symbols.slice(i, i + BATCH);
-    await Promise.all(batch.map(async (symbol) => {
-      try {
-        const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
-        const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-        if (!r.ok) return;
-        const d = await r.json();
-        if (d && d.c && d.c > 0) {
-          quotes[symbol] = {
-            price: d.c,
-            changePercent: d.pc > 0 ? ((d.c - d.pc) / d.pc * 100) : 0,
-            prev: d.pc,
-            open: d.o,
-            high: d.h,
-            low: d.l,
-          };
-        }
-      } catch {}
-    }));
-
-    // Save partial progress to KV every 50 stocks so polls return data sooner
-    if (i > 0 && i % 50 === 0 && Object.keys(quotes).length > 0) {
-      await kvSet(CACHE_KEY, JSON.stringify({ quotes: { ...quotes }, ts: Date.now() }), 600)
-        .catch(() => {});
-    }
-
-    if (i + BATCH < symbols.length) {
-      await new Promise(r => setTimeout(r, DELAY));
-    }
-  }
-
-  // Final save
-  if (Object.keys(quotes).length > 0) {
-    await kvSet(CACHE_KEY, JSON.stringify({ quotes, ts: Date.now() }), 600);
-    console.log(`Cache built: ${Object.keys(quotes).length}/${symbols.length} stocks`);
-  }
-
-  return quotes;
+async function kvSet(key, value, exSeconds = 600) {
+  try {
+    const url = `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}`;
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ value: JSON.stringify(value), ex: exSeconds }),
+      signal: AbortSignal.timeout(4000),
+    });
+  } catch {}
 }
 
 async function getSymbols() {
@@ -146,5 +48,124 @@ async function getSymbols() {
       return candidates.map(c => c.t).filter(Boolean);
     }
   } catch {}
-  return ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','JPM','V'];
+  return ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','JPM','V',
+          'XOM','UNH','LLY','MA','HD','MRK','PG','ORCL','COST','ABBV'];
+}
+
+async function fetchQuote(symbol, apiKey) {
+  try {
+    const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || !d.c || d.c === 0) return null;
+    return {
+      price: d.c,
+      changePercent: d.pc > 0 ? ((d.c - d.pc) / d.pc * 100) : 0,
+      prev: d.pc,
+      open: d.o,
+      high: d.h,
+      low: d.l,
+    };
+  } catch { return null; }
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  const apiKey = process.env.FINNHUB_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'FINNHUB_API_KEY not set' });
+  if (!process.env.KV_REST_API_URL) return res.status(500).json({ error: 'KV not configured' });
+
+  const symbols = await getSymbols();
+  const total = symbols.length;
+
+  // ── Load existing cache ───────────────────────────────────────────────────
+  let cacheData = { quotes: {}, ts: 0 };
+  let progress = { nextIndex: 0, ts: Date.now() };
+
+  const rawCache = await kvGet(CACHE_KEY);
+  if (rawCache) {
+    try { cacheData = JSON.parse(rawCache); } catch {}
+  }
+
+  const rawProgress = await kvGet(PROGRESS_KEY);
+  if (rawProgress) {
+    try { progress = JSON.parse(rawProgress); } catch {}
+  }
+
+  const cacheAge = (Date.now() - cacheData.ts) / 1000;
+  const loaded = Object.keys(cacheData.quotes).length;
+
+  // ── Return cached data immediately if fresh enough ────────────────────────
+  if (loaded > 0) {
+    // Always return what we have immediately — don't make user wait
+    const isFresh = cacheAge < CACHE_TTL;
+    const isComplete = loaded >= total * 0.9;
+
+    res.setHeader('X-Cache', isFresh ? 'HIT' : 'STALE');
+    res.status(200).json({
+      quotes: cacheData.quotes,
+      count: loaded,
+      total,
+      ts: cacheData.ts,
+      cached: true,
+      stale: !isFresh,
+      complete: isComplete,
+      progress: Math.round((loaded / total) * 100),
+    });
+
+    // If stale, fetch next batch in background
+    if (!isFresh) fetchNextBatch(symbols, cacheData, progress, apiKey).catch(() => {});
+    return;
+  }
+
+  // ── No cache yet — fetch first batch synchronously so user gets something ─
+  const firstBatch = symbols.slice(0, BATCH_SIZE);
+  for (const symbol of firstBatch) {
+    const quote = await fetchQuote(symbol, apiKey);
+    if (quote) cacheData.quotes[symbol] = quote;
+    await new Promise(r => setTimeout(r, DELAY_MS));
+  }
+  cacheData.ts = Date.now();
+  progress.nextIndex = BATCH_SIZE;
+
+  await kvSet(CACHE_KEY, cacheData);
+  await kvSet(PROGRESS_KEY, progress);
+
+  // Kick off next batch in background
+  fetchNextBatch(symbols, cacheData, progress, apiKey).catch(() => {});
+
+  const loaded2 = Object.keys(cacheData.quotes).length;
+  res.setHeader('X-Cache', 'BUILDING');
+  return res.status(200).json({
+    quotes: cacheData.quotes,
+    count: loaded2,
+    total,
+    ts: cacheData.ts,
+    cached: false,
+    loading: true,
+    progress: Math.round((loaded2 / total) * 100),
+    message: `Loading prices... ${loaded2}/${total} so far`,
+  });
+}
+
+async function fetchNextBatch(symbols, cacheData, progress, apiKey) {
+  const start = progress.nextIndex || 0;
+  if (start >= symbols.length) {
+    // All done — reset progress for next refresh cycle
+    await kvSet(PROGRESS_KEY, { nextIndex: 0, ts: Date.now() });
+    return;
+  }
+
+  const batch = symbols.slice(start, start + BATCH_SIZE);
+  for (const symbol of batch) {
+    const quote = await fetchQuote(symbol, apiKey);
+    if (quote) cacheData.quotes[symbol] = quote;
+    await new Promise(r => setTimeout(r, DELAY_MS));
+  }
+  cacheData.ts = Date.now();
+
+  await kvSet(CACHE_KEY, cacheData);
+  await kvSet(PROGRESS_KEY, { nextIndex: start + BATCH_SIZE, ts: Date.now() });
 }
