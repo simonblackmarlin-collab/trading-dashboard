@@ -1354,43 +1354,45 @@ async function loadAllPrices(){
   setLoading(true);
   const tickers=[...new Set(STOCKS.map(s=>s.t))];
   const total=tickers.length;
-  updateStatus(`Loading prices for all ${total} stocks…`,'a');
+  updateStatus(`Loading prices for ${total} stocks…`,'a');
 
-  // ── BULK LOAD via Yahoo Finance (6 calls for 509 stocks) ─────────────────
-  const BATCH=100;
+  // ── BULK LOAD via /api/quotes (parallel Finnhub server-side, 15 at a time) ──
+  const BATCH=120; // Vercel function handles up to 120 per call
   let loaded=0;
   const failed=[];
 
   for(let i=0;i<tickers.length;i+=BATCH){
     const batch=tickers.slice(i,i+BATCH);
     try{
-      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(batch.join(','))}`,{signal:AbortSignal.timeout(15000)});
+      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(batch.join(','))}`,{signal:AbortSignal.timeout(30000)});
       if(r.ok){
         const d=await r.json();
         const quotes=d.quotes||{};
         batch.forEach(t=>{
           if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
-          else{failed.push(t);}
+          else failed.push(t);
         });
-        updateStatus(`Loading… ${loaded}/${total} priced`,'a');
-        updateTickerStrip();
-        if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
-      } else {
+      }else{
         batch.forEach(t=>failed.push(t));
       }
     }catch{
       batch.forEach(t=>failed.push(t));
     }
-    if(i+BATCH<tickers.length) await sleep(500); // small gap between batches
+    updateStatus(`Loading… ${loaded}/${total} priced`,'a');
+    updateTickerStrip();
+    if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
+    if(i+BATCH<tickers.length)await sleep(500);
   }
 
-  // ── FALLBACK: retry failed tickers one by one via Finnhub ────────────────
+  // ── FALLBACK: any missed tickers via individual Finnhub (capped at 30) ────
   if(failed.length>0){
-    updateStatus(`Retrying ${failed.length} tickers via Finnhub…`,'a');
-    for(const t of failed){
-      const data=await fetchPrice(t);
-      if(data){applyPriceData(t,data);loaded++;}
-      await sleep(1100);
+    const toRetry=failed.slice(0,30); // cap — don't hang forever
+    updateStatus(`Retrying ${toRetry.length} tickers…`,'a');
+    for(let i=0;i<toRetry.length;i+=5){
+      const batch=toRetry.slice(i,i+5);
+      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
+      results.forEach((data,idx)=>{if(data){applyPriceData(toRetry[i+idx],data);loaded++;}});
+      await sleep(1500);
     }
   }
 
@@ -2294,18 +2296,23 @@ function moreNav(id,el){document.querySelectorAll('.more-drawer-item').forEach(i
 function updateClock(){document.getElementById('ts').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,60000);
 setInterval(async ()=>{
-  // Bulk refresh active pool — one API call for all 75 stocks
+  // Bulk refresh active pool — one /api/quotes call for all 75 stocks
   const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
   try{
-    const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(15000)});
+    const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(activeTickers.join(','))}`,{signal:AbortSignal.timeout(20000)});
     if(r.ok){
       const d=await r.json();
       const quotes=d.quotes||{};
       activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
     }
   }catch{
-    // Fallback to individual Finnhub calls if bulk fails
-    for(const t of activeTickers){const data=await fetchPrice(t);if(data)applyPriceData(t,data);await sleep(1100);}
+    // Fallback: parallel Finnhub
+    for(let i=0;i<activeTickers.length;i+=5){
+      const batch=activeTickers.slice(i,i+5);
+      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
+      results.forEach((data,idx)=>{if(data)applyPriceData(activeTickers[i+idx],data);});
+      await sleep(1500);
+    }
   }
   checkAllAlerts();
   applyLastKnownChanges();
