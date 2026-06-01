@@ -1,80 +1,90 @@
-// api/snapshot.js — server-side price cache using Vercel KV
+// api/snapshot.js — server-side price cache using Upstash Redis
 // Returns all stock prices instantly from cache (< 1 second)
-// Cache is built server-side using Finnhub, refreshed every 60 seconds
-// First cold start takes ~8 mins — all subsequent calls are instant
+// Cache built server-side using Finnhub, refreshed every 60 seconds
 
 const CACHE_KEY = 'stockmate_prices_v1';
-const CACHE_TTL = 60; // seconds — refresh every 60s during market hours
+const CACHE_TTL = 60; // seconds
+
+// Upstash REST API — uses env vars injected by Vercel
+async function kvGet(key) {
+  const url = `${process.env.KV_REST_API_URL}/get/${key}`;
+  const r = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` },
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!r.ok) return null;
+  const d = await r.json();
+  return d.result || null;
+}
+
+async function kvSet(key, value, exSeconds) {
+  const url = `${process.env.KV_REST_API_URL}/set/${key}`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value, ex: exSeconds }),
+    signal: AbortSignal.timeout(5000),
+  });
+  return r.ok;
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   const apiKey = process.env.FINNHUB_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'FINNHUB_API_KEY not set' });
-  }
+  if (!apiKey) return res.status(500).json({ error: 'FINNHUB_API_KEY not set' });
+  if (!process.env.KV_REST_API_URL) return res.status(500).json({ error: 'KV not configured' });
 
-  // ── Try to get from KV cache first ──────────────────────────────────────
-  let cached = null;
+  // ── Try cache first ───────────────────────────────────────────────────────
   try {
-    const kv = await getKV();
-    if (kv) {
-      const raw = await kv.get(CACHE_KEY);
-      if (raw) {
-        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        const age = (Date.now() - parsed.ts) / 1000;
-        if (age < CACHE_TTL) {
-          // Fresh cache — return instantly
-          res.setHeader('Cache-Control', `s-maxage=${Math.round(CACHE_TTL - age)}`);
-          res.setHeader('X-Cache', 'HIT');
-          res.setHeader('X-Cache-Age', `${age.toFixed(1)}s`);
-          return res.status(200).json({
-            quotes: parsed.quotes,
-            count: Object.keys(parsed.quotes).length,
-            ts: parsed.ts,
-            cached: true,
-          });
-        }
-        // Stale but usable — return stale while refreshing
-        cached = parsed;
+    const raw = await kvGet(CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const age = (Date.now() - parsed.ts) / 1000;
+
+      if (age < CACHE_TTL) {
+        // Fresh — return instantly
+        res.setHeader('Cache-Control', `s-maxage=${Math.round(CACHE_TTL - age)}`);
+        res.setHeader('X-Cache', 'HIT');
+        res.setHeader('X-Cache-Age', `${age.toFixed(1)}s`);
+        return res.status(200).json({
+          quotes: parsed.quotes,
+          count: Object.keys(parsed.quotes).length,
+          ts: parsed.ts,
+          cached: true,
+        });
       }
+
+      // Stale — return immediately and refresh in background
+      res.setHeader('X-Cache', 'STALE');
+      res.status(200).json({
+        quotes: parsed.quotes,
+        count: Object.keys(parsed.quotes).length,
+        ts: parsed.ts,
+        cached: true,
+        stale: true,
+      });
+      refreshCache(apiKey).catch(console.error);
+      return;
     }
   } catch (e) {
     console.error('KV read error:', e.message);
   }
 
-  // ── Cache miss or stale — fetch from Finnhub ─────────────────────────────
-  // If we have stale data, return it immediately and refresh in background
-  if (cached) {
-    res.setHeader('X-Cache', 'STALE');
-    res.status(200).json({
-      quotes: cached.quotes,
-      count: Object.keys(cached.quotes).length,
-      ts: cached.ts,
-      cached: true,
-      stale: true,
-    });
-    // Refresh cache in background (don't await)
-    refreshCache(apiKey).catch(console.error);
-    return;
-  }
-
-  // No cache at all — must build it now (first cold start)
-  // Return a "loading" response with progress endpoint
+  // ── No cache — cold start ─────────────────────────────────────────────────
   const symbols = await getSymbols();
-  const total = symbols.length;
-
-  // Start building cache in background
   refreshCache(apiKey).catch(console.error);
 
-  // Return what we have (empty for now)
   res.setHeader('X-Cache', 'MISS');
   return res.status(202).json({
     quotes: {},
     count: 0,
     loading: true,
-    total,
-    message: `Building price cache for ${total} stocks — check back in 60 seconds`,
+    total: symbols.length,
+    message: `Building price cache for ${symbols.length} stocks — polls every 10s until ready`,
   });
 }
 
@@ -82,7 +92,7 @@ async function refreshCache(apiKey) {
   const symbols = await getSymbols();
   const quotes = {};
   const BATCH = 5;
-  const DELAY = 5000; // 5s between batches = 5 calls/5s = 60/min
+  const DELAY = 5000; // 5 calls per 5s = 60/min — safe for Finnhub free tier
 
   for (let i = 0; i < symbols.length; i += BATCH) {
     const batch = symbols.slice(i, i + BATCH);
@@ -105,37 +115,27 @@ async function refreshCache(apiKey) {
       } catch {}
     }));
 
+    // Save partial progress to KV every 50 stocks so polls return data sooner
+    if (i > 0 && i % 50 === 0 && Object.keys(quotes).length > 0) {
+      await kvSet(CACHE_KEY, JSON.stringify({ quotes: { ...quotes }, ts: Date.now() }), 600)
+        .catch(() => {});
+    }
+
     if (i + BATCH < symbols.length) {
       await new Promise(r => setTimeout(r, DELAY));
     }
   }
 
-  // Store in KV
-  try {
-    const kv = await getKV();
-    if (kv && Object.keys(quotes).length > 0) {
-      await kv.set(CACHE_KEY, JSON.stringify({ quotes, ts: Date.now() }), { ex: 600 });
-      console.log(`Cache refreshed: ${Object.keys(quotes).length} stocks`);
-    }
-  } catch (e) {
-    console.error('KV write error:', e.message);
+  // Final save
+  if (Object.keys(quotes).length > 0) {
+    await kvSet(CACHE_KEY, JSON.stringify({ quotes, ts: Date.now() }), 600);
+    console.log(`Cache built: ${Object.keys(quotes).length}/${symbols.length} stocks`);
   }
 
   return quotes;
 }
 
-async function getKV() {
-  // Vercel KV — automatically available via @vercel/kv when KV is linked to project
-  try {
-    const { kv } = await import('@vercel/kv');
-    return kv;
-  } catch {
-    return null;
-  }
-}
-
 async function getSymbols() {
-  // Fetch candidates.json to get the symbol list
   try {
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
@@ -146,7 +146,5 @@ async function getSymbols() {
       return candidates.map(c => c.t).filter(Boolean);
     }
   } catch {}
-  // Fallback: core S&P 500 tickers
-  return ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','JPM','V',
-          'XOM','UNH','LLY','MA','HD','COST','PG','ORCL','MRK','ABBV'];
+  return ['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','JPM','V'];
 }
