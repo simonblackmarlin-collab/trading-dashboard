@@ -1356,55 +1356,58 @@ async function loadAllPrices(){
   const total=tickers.length;
   updateStatus(`Loading prices for ${total} stocks…`,'a');
 
-  // ── PRIMARY: server-side cache via /api/snapshot (instant if warm) ───────
-  try{
-    const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(15000)});
-    if(r.ok){
-      const d=await r.json();
-
-      if(d.loading){
-        // Cache is cold — being built server-side, poll every 10s
-        updateStatus(`⏳ Building price cache for first time (~8 mins) — will be instant next time`,'a');
-        await pollUntilReady();
-        return;
-      }
-
-      // Got prices — apply them
-      const quotes=d.quotes||{};
-      let loaded=0;
-      tickers.forEach(t=>{
-        if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
-      });
-      updateStatus(`✓ ${loaded}/${total} loaded · ${d.stale?'refreshing…':'live'} · ${new Date().toLocaleTimeString()}`,'g');
-      pricesLoaded=true;setLoading(false);
-      applyLastKnownChanges();
-      STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-      selectDynamicPool();
-      const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-      renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
-      return;
-    }
-  }catch(e){
-    console.warn('Snapshot failed:',e.message);
-  }
-
-  // ── FALLBACK: direct Finnhub calls (capped at 60 stocks) ─────────────────
-  // Only if /api/snapshot is unavailable — covers 60 most important stocks
-  updateStatus(`Loading top stocks via Finnhub…`,'a');
+  // Load all via /api/quotes in batches of 20 (server-side parallel Finnhub)
+  // Each batch takes ~2-3s server-side, well within Vercel 10s timeout
+  const BATCH=20;
   let loaded=0;
-  const cap=Math.min(tickers.length,60);
-  for(let i=0;i<cap;i+=5){
-    const batch=tickers.slice(i,i+5);
-    const results=await Promise.all(batch.map(t=>fetchPrice(t)));
-    results.forEach((data,idx)=>{if(data){applyPriceData(tickers[i+idx],data);loaded++;}});
-    updateStatus(`Loading… ${loaded}/${cap} priced`,'a');
-    await sleep(5000);
+  const failed=[];
+
+  for(let i=0;i<tickers.length;i+=BATCH){
+    const batch=tickers.slice(i,i+BATCH);
+    try{
+      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(batch.join(','))}`,{signal:AbortSignal.timeout(15000)});
+      if(r.ok){
+        const d=await r.json();
+        const quotes=d.quotes||{};
+        batch.forEach(t=>{
+          if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
+          else failed.push(t);
+        });
+      }else{
+        batch.forEach(t=>failed.push(t));
+      }
+    }catch{
+      batch.forEach(t=>failed.push(t));
+    }
+    updateStatus(`Loading… ${loaded}/${total} priced`,'a');
+    updateTickerStrip();
+    if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
+    if(i+BATCH<tickers.length)await sleep(1000); // 1s between batches = 20 calls/s but server-side so safe
   }
+
+  // Retry failed via individual Finnhub (capped at 30)
+  if(failed.length>0){
+    const toRetry=failed.slice(0,30);
+    updateStatus(`Retrying ${toRetry.length} tickers…`,'a');
+    for(let i=0;i<toRetry.length;i+=5){
+      const batch=toRetry.slice(i,i+5);
+      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
+      results.forEach((data,idx)=>{if(data){applyPriceData(toRetry[i+idx],data);loaded++;}});
+      await sleep(5000);
+    }
+  }
+
   pricesLoaded=true;setLoading(false);
   applyLastKnownChanges();
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
   selectDynamicPool();
-  updateStatus(`✓ ${loaded} stocks loaded (fallback mode) · ${new Date().toLocaleTimeString()}`,'r');
+  const fl=Object.keys(prices).length;
+  if(fl>=total*0.9){
+    updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
+    const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
+  }else{
+    updateStatus(`⚠ ${fl}/${total} loaded · ${new Date().toLocaleTimeString()}`,'r');
+  }
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
 }
 
