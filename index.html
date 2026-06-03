@@ -1309,16 +1309,10 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const POOL_SIZE=75,DISPLAY_TOP=35;
 
 // ── FETCH HELPERS ─────────────────────────────────────────────────────────────
-async function fetchPrice(symbol,retries=2){
+async function fetchPrice(symbol){
   try{
     const r=await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}`,{signal:AbortSignal.timeout(10000)});
-    if(r.status===429){
-      // Rate limited — back off and retry
-      if(retries>0){await sleep(5000);return fetchPrice(symbol,retries-1);}
-      return null;
-    }
-    if(!r.ok)return null;
-    const d=await r.json();
+    if(!r.ok)return null;const d=await r.json();
     if(!d||d.error||!d.price)return null;
     return{price:d.price,prev:d.prev,change:d.change,changePercent:d.changePercent};
   }catch{return null;}
@@ -1339,106 +1333,46 @@ async function fetchNews(symbol){
 }
 
 // ── LOAD PRICES ───────────────────────────────────────────────────────────────
-function applyPriceData(t, data){
-  prices[t]=data;
-  const s=STOCKS.find(x=>x.t===t);
-  if(s){s.mom=data.changePercent>0.5;s.ytd=s.ytdBase?((data.price-s.ytdBase)/s.ytdBase*100):0;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
-  const sc=CANDIDATES.find(x=>x.t===t);
-  if(sc){sc.mom=data.changePercent>0.5;sc.c=parseFloat(data.changePercent.toFixed(2));sc.p=data.price;}
-  if(Math.abs(data.changePercent)>0.05){
-    try{const cache=JSON.parse(localStorage.getItem('sm_lastChange')||'{}');cache[t]={c:parseFloat(data.changePercent.toFixed(2)),ts:Date.now()};localStorage.setItem('sm_lastChange',JSON.stringify(cache));}catch{}
-  }
-}
-
 async function loadAllPrices(){
   setLoading(true);
   const tickers=[...new Set(STOCKS.map(s=>s.t))];
-  const total=tickers.length;
-  updateStatus(`Loading prices for ${total} stocks…`,'a');
-
-  // Load all via /api/quotes in batches of 20 (server-side parallel Finnhub)
-  // Each batch takes ~2-3s server-side, well within Vercel 10s timeout
-  const BATCH=20;
-  let loaded=0;
-  const failed=[];
-
-  for(let i=0;i<tickers.length;i+=BATCH){
-    const batch=tickers.slice(i,i+BATCH);
-    try{
-      const r=await fetch(`/api/quotes?symbols=${encodeURIComponent(batch.join(','))}`,{signal:AbortSignal.timeout(15000)});
-      if(r.ok){
-        const d=await r.json();
-        const quotes=d.quotes||{};
-        batch.forEach(t=>{
-          if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}
-          else failed.push(t);
-        });
-      }else{
-        batch.forEach(t=>failed.push(t));
-      }
-    }catch{
-      batch.forEach(t=>failed.push(t));
-    }
-    updateStatus(`Loading… ${loaded}/${total} priced`,'a');
-    updateTickerStrip();
-    if(document.getElementById('tab-recommendations')?.classList.contains('on'))renderRecommendations();
-    if(i+BATCH<tickers.length)await sleep(1000); // 1s between batches = 20 calls/s but server-side so safe
+  const total=tickers.length;let loaded=0,failed=[];
+  updateStatus(`Connecting… loading 0 / ${total}`,'a');
+  for(const t of tickers){
+    const data=await fetchPrice(t);
+    if(data){
+      prices[t]=data;
+      const s=STOCKS.find(x=>x.t===t);
+      if(s){s.mom=data.changePercent>0.5;s.ytd=s.ytdBase?((data.price-s.ytdBase)/s.ytdBase*100):0;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
+      const sc=CANDIDATES.find(x=>x.t===t);
+      if(sc){sc.mom=data.changePercent>0.5;sc.c=parseFloat(data.changePercent.toFixed(2));sc.p=data.price;}
+      loaded++;updateStatus(`Loading ${loaded} / ${total} — ${t} ✓`,'a');updateTickerStrip();
+    }else{failed.push(t);}
+    await sleep(200);
   }
-
-  // Retry failed via individual Finnhub (capped at 30)
   if(failed.length>0){
-    const toRetry=failed.slice(0,30);
-    updateStatus(`Retrying ${toRetry.length} tickers…`,'a');
-    for(let i=0;i<toRetry.length;i+=5){
-      const batch=toRetry.slice(i,i+5);
-      const results=await Promise.all(batch.map(t=>fetchPrice(t)));
-      results.forEach((data,idx)=>{if(data){applyPriceData(toRetry[i+idx],data);loaded++;}});
-      await sleep(5000);
+    updateStatus(`Retrying ${failed.length} tickers…`,'a');await sleep(3000);
+    for(const t of failed){
+      const data=await fetchPrice(t);
+      if(data){
+        prices[t]=data;
+        const s=STOCKS.find(x=>x.t===t);if(s){s.mom=data.changePercent>0.5;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
+        const sc=CANDIDATES.find(x=>x.t===t);if(sc){sc.mom=data.changePercent>0.5;sc.c=parseFloat(data.changePercent.toFixed(2));sc.p=data.price;}
+        loaded++;updateTickerStrip();
+      }
+      await sleep(400);
     }
   }
-
   pricesLoaded=true;setLoading(false);
-  applyLastKnownChanges();
   STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
   selectDynamicPool();
-  const fl=Object.keys(prices).length;
+  const fl=Object.keys(prices).length,ff=tickers.filter(t=>!prices[t]);
   if(fl>=total*0.9){
     updateStatus(`✓ ${fl}/${total} loaded · Dynamic pool active · ${new Date().toLocaleTimeString()}`,'g');
     const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-  }else{
-    updateStatus(`⚠ ${fl}/${total} loaded · ${new Date().toLocaleTimeString()}`,'r');
   }
+  else updateStatus(`⚠ ${fl}/${total} loaded · Missing: ${ff.slice(0,6).join(', ')}`,'r');
   renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
-}
-
-async function pollUntilReady(){
-  // Poll /api/snapshot every 10s until cache is built
-  for(let attempt=0;attempt<60;attempt++){
-    await sleep(10000);
-    try{
-      const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(10000)});
-      if(r.ok){
-        const d=await r.json();
-        if(!d.loading&&d.count>0){
-          const quotes=d.quotes||{};
-          const tickers=[...new Set(STOCKS.map(s=>s.t))];
-          let loaded=0;
-          tickers.forEach(t=>{if(quotes[t]){applyPriceData(t,quotes[t]);loaded++;}});
-          updateStatus(`✓ ${loaded}/${tickers.length} loaded · ${new Date().toLocaleTimeString()}`,'g');
-          pricesLoaded=true;setLoading(false);
-          applyLastKnownChanges();
-          STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-          selectDynamicPool();
-          const b=document.getElementById('picks-loading-banner');if(b)b.style.display='none';
-          renderAll();updateTickerStrip();renderPoolTab();checkAllAlerts();
-          return;
-        }
-        updateStatus(`⏳ Cache building… ${d.count||0} stocks ready so far`,'a');
-      }
-    }catch{}
-  }
-  updateStatus(`⚠ Cache build timed out — try refreshing the page`,'r');
-  setLoading(false);
 }
 function setLoading(on){document.getElementById('loader').classList.toggle('active',on);}
 function updateStatus(msg,type){const el=document.getElementById('price-status');el.style.display='block';el.className=`alert al-${type||'a'}`;el.innerHTML=`<span>${msg}</span>`;}
@@ -1805,14 +1739,20 @@ function searchSelect(ticker){
 // ── MARKET STATUS ─────────────────────────────────────────────────────────────
 function getMarketStatus(){
   const now=new Date();
-  // Get ET time components separately — avoids locale string parsing issues
-  const etDate=new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));
-  const day=etDate.getDay(); // 0=Sun,1=Mon...6=Sat
-  const h=etDate.getHours();
-  const m=etDate.getMinutes();
+  // Intl.DateTimeFormat.formatToParts — spec-compliant in all browsers & mobile,
+  // no string parsing, handles DST automatically. Fixes stale pre-market banner.
+  const fmt=new Intl.DateTimeFormat('en-US',{
+    timeZone:'America/New_York',
+    weekday:'short',hour:'numeric',minute:'2-digit',hour12:false
+  });
+  const parts=Object.fromEntries(fmt.formatToParts(now).map(p=>[p.type,p.value]));
+  const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  const day=dayMap[parts.weekday]??0;
+  const h=parseInt(parts.hour,10);
+  const m=parseInt(parts.minute,10);
   const mins=h*60+m;
   const isWeekday=day>=1&&day<=5;
-  const marketOpen=9*60+30;const marketClose=16*60;
+  const marketOpen=9*60+30,marketClose=16*60;
   if(!isWeekday)return{status:'closed',reason:'weekend',day,mins};
   if(mins<marketOpen)return{status:'pre',reason:'pre-market',opensIn:marketOpen-mins,mins};
   if(mins>=marketClose)return{status:'after',reason:'after-hours',mins};
@@ -1831,6 +1771,14 @@ function renderMarketBanner(){
 
   if(ms.status==='open'){
     banner.innerHTML=`<div class="market-banner open"><div class="market-status-dot" style="background:var(--green)"></div><strong>Markets are open</strong> · Live prices · NYSE &amp; NASDAQ until 4:00 PM ET</div>`;
+    return;
+  }
+
+  // Non-open + category filter active: show a slim status pill so stocks stay visible.
+  // Fixes the "closed message covering Emerging/AI/Crypto stocks" issue.
+  if(activeFilter!=='all'){
+    const isPre=ms.status==='pre';
+    banner.innerHTML=`<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500;background:${isPre?'var(--amber-dim)':'rgba(71,85,105,0.15)'};border:1px solid ${isPre?'var(--amber-border)':'rgba(148,163,184,0.25)'};color:${isPre?'var(--amber)':'#94a3b8'};margin-bottom:8px"><div style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0"></div>${isPre?'Pre-market':'Markets closed'} · ${getNextOpenText(ms)}</div>`;
     return;
   }
 
@@ -1907,8 +1855,8 @@ function renderMarketBanner(){
     </div>
   </div>
   <div class="market-closed-suggest">
-    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Make the most of the weekend 👇</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Markets are closed but StockMate still has plenty for you</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">${isWeekend?'Make the most of the weekend 👇':'Markets are closed — here\'s what you can do'}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${isWeekend?'Markets are closed but StockMate still has plenty for you':'Check what\'s coming up and prepare your trades'}</div>
     <div class="market-suggest-grid">
       <button class="market-suggest-btn" onclick="goTab('earnings',document.querySelector('.tab[onclick*=earnings]'))"><div class="market-suggest-icon">📅</div><span class="market-suggest-label">Earnings Calendar</span><span class="market-suggest-sub">See what's reporting next week</span></button>
       <button class="market-suggest-btn" onclick="goTab('paper',document.querySelector('.tab[onclick*=paper]'))"><div class="market-suggest-icon">🧪</div><span class="market-suggest-label">Paper Trade</span><span class="market-suggest-sub">Practice with virtual money</span></button>
@@ -1919,6 +1867,20 @@ function renderMarketBanner(){
 }
 
 async function loadAndRenderBanner(){await fetchPremarket();renderMarketBanner();}
+
+// ── FIX: refresh banner the instant the user switches back to this tab ────────
+// Root cause of stale "Pre-market" at 1pm: page opened at 6am, browser throttled
+// background JS intervals all day. Banner froze on the render from page-open time.
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'){
+    renderMarketBanner();
+    if(typeof renderWatchlist==='function')renderWatchlist();
+  }
+});
+
+// ── FIX: 1-minute banner clock — independent of the 5-min price refresh ──────
+// Ensures open/closed/pre/after-hours text is always current.
+setInterval(function(){renderMarketBanner();},60*1000);
 
 function renderWatchlist(){
   const ms=getMarketStatus();
@@ -2181,26 +2143,13 @@ async function runAll(){
 
 function renderRecommendations(){
   const container=document.getElementById('rec-content');
-  const totalCandidates=CANDIDATES.length||0;
-  const loadedCount=Object.keys(prices).length;
-  const stillLoading=totalCandidates>0&&!pricesLoaded;
   // Show loading banner if prices still coming in
   const banner=document.getElementById('picks-loading-banner');
-  if(banner) banner.style.display=stillLoading?'flex':'none';
-  if(stillLoading){
-    const pct=totalCandidates?Math.round((loadedCount/totalCandidates)*100):0;
-    const eta=Math.round(((totalCandidates-loadedCount)*1.1));
-    container.innerHTML=`
-      <div style="padding:24px 16px;text-align:center">
-        <div style="font-size:32px;margin-bottom:12px">⏳</div>
-        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Scoring all ${totalCandidates} stocks…</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${loadedCount} of ${totalCandidates} priced · ~${eta}s remaining</div>
-        <div style="background:var(--bg3);border-radius:8px;height:8px;overflow:hidden;max-width:280px;margin:0 auto">
-          <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:8px;transition:width .3s"></div>
-        </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:10px">${pct}% complete — Picks will appear automatically</div>
-      </div>`;
-    return;
+  if(banner){
+    const totalCandidates=CANDIDATES.length||0;
+    const loadedCount=Object.keys(prices).length;
+    const stillLoading=totalCandidates>0&&loadedCount<totalCandidates*0.95;
+    banner.style.display=stillLoading?'flex':'none';
   }
   if(!pricesLoaded){container.innerHTML='<div class="no-r">Load prices first</div>';return;}
   const catGroups={};btData.forEach(s=>{const cat=s.cat||'Other';if(!catGroups[cat])catGroups[cat]=[];catGroups[cat].push(s.pct);});
@@ -2269,11 +2218,7 @@ function renderRecommendations(){
   if(!btData.length)warnings.push('💡 Run the 📊 Backtest tab first for more accurate recommendations.');
   if(!Object.keys(fundamentals).length)warnings.push('💡 Click ▶ Run Full Analysis to include analyst targets and earnings data.');
   container.innerHTML=`
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-    <span>📊 ${STOCKS.length} stocks scored from ${CANDIDATES.length} candidates</span>
-    <span>Updated ${new Date().toLocaleTimeString()}</span>
-  </div>
-  ${warnings.map(w=>`<div class="alert al-a" style="margin-bottom:8px"><span>ℹ</span><span>${w}</span></div>`).join('')}
+    ${warnings.map(w=>`<div class="alert al-a" style="margin-bottom:8px"><span>ℹ</span><span>${w}</span></div>`).join('')}
     ${highly.length>0?`<div class="rec-section-title" style="color:var(--gold)">⭐ Highly Recommended</div><div class="rec-grid">${highly.map(s=>renderCard(s,'highly')).join('')}</div>`:''}
     ${high.length>0?`<div class="rec-section-title" style="color:var(--green)">✅ High Confidence</div><div class="rec-grid">${high.map(s=>renderCard(s,'high')).join('')}</div>`:''}
     ${med.length>0?`<div class="rec-section-title" style="color:var(--amber)">⚡ Worth Watching</div><div class="rec-grid">${med.map(s=>renderCard(s,'med')).join('')}</div>`:''}
@@ -2325,23 +2270,7 @@ function moreNav(id,el){document.querySelectorAll('.more-drawer-item').forEach(i
 // ── CLOCK & AUTO-REFRESH ──────────────────────────────────────────────────────
 function updateClock(){document.getElementById('ts').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,60000);
-setInterval(async ()=>{
-  // Refresh from snapshot cache — instant if warm
-  try{
-    const r=await fetch('/api/snapshot',{signal:AbortSignal.timeout(10000)});
-    if(r.ok){
-      const d=await r.json();
-      const quotes=d.quotes||{};
-      const activeTickers=[...new Set(STOCKS.map(s=>s.t))];
-      activeTickers.forEach(t=>{if(quotes[t])applyPriceData(t,quotes[t]);});
-    }
-  }catch{}
-  checkAllAlerts();
-  applyLastKnownChanges();
-  STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-  renderAll();updateTickerStrip();
-  updateStatus(`✓ Refreshed ${activeTickers.length} stocks · ${new Date().toLocaleTimeString()}`,'g');
-},5*60*1000);
+setInterval(()=>{loadAllPrices();checkAllAlerts();},5*60*1000);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSearch();closeMoreDrawer();}});
 
 // ── AUTH & ONBOARDING ─────────────────────────────────────────────────────────
@@ -2370,44 +2299,14 @@ async function checkPassword(){
 // ── INIT ──────────────────────────────────────────────────────────────────────
 function restoreCachedData(){
   const MAX_AGE=8*60*60*1000; // 8 hours
-  const CHANGE_MAX_AGE=4*24*60*60*1000; // 4 days — covers full weekend
   const now=Date.now();
   try{
     const bt=JSON.parse(localStorage.getItem('sm_btData')||'null');
-    if(bt&&(now-bt.ts)<MAX_AGE&&bt.data?.length){btData=bt.data;}
+    if(bt&&(now-bt.ts)<MAX_AGE&&bt.data?.length){btData=bt.data;console.log(`Restored ${btData.length} backtest records from cache`);}
   }catch{}
   try{
     const fund=JSON.parse(localStorage.getItem('sm_fundamentals')||'null');
-    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){Object.assign(fundamentals,fund.data);}
-  }catch{}
-}
-
-function applyLastKnownChanges(){
-  // When API returns 0% change (weekend/after-hours), use last known meaningful change
-  const CHANGE_MAX_AGE=4*24*60*60*1000; // 4 days
-  const now=Date.now();
-  try{
-    const cache=JSON.parse(localStorage.getItem('sm_lastChange')||'{}');
-    let applied=0;
-    CANDIDATES.forEach(s=>{
-      const cached=cache[s.t];
-      if(!cached||(now-cached.ts)>CHANGE_MAX_AGE)return;
-      // Only apply if current API value is basically zero (closed market)
-      const currentC=s.c||0;
-      if(Math.abs(currentC)<0.05&&Math.abs(cached.c)>0.05){
-        s.c=cached.c;
-        s.mom=cached.c>0.5;
-        // Also update STOCKS entry
-        const st=STOCKS.find(x=>x.t===s.t);
-        if(st){st.c=cached.c;st.mom=cached.c>0.5;}
-        applied++;
-      }
-    });
-    if(applied>0){
-      console.log(`Applied last known change% for ${applied} stocks`);
-      // Recalculate scores with restored values
-      STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
-    }
+    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){Object.assign(fundamentals,fund.data);console.log(`Restored fundamentals for ${Object.keys(fund.data).length} stocks from cache`);}
   }catch{}
 }
 
@@ -2417,8 +2316,8 @@ async function loadCandidates(){
     if(!res.ok)throw new Error('Could not load candidates.json');
     CANDIDATES=await res.json();
     CANDIDATES.forEach(s=>{s.p=0;s.c=0;s.ytd=0;s.mom=false;s.score=0;});
-    // Don't slice here — initDashboard sets STOCKS = all candidates for full scoring
-    document.getElementById('pool-status').textContent=`Loading prices for ${CANDIDATES.length} candidates…`;
+    STOCKS=[...CANDIDATES].slice(0,POOL_SIZE);
+    document.getElementById('pool-status').textContent=`Dynamic pool · loading ${CANDIDATES.length} candidates…`;
   }catch(e){updateStatus('⚠ Could not load candidates.json — check GitHub upload','r');}
 }
 async function initDashboard(){
@@ -2427,18 +2326,27 @@ async function initDashboard(){
   await loadCandidates();
   fetchPremarket().then(()=>renderMarketBanner());
   if(CANDIDATES.length>0){
-    // Load ALL candidates so pool selection is based on full universe
-    STOCKS=[...CANDIDATES]; // temp — all candidates for price fetching
     await loadAllPrices();
-    // Now select pool from full scored universe — pure merit
-    selectDynamicPool();
-    STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+    selectDynamicPool();STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
     setFilter('all',document.querySelector('.pill[data-filter="all"]'));
-    renderAll();renderPoolTab();
-    // No background loader needed — all prices already loaded
+    renderAll();renderPoolTab();backgroundLoadRemaining();
   }
 }
-
+async function backgroundLoadRemaining(){
+  const loaded=new Set(Object.keys(prices));
+  const remaining=CANDIDATES.filter(s=>!loaded.has(s.t));
+  if(!remaining.length){selectDynamicPool();renderAll();renderPoolTab();return;}
+  updateStatus(`Background: scoring ${remaining.length} more candidates…`,'a');
+  for(const s of remaining){
+    const data=await fetchPrice(s.t);
+    if(data){prices[s.t]=data;s.mom=data.changePercent>0.5;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;s.score=calcMomentumScore(s);}
+    await sleep(200);
+  }
+  selectDynamicPool();STOCKS.forEach(s=>{s.score=calcMomentumScore(s);});
+  renderAll();renderWatchlist();renderPoolTab();
+  updateStatus(`✓ Dynamic pool updated · ${STOCKS.length} from ${CANDIDATES.length} candidates · ${new Date().toLocaleTimeString()}`,'g');
+  updateTickerStrip();
+}
 if(sessionStorage.getItem('td_auth')==='1'){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('main-app').style.display='block';
@@ -2783,103 +2691,5 @@ function renderWeeklyDigest(){
 }
 
 </script>
-  
-<!-- ========================================================
-     STOCKMATE PATCH v4 — market status: live refresh
-     Replace patch_v3.html block with this one (or add after it).
-     Insert just before </body> in your index.html.
-     ======================================================== -->
-<script>
-// ── PATCH 1: getMarketStatus — Intl.DateTimeFormat (DST-safe, no reparsing) ──
-function getMarketStatus(){
-  const now=new Date();
-  const fmt=new Intl.DateTimeFormat('en-US',{
-    timeZone:'America/New_York',
-    weekday:'short',hour:'numeric',minute:'2-digit',hour12:false
-  });
-  const parts=Object.fromEntries(fmt.formatToParts(now).map(p=>[p.type,p.value]));
-  const dayMap={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
-  const day=dayMap[parts.weekday]??0;
-  const h=parseInt(parts.hour,10);
-  const m=parseInt(parts.minute,10);
-  const mins=h*60+m;
-  const isWeekday=day>=1&&day<=5;
-  const marketOpen=9*60+30,marketClose=16*60;
-  if(!isWeekday)return{status:'closed',reason:'weekend',day,mins};
-  if(mins<marketOpen)return{status:'pre',reason:'pre-market',opensIn:marketOpen-mins,mins};
-  if(mins>=marketClose)return{status:'after',reason:'after-hours',mins};
-  return{status:'open',reason:'live',mins};
-}
-
-// ── PATCH 2: renderMarketBanner — slim pill on category filters ───────────────
-function renderMarketBanner(){
-  const ms=getMarketStatus();
-  const banner=document.getElementById('market-status-banner');
-  if(!banner)return;
-
-  if(ms.status==='open'){
-    banner.innerHTML=`<div class="market-banner open"><div class="market-status-dot" style="background:var(--green)"></div><strong>Markets are open</strong> · Live prices · NYSE &amp; NASDAQ until 4:00 PM ET</div>`;
-    return;
-  }
-
-  // On category filters: show only a slim pill so stocks stay visible
-  if(typeof activeFilter!=='undefined'&&activeFilter!=='all'){
-    const isPre=ms.status==='pre';
-    banner.innerHTML=`<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500;background:${isPre?'var(--amber-dim)':'rgba(71,85,105,0.15)'};border:1px solid ${isPre?'var(--amber-border)':'rgba(148,163,184,0.25)'};color:${isPre?'var(--amber)':'#94a3b8'};margin-bottom:8px"><div style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0"></div>${isPre?'Pre-market':'Markets closed'} · ${getNextOpenText(ms)}</div>`;
-    return;
-  }
-
-  if(ms.status==='pre'){
-    const pd=premarketData;
-    const futuresHtml=pd&&pd.futures&&pd.futures.length?`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">${pd.futures.slice(0,3).map(f=>{const up=(f.changePct||0)>=0;const names={'ES=F':'S&P 500','NQ=F':'Nasdaq','YM=F':'Dow'};const label=names[f.symbol]||f.symbol;return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px"><span style="color:var(--text3)">${label}</span><span style="font-weight:600;margin-left:6px;color:${up?'var(--green)':'var(--red)'}">${up?'+':''}${(f.changePct||0).toFixed(2)}%</span></div>`;}).join('')}</div>`:'';    const gainersHtml=pd&&pd.gainers&&pd.gainers.length?`<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:6px">🚀 Top gainers</div>${pd.gainers.slice(0,5).map(g=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:700;width:60px;flex-shrink:0">${g.symbol}</span><span style="color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${g.name}</span><span style="font-weight:700;color:var(--green)">+${(g.changePct||0).toFixed(1)}%</span></div>`).join('')}</div>`:'';    const losersHtml=pd&&pd.losers&&pd.losers.length?`<div style="margin-top:12px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--red);margin-bottom:6px">📉 Top losers</div>${pd.losers.slice(0,5).map(l=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:700;width:60px;flex-shrink:0">${l.symbol}</span><span style="color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${l.name}</span><span style="font-weight:700;color:var(--red)">${(l.changePct||0).toFixed(1)}%</span></div>`).join('')}</div>`:'';    banner.innerHTML=`<div class="market-banner pre" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:center;gap:10px;width:100%"><div class="market-status-dot" style="background:var(--amber)"></div><strong>Pre-market</strong><span style="font-size:11px;opacity:.8">${getNextOpenText(ms)}</span><span style="margin-left:auto;font-size:11px;cursor:pointer;color:var(--accent)" onclick="loadAndRenderBanner()">↻ Refresh</span></div>${futuresHtml}${pd?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%">${gainersHtml}${losersHtml}</div>`:`<div style="font-size:12px;margin-top:8px;color:var(--text3)">Loading market data… <span style="cursor:pointer;color:var(--accent)" onclick="loadAndRenderBanner()">↻ Load</span></div>`}</div>`;
-    return;
-  }
-
-  if(ms.status==='after'){
-    const pd=premarketData;
-    const gainersHtml=pd&&pd.gainers&&pd.gainers.length?`<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:6px">Today's top gainers</div>${pd.gainers.slice(0,5).map(g=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:700;width:60px;flex-shrink:0">${g.symbol}</span><span style="color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${g.name}</span><span style="font-weight:700;color:var(--green)">+${(g.changePct||0).toFixed(1)}%</span></div>`).join('')}</div>`:'';    const losersHtml=pd&&pd.losers&&pd.losers.length?`<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--red);margin-bottom:6px">Today's top losers</div>${pd.losers.slice(0,5).map(l=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:700;width:60px;flex-shrink:0">${l.symbol}</span><span style="color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${l.name}</span><span style="font-weight:700;color:var(--red)">${(l.changePct||0).toFixed(1)}%</span></div>`).join('')}</div>`:'';    banner.innerHTML=`<div class="market-banner closed" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:center;gap:10px;width:100%"><div class="market-status-dot" style="background:#475569;animation:none"></div><strong style="color:#e2e8f0">After hours</strong><span style="font-size:11px;opacity:.8">${getNextOpenText(ms)}</span></div>${pd?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%">${gainersHtml}${losersHtml}</div>`:''}</div>`;
-    return;
-  }
-
-  const isWeekend=ms.reason==='weekend';
-  banner.innerHTML=`<div class="market-banner closed"><div class="market-status-dot" style="background:#475569;animation:none"></div><div style="flex:1"><strong style="color:#e2e8f0">${isWeekend?'Markets are closed for the weekend':'Markets are closed'}</strong><span style="margin-left:8px;font-size:11px;opacity:.8">${getNextOpenText(ms)}</span><br><span style="font-size:11px;opacity:.7">Prices are from the last trading session · Use this time to plan</span></div></div><div class="market-closed-suggest"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">${isWeekend?'Make the most of the weekend 👇':'Markets are closed — here\'s what you can do'}</div><div style="font-size:12px;color:var(--text3);margin-bottom:12px">${isWeekend?'Markets are closed but StockMate still has plenty for you':'Check what\'s coming up and prepare your trades'}</div><div class="market-suggest-grid"><button class="market-suggest-btn" onclick="goTab('earnings',document.querySelector('.tab[onclick*=earnings]'))"><div class="market-suggest-icon">📅</div><span class="market-suggest-label">Earnings Calendar</span><span class="market-suggest-sub">See what's reporting next week</span></button><button class="market-suggest-btn" onclick="goTab('paper',document.querySelector('.tab[onclick*=paper]'))"><div class="market-suggest-icon">🧪</div><span class="market-suggest-label">Paper Trade</span><span class="market-suggest-sub">Practice with virtual money</span></button><button class="market-suggest-btn" onclick="goTab('journal',document.querySelector('.tab[onclick*=journal]'))"><div class="market-suggest-icon">📓</div><span class="market-suggest-label">Review Journal</span><span class="market-suggest-sub">Reflect on past decisions</span></button><button class="market-suggest-btn" onclick="goTab('digest',document.querySelector('.tab[onclick*=digest]'))"><div class="market-suggest-icon">📬</div><span class="market-suggest-label">Weekly Digest</span><span class="market-suggest-sub">Plan your week ahead</span></button></div></div>`;
-}
-
-// ── PATCH 3: Refresh banner when tab becomes visible again ────────────────────
-// Root cause of "stuck pre-market": the page was loaded during pre-market,
-// browser throttled background intervals, so the banner never re-rendered.
-// This listener fires the moment the user switches back to the tab.
-document.addEventListener('visibilitychange', function(){
-  if(document.visibilityState==='visible'){
-    renderMarketBanner();
-    // If we just transitioned from pre→open, refresh prices too
-    const ms=getMarketStatus();
-    if(ms.status==='open'&&typeof loadAllPrices==='function'&&!window._lastVisRefresh){
-      window._lastVisRefresh=Date.now();
-      setTimeout(()=>{window._lastVisRefresh=null;},60000);
-    }
-  }
-});
-
-// ── PATCH 4: Override the Refresh button to also re-render the banner ─────────
-// Wrap the existing loadAllPrices so banner re-evaluates after refresh too
-const _origLoadAllPrices=typeof loadAllPrices==='function'?loadAllPrices:null;
-if(_origLoadAllPrices){
-  window.loadAllPrices=async function(){
-    await _origLoadAllPrices();
-    renderMarketBanner();
-  };
-}
-
-// ── PATCH 5: 1-minute banner clock — ensures banner text updates every minute ─
-// Independent of the 5-min price interval so status text never goes stale
-setInterval(function(){
-  renderMarketBanner();
-}, 60*1000);
-
-console.log('StockMate Patch v4 loaded — market status live refresh active');
-</script>
-<!-- ── END STOCKMATE PATCH v4 ── -->
-
 </body>
 </html>
