@@ -1,2 +1,3 @@
 # trading-dashboard
 
+trigger
