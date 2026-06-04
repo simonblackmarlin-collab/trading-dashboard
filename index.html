@@ -1446,10 +1446,10 @@ function getEntryStatus(s){
 // ── SANITY CHECK ──────────────────────────────────────────────────────────────
 function getSanityChecks(s){
   const c=s.c||0;const mom=s.mom||false;
-  const fund=s.fund||{};
+  const fund=s.fund||null;
   const spyChg=window._spyChange||0;
-  const volRatio=fund.volumeRatio||null;
-  const dte=fund.daysToEarnings??null;
+  const volRatio=fund?.volumeRatio??null;
+  const dte=fund?.daysToEarnings??null;
   const p=px(s.t)||s.p||0;
   const stop=(p*0.927).toFixed(2);
   const checks=[];
@@ -1498,7 +1498,17 @@ function toggleSanityCheck(ticker,btn){
   const open=panel.classList.toggle('visible');
   btn.classList.toggle('open',open);
   btn.textContent=open?'✕ Hide sanity check':'✓ Run sanity check before buying';
-  if(open)panel.innerHTML=buildSanityHTML(window._recStocks?.find(x=>x.t===ticker)||{t:ticker,c:0,fund:{}});
+  if(open){
+    const base=STOCKS.find(x=>x.t===ticker)||{t:ticker};
+    const liveStock={
+      ...base,
+      c:parseFloat((chg(ticker)||base.c||0).toFixed(2)),
+      p:px(ticker)||base.p||0,
+      mom:base.mom||false,
+      fund:fundamentals[ticker]||null
+    };
+    panel.innerHTML=buildSanityHTML(liveStock);
+  }
 }
 
 function compositeScore(s,fund,btEntry,catAvgs){
