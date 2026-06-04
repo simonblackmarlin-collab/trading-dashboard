@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- StockMate v17 - market status fixes -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -1582,7 +1581,7 @@ function filtered(){
   if(f==='ytd')return[...S].sort((a,b)=>(b.ytd||0)-(a.ytd||0)).slice(0,15);
   if(f==='ai')return S.filter(s=>s.cat==='AI & Chips').sort((a,b)=>b.score-a.score);
   if(f==='growth')return S.filter(s=>['High Growth','Fintech','Ad Tech'].includes(s.cat)).sort((a,b)=>b.score-a.score);
-  if(f==='potential')return S.filter(s=>s.cat==='Emerging').sort((a,b)=>b.score-a.score);
+  if(f==='potential')return S.filter(s=>['High Growth','Fintech','Ad Tech'].includes(s.cat)).sort((a,b)=>b.score-a.score);
   if(f==='crypto')return S.filter(s=>s.cat==='Crypto').sort((a,b)=>b.score-a.score);
   return[...S].sort((a,b)=>b.score-a.score).slice(0,DISPLAY_TOP);
 }
