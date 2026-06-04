@@ -1625,10 +1625,13 @@ function selectDynamicPool(){
   const remaining=POOL_SIZE-pinned.length-guaranteed.length;
   const topRest=rest.slice(0,Math.max(0,remaining));
   const newPool=[...pinned,...guaranteed,...topRest];
+  // Deduplicate by ticker — prevent any stock appearing twice
+  const seen=new Set();
+  const dedupedPool=newPool.filter(s=>{if(seen.has(s.t))return false;seen.add(s.t);return true;});
   const prevT=new Set(STOCKS.map(s=>s.t));
-  lastPoolIn=newPool.filter(s=>!prevT.has(s.t));
-  lastPoolOut=STOCKS.filter(s=>!new Set(newPool.map(x=>x.t)).has(s.t));
-  STOCKS=newPool;
+  lastPoolIn=dedupedPool.filter(s=>!prevT.has(s.t));
+  lastPoolOut=STOCKS.filter(s=>!new Set(dedupedPool.map(x=>x.t)).has(s.t));
+  STOCKS=dedupedPool;
   const changes=lastPoolIn.length>0?` · +${lastPoolIn.length} in, −${lastPoolOut.length} out`:'';
   document.getElementById('pool-status').textContent=`Dynamic pool · top ${STOCKS.length} from ${CANDIDATES.length} candidates${changes}`;
 }
@@ -2259,6 +2262,9 @@ function renderRecommendations(){
   const catGroups={};btData.forEach(s=>{const cat=s.cat||'Other';if(!catGroups[cat])catGroups[cat]=[];catGroups[cat].push(s.pct);});
   const catAvgs=Object.fromEntries(Object.entries(catGroups).map(([cat,pcts])=>[cat,pcts.reduce((a,b)=>a+b,0)/pcts.length]));
   const portfolioSize=parseFloat(document.getElementById('portfolio-size').value)||null;
+  // ETFs/indices excluded from picks — they're benchmarks, not individual stock recommendations
+  const ETF_EXCLUDE=new Set(['SPY','QQQ','IWM','DIA','GLD','SLV','USO','TLT','HYG','TQQQ','SQQQ','BITO','ARKK','XLK','XLF','XLE','XBI','VIX']);
+  const seenTickers=new Set();
   const scored=STOCKS.map(s=>{
     const c=s.c||parseFloat((chg(s.t)||0).toFixed(2));
     const fund=fundamentals[s.t]||null;const btEntry=btData.find(b=>b.t===s.t);
@@ -2266,11 +2272,17 @@ function renderRecommendations(){
     const guide=buildTradeGuide(s,fund,btEntry,score);
     const summary=guide?buildSummary(s,fund,btEntry,catAvgs,score,guide):'';
     return{...s,c,score,fund,btPct:btEntry?btEntry.pct:null,guide,summary};
-  }).filter(s=>prices[s.t]&&s.score>10).sort((a,b)=>b.score-a.score);
+  }).filter(s=>{
+    if(!prices[s.t]||s.score<=10)return false;
+    if(ETF_EXCLUDE.has(s.t))return false;
+    if(seenTickers.has(s.t))return false;  // deduplicate
+    seenTickers.add(s.t);
+    return true;
+  }).sort((a,b)=>b.score-a.score);
   if(!scored.length){container.innerHTML='<div class="no-r">Not enough data — load prices and run backtest first</div>';return;}
   window._recStocks=scored;
-  const highly=scored.filter(s=>s.score>=65).slice(0,5);
-  const high=scored.filter(s=>s.score>=45&&s.score<65).slice(0,4);
+  const highly=scored.filter(s=>s.score>=65).slice(0,3);
+  const high=scored.filter(s=>s.score>=45&&s.score<65).slice(0,3);
   const med=scored.filter(s=>s.score>=25&&s.score<45).slice(0,3);
   function renderCard(s,tier){
     const p=px(s.t)||s.p||0;const pStr=p>=1000?p.toFixed(0):p>=100?p.toFixed(1):p.toFixed(2);
@@ -2286,7 +2298,7 @@ function renderRecommendations(){
     const entry=getEntryStatus(s);
     return`<div class="rec-card ${tier}">
       <div class="rec-card-header">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;flex-wrap:wrap">
           <div class="rec-tier-label" style="color:${tierColor};margin-bottom:0">${tierLabel}</div>
           <span class="entry-badge ${entry.cls}">${entry.icon} ${entry.label}</span>
         </div>
