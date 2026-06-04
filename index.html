@@ -295,9 +295,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .entry-consolidating{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
 
 /* SANITY CHECK PANEL */
-.sanity-btn{width:100%;padding:9px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,color .15s;margin:12px 16px 0;width:calc(100% - 32px)}
+.sanity-btn{padding:9px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,color .15s}
 .sanity-btn:hover,.sanity-btn.open{background:var(--bg3);color:var(--text)}
-.sanity-panel{display:none;padding:12px 16px;border-top:1px solid var(--border);margin-top:12px}
+.sanity-panel{display:none;padding:12px 16px;border-top:1px solid var(--border)}
 .sanity-panel.visible{display:block}
 .sc-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
 .sc-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px}
@@ -1687,8 +1687,8 @@ function filtered(){
   if(f==='momentum')return S.filter(s=>s.mom||s.c>0.5).sort((a,b)=>b.c-a.c);
   if(f==='ytd')return[...S].sort((a,b)=>(b.ytd||0)-(a.ytd||0)).slice(0,15);
   if(f==='ai')return S.filter(s=>s.cat==='AI & Chips').sort((a,b)=>b.score-a.score);
-  if(f==='growth')return S.filter(s=>['High Growth','Fintech','Ad Tech'].includes(s.cat)).sort((a,b)=>b.score-a.score);
-  if(f==='potential')return S.filter(s=>['High Growth','Fintech','Ad Tech'].includes(s.cat)).sort((a,b)=>b.score-a.score);
+  if(f==='growth')return S.filter(s=>['High Growth','Fintech','Ad Tech','Cloud Software'].includes(s.cat)).sort((a,b)=>b.score-a.score);
+  if(f==='potential')return S.filter(s=>['Emerging','Biotech','Healthcare','Energy','Industrials','Materials','Real Estate','Utilities','Consumer','Defense'].includes(s.cat)).sort((a,b)=>b.score-a.score);
   if(f==='crypto')return S.filter(s=>s.cat==='Crypto').sort((a,b)=>b.score-a.score);
   return[...S].sort((a,b)=>b.score-a.score).slice(0,DISPLAY_TOP);
 }
@@ -2220,7 +2220,10 @@ async function loadFundamentalsAndRender(){
   const top30=[...STOCKS].sort((a,b)=>b.score-a.score).slice(0,30);
   let done=0;
   await Promise.all(top30.map(async s=>{
-    if(!fundamentals[s.t]){const f=await fetchFundamentals(s.t);if(f)fundamentals[s.t]=f;}
+    // Re-fetch if missing key fields — a description-only entry from bio fetch is incomplete
+    const existing=fundamentals[s.t];
+    const hasFullData=existing&&(existing.volumeRatio!==undefined||existing.analystRating!==undefined||existing.daysToEarnings!==undefined);
+    if(!hasFullData){const f=await fetchFundamentals(s.t);if(f)fundamentals[s.t]={...existing,...f};}
     done++;if(done%5===0)document.getElementById('rec-content').innerHTML=`<div class="alert al-a"><span>⏳</span><span>Loading fundamentals… ${done}/${top30.length}</span></div>`;
     await sleep(300);
   }));
@@ -2239,7 +2242,12 @@ async function runAll(){
   setStep(2,'Fetching…','var(--amber)');
   try{
     const top30=[...STOCKS].sort((a,b)=>b.score-a.score).slice(0,30);
-    await Promise.all(top30.map(async s=>{if(!fundamentals[s.t]){const f=await fetchFundamentals(s.t);if(f)fundamentals[s.t]=f;}await sleep(200);}));
+    await Promise.all(top30.map(async s=>{
+      const existing=fundamentals[s.t];
+      const hasFullData=existing&&(existing.volumeRatio!==undefined||existing.analystRating!==undefined||existing.daysToEarnings!==undefined);
+      if(!hasFullData){const f=await fetchFundamentals(s.t);if(f)fundamentals[s.t]={...existing,...f};}
+      await sleep(200);
+    }));
     setStep(2,'✓ Done','var(--green)');
   }catch{setStep(2,'⚠ Failed','var(--red)');}
   setStep(3,'Building…','var(--amber)');
@@ -2281,9 +2289,15 @@ function renderRecommendations(){
   }).sort((a,b)=>b.score-a.score);
   if(!scored.length){container.innerHTML='<div class="no-r">Not enough data — load prices and run backtest first</div>';return;}
   window._recStocks=scored;
-  const highly=scored.filter(s=>s.score>=65).slice(0,3);
-  const high=scored.filter(s=>s.score>=45&&s.score<65).slice(0,3);
-  const med=scored.filter(s=>s.score>=25&&s.score<45).slice(0,3);
+  // Sector diversity: max 1 stock per sector in Highly, max 2 in High
+  function diversify(arr,maxPerSector){
+    const sectorCount={};return arr.filter(s=>{const sec=s.cat||'Other';sectorCount[sec]=(sectorCount[sec]||0)+1;return sectorCount[sec]<=maxPerSector;});
+  }
+  const highly=diversify(scored.filter(s=>s.score>=65),1).slice(0,3);
+  const highlyTickers=new Set(highly.map(s=>s.t));
+  const high=diversify(scored.filter(s=>s.score>=45&&s.score<65&&!highlyTickers.has(s.t)),2).slice(0,3);
+  const highTickers=new Set([...highlyTickers,...high.map(s=>s.t)]);
+  const med=scored.filter(s=>s.score>=25&&s.score<45&&!highTickers.has(s.t)).slice(0,3);
   function renderCard(s,tier){
     const p=px(s.t)||s.p||0;const pStr=p>=1000?p.toFixed(0):p>=100?p.toFixed(1):p.toFixed(2);
     const tierColor=tier==='highly'?'var(--gold)':tier==='high'?'var(--green)':'var(--amber)';
@@ -2334,7 +2348,7 @@ function renderRecommendations(){
       ${posText}
       <div style="padding:0 16px 8px"><button class="sd-btn" style="font-size:11px;width:100%;justify-content:center;display:flex" onclick="selectStock('${s.t}');goTab('dashboard',document.querySelector('.tab'))">📰 View news &amp; set price alert →</button></div>
       <div style="padding:0 16px 14px">
-        <button class="sanity-btn" onclick="toggleSanityCheck('${s.t}',this)">✓ Run sanity check before buying</button>
+        <button class="sanity-btn" style="margin:0;width:100%" onclick="toggleSanityCheck('${s.t}',this)">✓ Run sanity check before buying</button>
         <div class="sanity-panel" id="sc-${s.t}"></div>
       </div>
     </div>`;
@@ -2351,7 +2365,7 @@ function renderRecommendations(){
 }
 
 // ── SETTINGS & NAVIGATION ─────────────────────────────────────────────────────
-const ALL_PILLS=[{id:'all',label:'🔥 Top picks'},{id:'momentum',label:'📈 Momentum'},{id:'ytd',label:'📅 Top YTD'},{id:'ai',label:'🤖 AI & Chips'},{id:'growth',label:'🚀 High Growth'},{id:'potential',label:'⚡ Emerging'},{id:'crypto',label:'🪙 Crypto'}];
+const ALL_PILLS=[{id:'all',label:'🔥 Top picks'},{id:'momentum',label:'📈 Momentum'},{id:'ytd',label:'📅 Top YTD'},{id:'ai',label:'🤖 AI & Chips'},{id:'growth',label:'🚀 High Growth'},{id:'potential',label:'⚡ Emerging & Other'},{id:'crypto',label:'🪙 Crypto'}];
 function getHiddenPills(){try{return JSON.parse(localStorage.getItem('hiddenPills')||'[]');}catch{return[];}}
 function saveHiddenPills(arr){localStorage.setItem('hiddenPills',JSON.stringify(arr));}
 function applyPillVisibility(){const hidden=getHiddenPills();ALL_PILLS.forEach(p=>{const el=document.querySelector(`.pill[data-filter="${p.id}"]`);if(el)el.style.display=hidden.includes(p.id)?'none':''});}
@@ -2610,7 +2624,7 @@ function renderHeatmap(){
   function cellColor(avg){const intensity=Math.min(Math.abs(avg)/maxAbs,1);if(avg>=2)return`rgba(10,143,92,${0.5+intensity*0.5})`;if(avg>0)return`rgba(10,143,92,${0.2+intensity*0.4})`;if(avg<=-2)return`rgba(212,47,77,${0.5+intensity*0.5})`;if(avg<0)return`rgba(212,47,77,${0.2+intensity*0.4})`;return'var(--bg3)';}
   function textColor(avg){return Math.abs(avg)>0.3?'white':'var(--text)';}
   const summaryHtml=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--green)"><strong>${sectorList.filter(s=>s.avg>0).length}</strong> sectors up</div><div style="background:var(--red-dim);border:1px solid var(--red-border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red)"><strong>${sectorList.filter(s=>s.avg<0).length}</strong> sectors down</div></div>`;
-  const gridHtml=`<div class="heatmap-grid">${sectorList.map(s=>{const bg=cellColor(s.avg);const tc=textColor(s.avg);const barW=Math.round((Math.abs(s.avg)/maxAbs)*100);const filterKey=s.cat==='AI & Chips'?'ai':s.cat==='High Growth'||s.cat==='Fintech'?'growth':s.cat==='Crypto'?'crypto':s.cat==='Emerging'?'potential':'all';return`<div class="heatmap-cell" style="background:${bg};color:${tc}" onclick="setFilter('${filterKey}',document.querySelector('.pill[data-filter=all]'));goTab('dashboard',document.querySelector('.tab'))"><div class="heatmap-cell-name">${s.cat}</div><div class="heatmap-cell-pct">${s.avg>=0?'+':''}${s.avg}%</div><div class="heatmap-cell-count">${s.count} stocks · ${s.up} up, ${s.down} down</div><div class="heatmap-bar"><div class="heatmap-bar-fill" style="width:${barW}%"></div></div></div>`;}).join('')}</div>`;
+  const gridHtml=`<div class="heatmap-grid">${sectorList.map(s=>{const bg=cellColor(s.avg);const tc=textColor(s.avg);const barW=Math.round((Math.abs(s.avg)/maxAbs)*100);const filterKey=s.cat==='AI & Chips'?'ai':s.cat==='High Growth'||s.cat==='Fintech'||s.cat==='Ad Tech'||s.cat==='Cloud Software'?'growth':s.cat==='Crypto'?'crypto':s.cat==='Emerging'||s.cat==='Healthcare'||s.cat==='Energy'||s.cat==='Industrials'||s.cat==='Materials'||s.cat==='Consumer'?'potential':'all';return`<div class="heatmap-cell" style="background:${bg};color:${tc}" onclick="setFilter('${filterKey}',document.querySelector('.pill[data-filter=all]'));goTab('dashboard',document.querySelector('.tab'))"><div class="heatmap-cell-name">${s.cat}</div><div class="heatmap-cell-pct">${s.avg>=0?'+':''}${s.avg}%</div><div class="heatmap-cell-count">${s.count} stocks · ${s.up} up, ${s.down} down</div><div class="heatmap-bar"><div class="heatmap-bar-fill" style="width:${barW}%"></div></div></div>`;}).join('')}</div>`;
   const tableHtml=`<div class="sbox"><div class="sbox-t">Sector breakdown</div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Sector</th><th>Avg change</th><th>Stocks</th><th>Up</th><th>Down</th><th>Top movers</th></tr></thead><tbody>${sectorList.map(s=>`<tr><td><strong>${s.cat}</strong></td><td class="${s.avg>=0?'g':'r'}">${s.avg>=0?'+':''}${s.avg}%</td><td>${s.count}</td><td class="g">${s.up}</td><td class="r">${s.down}</td><td style="font-size:11px;color:var(--text2)">${s.top.map(x=>`${x.t} ${x.c>=0?'+':''}${(x.c||0).toFixed(1)}%`).join(' · ')}</td></tr>`).join('')}</tbody></table></div></div>`;
   document.getElementById('heatmap-content').innerHTML=summaryHtml+gridHtml+tableHtml;
 }
