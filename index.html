@@ -287,6 +287,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .pos-size{padding:10px 16px 12px;border-top:1px solid var(--border);font-size:11px;color:var(--text2);line-height:1.6}
 .pos-size strong{color:var(--text)}
 
+/* ENTRY STATUS BADGES */
+.entry-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.entry-extended{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+.entry-breakout{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.entry-pullback{background:rgba(26,111,204,0.10);color:var(--blue);border:1px solid rgba(26,111,204,0.30)}
+.entry-consolidating{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+
+/* SANITY CHECK PANEL */
+.sanity-btn{width:100%;padding:9px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,color .15s;margin:12px 16px 0;width:calc(100% - 32px)}
+.sanity-btn:hover,.sanity-btn.open{background:var(--bg3);color:var(--text)}
+.sanity-panel{display:none;padding:12px 16px;border-top:1px solid var(--border);margin-top:12px}
+.sanity-panel.visible{display:block}
+.sc-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
+.sc-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px}
+.sc-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:10px;font-weight:700;line-height:1}
+.sc-pass{background:var(--green-dim);color:var(--green)}
+.sc-fail{background:var(--red-dim);color:var(--red)}
+.sc-warn{background:var(--amber-dim);color:var(--amber)}
+.sc-neutral{background:var(--bg3);color:var(--text3)}
+.sc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.4}
+.sc-detail{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.5}
+.sc-verdict{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;line-height:1.5}
+.sc-verdict-go{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.sc-verdict-caution{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+.sc-verdict-wait{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+
 /* MISC */
 .note{font-size:10px;color:var(--text3);line-height:1.5;padding-top:6px;border-top:1px solid var(--border);margin-top:6px}
 .no-r{padding:24px;text-align:center;color:var(--text3)}
@@ -1342,6 +1368,7 @@ async function loadAllPrices(){
     const data=await fetchPrice(t);
     if(data){
       prices[t]=data;
+      if(t==='SPY')window._spyChange=parseFloat(data.changePercent.toFixed(2));
       const s=STOCKS.find(x=>x.t===t);
       if(s){s.mom=data.changePercent>0.5;s.ytd=s.ytdBase?((data.price-s.ytdBase)/s.ytdBase*100):0;s.c=parseFloat(data.changePercent.toFixed(2));s.p=data.price;}
       const sc=CANDIDATES.find(x=>x.t===t);
@@ -1407,6 +1434,73 @@ function exitScore(s){
   const score=(ob?18:0)+(c<0?15:0)+(fall?16:0)+(earn?14:0)+(below?10:0);
   return{score:Math.min(score,99),action:score>=55?'SELL':score>=35?'WATCH':'HOLD',ob,fall};
 }
+// ── ENTRY STATUS ─────────────────────────────────────────────────────────────
+function getEntryStatus(s){
+  const c=s.c||0;const mom=s.mom||false;
+  if(c>4)return{label:'Extended',cls:'entry-extended',icon:'⚠'};
+  if(c>1.5&&mom)return{label:'Breakout',cls:'entry-breakout',icon:'↗'};
+  if(c>0.5&&c<=1.5)return{label:'Pullback entry',cls:'entry-pullback',icon:'↘'};
+  return{label:'Consolidating',cls:'entry-consolidating',icon:'–'};
+}
+
+// ── SANITY CHECK ──────────────────────────────────────────────────────────────
+function getSanityChecks(s){
+  const c=s.c||0;const mom=s.mom||false;
+  const fund=s.fund||{};
+  const spyChg=window._spyChange||0;
+  const volRatio=fund.volumeRatio||null;
+  const dte=fund.daysToEarnings??null;
+  const p=px(s.t)||s.p||0;
+  const stop=(p*0.927).toFixed(2);
+  const checks=[];
+  // 1. Market direction
+  if(spyChg>0.5)checks.push({st:'pass',label:'Market direction is supportive',detail:`SPY ${spyChg>=0?'+':''}${spyChg.toFixed(1)}% today — broad market favors longs`});
+  else if(spyChg<-0.5)checks.push({st:'fail',label:'Market headwind — SPY is down',detail:`SPY ${spyChg.toFixed(1)}% — buying into a down market amplifies risk. Size smaller or wait`});
+  else checks.push({st:'warn',label:'Market is flat — neutral backdrop',detail:`SPY ${spyChg.toFixed(1)}% — no strong tailwind or headwind today`});
+  // 2. Entry quality
+  if(c>4)checks.push({st:'fail',label:'Stock is extended — high chase risk',detail:`Up ${c.toFixed(1)}% today. Risk/reward is poor at this level. Wait for a pullback`});
+  else if(c>2.5)checks.push({st:'warn',label:`Elevated move (+${c.toFixed(1)}%) — monitor entry`,detail:'Consider waiting for an intraday dip, or take a half position now'});
+  else checks.push({st:'pass',label:`Entry quality is good (${c>=0?'+':''}${c.toFixed(1)}%)`,detail:mom?'Steady move with 3-day streak — healthy momentum, not a chase':'Price action is measured — not extended'});
+  // 3. Volume
+  if(volRatio===null)checks.push({st:'neutral',label:'Volume data unavailable',detail:'Run Full Analysis to check volume vs average'});
+  else if(volRatio>=1.8)checks.push({st:'pass',label:'Volume confirms the move',detail:`${volRatio.toFixed(1)}x average — strong institutional participation`});
+  else if(volRatio>=1.1)checks.push({st:'pass',label:'Volume is above average',detail:`${volRatio.toFixed(1)}x average — decent participation`});
+  else if(volRatio>=0.8)checks.push({st:'warn',label:'Volume is weak',detail:`${volRatio.toFixed(1)}x average — move lacks conviction. Wait for a volume pickup`});
+  else checks.push({st:'fail',label:'Volume is very low',detail:`${volRatio.toFixed(1)}x average — thin-volume move, higher reversal risk`});
+  // 4. Earnings
+  if(dte===null)checks.push({st:'neutral',label:'Earnings date unknown',detail:'Run Full Analysis to check earnings proximity'});
+  else if(dte>14)checks.push({st:'pass',label:`No imminent earnings risk (${dte}d away)`,detail:'Enough runway for a swing trade'});
+  else if(dte>7)checks.push({st:'warn',label:`Earnings in ${dte} days — plan your exit`,detail:'Exit before earnings or size conservatively to avoid binary risk'});
+  else checks.push({st:'fail',label:`Earnings in ${dte} days — binary event risk`,detail:'Buying now means holding through an unpredictable report. Half position maximum'});
+  // 5. Stop-loss
+  checks.push({st:'neutral',label:'Suggested stop-loss',detail:`$${stop} (−7.3% from current price) — set this before entering`});
+  // Verdict
+  const fails=checks.filter(ch=>ch.st==='fail').length;
+  const warns=checks.filter(ch=>ch.st==='warn').length;
+  let verdict;
+  if(fails===0&&warns<=1)verdict={cls:'sc-verdict-go',text:'✓ Ready to buy — checks pass. Set your stop before entering.'};
+  else if(fails===0&&warns>=2)verdict={cls:'sc-verdict-caution',text:'⚡ Proceed with caution — a few yellow flags. Consider a half position.'};
+  else if(fails===1)verdict={cls:'sc-verdict-caution',text:'⚠ 1 red flag — review the issue above before entering.'};
+  else verdict={cls:'sc-verdict-wait',text:`✕ ${fails} red flags — wait for better conditions or a pullback.`};
+  return{checks,verdict};
+}
+
+function buildSanityHTML(s){
+  const sc=getSanityChecks(s);
+  const iconMap={pass:'✓',fail:'✕',warn:'!',neutral:'–'};
+  const rows=sc.checks.map(ch=>`<div class="sc-row"><div class="sc-icon sc-${ch.st}">${iconMap[ch.st]||'–'}</div><div><div class="sc-label">${ch.label}</div><div class="sc-detail">${ch.detail}</div></div></div>`).join('');
+  return`<div class="sc-title">Pre-buy sanity check — ${s.t}</div>${rows}<div class="sc-verdict ${sc.verdict.cls}">${sc.verdict.text}</div>`;
+}
+
+function toggleSanityCheck(ticker,btn){
+  const panel=document.getElementById('sc-'+ticker);
+  if(!panel)return;
+  const open=panel.classList.toggle('visible');
+  btn.classList.toggle('open',open);
+  btn.textContent=open?'✕ Hide sanity check':'✓ Run sanity check before buying';
+  if(open)panel.innerHTML=buildSanityHTML(window._recStocks?.find(x=>x.t===ticker)||{t:ticker,c:0,fund:{}});
+}
+
 function compositeScore(s,fund,btEntry,catAvgs){
   const c=s.c||0;
   const hasFund=!!fund;
@@ -2164,6 +2258,7 @@ function renderRecommendations(){
     return{...s,c,score,fund,btPct:btEntry?btEntry.pct:null,guide,summary};
   }).filter(s=>prices[s.t]&&s.score>10).sort((a,b)=>b.score-a.score);
   if(!scored.length){container.innerHTML='<div class="no-r">Not enough data — load prices and run backtest first</div>';return;}
+  window._recStocks=scored;
   const highly=scored.filter(s=>s.score>=65).slice(0,5);
   const high=scored.filter(s=>s.score>=45&&s.score<65).slice(0,4);
   const med=scored.filter(s=>s.score>=25&&s.score<45).slice(0,3);
@@ -2178,9 +2273,13 @@ function renderRecommendations(){
     if(portfolioSize&&g){const pct=s.risk==='High'?0.05:s.risk==='Low'?0.10:0.08;const posSize=portfolioSize*pct;const shares=Math.floor(posSize/p);posText=`<div class="pos-size"><strong>Suggested position size</strong> for a $${portfolioSize.toLocaleString()} portfolio:<br>Invest around <strong>$${posSize.toFixed(0)}</strong> (${(pct*100).toFixed(0)}% of budget) · ~${shares} share${shares!==1?'s':''} at $${pStr}</div>`;}
     else if(!portfolioSize){posText=`<div class="pos-size" style="color:var(--text3)">Enter your portfolio size above to see suggested position sizing.</div>`;}
     const bio=BIOS[s.t]||CAT_BIOS[s.cat]||'';
+    const entry=getEntryStatus(s);
     return`<div class="rec-card ${tier}">
       <div class="rec-card-header">
-        <div class="rec-tier-label" style="color:${tierColor}">${tierLabel}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="rec-tier-label" style="color:${tierColor};margin-bottom:0">${tierLabel}</div>
+          <span class="entry-badge ${entry.cls}">${entry.icon} ${entry.label}</span>
+        </div>
         <div class="rec-ticker-row"><div class="rec-ticker">${s.t}</div><div class="rec-price" style="color:${s.c>=0?'var(--green)':'var(--red)'}">${fmtChg(s.c)}</div></div>
         <div class="rec-name">${s.n} · $${pStr} · ${s.cat}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -2211,7 +2310,11 @@ function renderRecommendations(){
         <div style="background:var(--bg3);border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Volume</div><div style="font-size:12px;font-weight:600;color:${(s.fund.volumeRatio||1)>1.5?'var(--green)':'var(--text)'}">${s.fund.volumeRatio?s.fund.volumeRatio.toFixed(1)+'x':'—'}</div></div>
       </div>`:''}
       ${posText}
-      <div style="padding:0 16px 14px"><button class="sd-btn" style="font-size:11px;width:100%;justify-content:center;display:flex" onclick="selectStock('${s.t}');goTab('dashboard',document.querySelector('.tab'))">📰 View news &amp; set price alert →</button></div>
+      <div style="padding:0 16px 8px"><button class="sd-btn" style="font-size:11px;width:100%;justify-content:center;display:flex" onclick="selectStock('${s.t}');goTab('dashboard',document.querySelector('.tab'))">📰 View news &amp; set price alert →</button></div>
+      <div style="padding:0 16px 14px">
+        <button class="sanity-btn" onclick="toggleSanityCheck('${s.t}',this)">✓ Run sanity check before buying</button>
+        <div class="sanity-panel" id="sc-${s.t}"></div>
+      </div>
     </div>`;
   }
   const warnings=[];
