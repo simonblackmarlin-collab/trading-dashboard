@@ -1462,13 +1462,16 @@ function getSanityChecks(s){
   else if(c>2.5)checks.push({st:'warn',label:`Elevated move (+${c.toFixed(1)}%) — monitor entry`,detail:'Consider waiting for an intraday dip, or take a half position now'});
   else checks.push({st:'pass',label:`Entry quality is good (${c>=0?'+':''}${c.toFixed(1)}%)`,detail:mom?'Steady move with 3-day streak — healthy momentum, not a chase':'Price action is measured — not extended'});
   // 3. Volume
-  if(volRatio===null)checks.push({st:'neutral',label:'Volume data unavailable',detail:'Run Full Analysis to check volume vs average'});
+  const fundFetched=fund&&Object.keys(fund).length>1; // more than just {description}
+  if(!fundFetched)checks.push({st:'neutral',label:'Volume data unavailable',detail:'Run Full Analysis to include volume vs average in this check'});
+  else if(volRatio===null||volRatio===undefined)checks.push({st:'neutral',label:'Volume data not available for this stock',detail:'Volume ratio unavailable — check Yahoo Finance or your broker for today\'s volume'});
   else if(volRatio>=1.8)checks.push({st:'pass',label:'Volume confirms the move',detail:`${volRatio.toFixed(1)}x average — strong institutional participation`});
   else if(volRatio>=1.1)checks.push({st:'pass',label:'Volume is above average',detail:`${volRatio.toFixed(1)}x average — decent participation`});
   else if(volRatio>=0.8)checks.push({st:'warn',label:'Volume is weak',detail:`${volRatio.toFixed(1)}x average — move lacks conviction. Wait for a volume pickup`});
   else checks.push({st:'fail',label:'Volume is very low',detail:`${volRatio.toFixed(1)}x average — thin-volume move, higher reversal risk`});
   // 4. Earnings
-  if(dte===null)checks.push({st:'neutral',label:'Earnings date unknown',detail:'Run Full Analysis to check earnings proximity'});
+  if(!fundFetched)checks.push({st:'neutral',label:'Earnings date unknown',detail:'Run Full Analysis to include earnings proximity in this check'});
+  else if(dte===null||dte===undefined)checks.push({st:'neutral',label:'No earnings date on record',detail:'Next earnings date unavailable — check Yahoo Finance before trading'});
   else if(dte>14)checks.push({st:'pass',label:`No imminent earnings risk (${dte}d away)`,detail:'Enough runway for a swing trade'});
   else if(dte>7)checks.push({st:'warn',label:`Earnings in ${dte} days — plan your exit`,detail:'Exit before earnings or size conservatively to avoid binary risk'});
   else checks.push({st:'fail',label:`Earnings in ${dte} days — binary event risk`,detail:'Buying now means holding through an unpredictable report. Half position maximum'});
@@ -2220,9 +2223,9 @@ async function loadFundamentalsAndRender(){
   const top30=[...STOCKS].sort((a,b)=>b.score-a.score).slice(0,30);
   let done=0;
   await Promise.all(top30.map(async s=>{
-    // Re-fetch if missing key fields — a description-only entry from bio fetch is incomplete
+    // Re-fetch if missing key fields — null counts as missing (API returned nothing for that field)
     const existing=fundamentals[s.t];
-    const hasFullData=existing&&(existing.volumeRatio!==undefined||existing.analystRating!==undefined||existing.daysToEarnings!==undefined);
+    const hasFullData=existing&&(existing.volumeRatio!=null||existing.analystRating!=null||(existing.daysToEarnings!=null&&existing.daysToEarnings!==undefined)||existing.targetPrice!=null);
     if(!hasFullData){const f=await fetchFundamentals(s.t);if(f)fundamentals[s.t]={...existing,...f};}
     done++;if(done%5===0)document.getElementById('rec-content').innerHTML=`<div class="alert al-a"><span>⏳</span><span>Loading fundamentals… ${done}/${top30.length}</span></div>`;
     await sleep(300);
@@ -2244,7 +2247,7 @@ async function runAll(){
     const top30=[...STOCKS].sort((a,b)=>b.score-a.score).slice(0,30);
     await Promise.all(top30.map(async s=>{
       const existing=fundamentals[s.t];
-      const hasFullData=existing&&(existing.volumeRatio!==undefined||existing.analystRating!==undefined||existing.daysToEarnings!==undefined);
+      const hasFullData=existing&&(existing.volumeRatio!=null||existing.analystRating!=null||(existing.daysToEarnings!=null&&existing.daysToEarnings!==undefined)||existing.targetPrice!=null);
       if(!hasFullData){const f=await fetchFundamentals(s.t);if(f)fundamentals[s.t]={...existing,...f};}
       await sleep(200);
     }));
@@ -2445,7 +2448,17 @@ function restoreCachedData(){
   }catch{}
   try{
     const fund=JSON.parse(localStorage.getItem('sm_fundamentals')||'null');
-    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){Object.assign(fundamentals,fund.data);console.log(`Restored fundamentals for ${Object.keys(fund.data).length} stocks from cache`);}
+    if(fund&&(now-fund.ts)<MAX_AGE&&fund.data){
+      // Only restore entries that have real data — strip description-only entries
+      const cleaned={};
+      Object.entries(fund.data).forEach(([t,v])=>{
+        if(v&&(v.volumeRatio!=null||v.analystRating!=null||v.daysToEarnings!=null||v.targetPrice!=null)){
+          cleaned[t]=v;
+        }
+      });
+      Object.assign(fundamentals,cleaned);
+      console.log(`Restored fundamentals for ${Object.keys(cleaned).length} stocks from cache`);
+    }
   }catch{}
 }
 
