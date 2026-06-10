@@ -815,6 +815,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <div class="tab" id="dt-community" onclick="goTab('community',this)">👥 Community</div>
     <div class="tab" id="dt-digest" onclick="goTab('digest',this)">📬 Digest</div>
     <div class="tab" id="dt-pool" onclick="goTab('pool',this)" style="display:none">🔄 Pool</div>
+    <div class="tab" id="dt-premomentum" onclick="goTab('premomentum',this)">🌱 Pre-Momentum</div>
   </div>
   <button class="tab-scroll-btn right" onclick="scrollTabs(150)" title="Scroll right">›</button>
 </div>
@@ -1187,6 +1188,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="note" style="margin-top:12px">Data sourced from SEC S-1 filings, press releases, and public roadshow materials. IPO dates are estimates and subject to change. StockMate is not affiliated with any listed company.</div>
 </div>
 
+
+<div id="tab-premomentum" class="pg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)">🌱 Pre-Momentum Picks</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">Strong fundamentals · lagging price action · catalyst on the horizon</div>
+    </div>
+    <button class="reload-btn" onclick="loadPreMomTab()">↻ Refresh scores</button>
+  </div>
+  <div id="pm-status" class="alert al-a" style="display:none;margin-bottom:10px"><span id="pm-status-text">Loading...</span></div>
+  <div class="pills" id="pm-filters" style="margin-bottom:10px">
+    <div class="pill on" data-pmf="all" onclick="setPmFilter('all',this)">All sectors</div>
+    <div class="pill" data-pmf="tech" onclick="setPmFilter('tech',this)">Tech</div>
+    <div class="pill" data-pmf="health" onclick="setPmFilter('health',this)">Healthcare</div>
+    <div class="pill" data-pmf="energy" onclick="setPmFilter('energy',this)">Energy</div>
+    <div class="pill" data-pmf="consumer" onclick="setPmFilter('consumer',this)">Consumer</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <span style="font-size:11px;color:var(--text3)">Sort by</span>
+    <select id="pm-sort" onchange="renderPmCards()" style="font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-family:var(--font)">
+      <option value="opp">Opportunity score</option>
+      <option value="catalyst">Catalyst nearest</option>
+      <option value="upside">Analyst upside</option>
+      <option value="momentum">Momentum gap</option>
+    </select>
+    <span id="pm-cache-label" style="font-size:10px;color:var(--text3);margin-left:auto"></span>
+  </div>
+  <div id="pm-card-list"></div>
+</div>
+
 </div><!-- end .app -->
 
 <!-- TRUST BAR -->
@@ -1218,6 +1249,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <div class="more-drawer-item" id="md-paper" onclick="moreNav('paper',this)"><span class="more-item-icon">🧪</span><span class="more-item-label">Practice</span></div>
     <div class="more-drawer-item" id="md-community" onclick="moreNav('community',this)"><span class="more-item-icon">👥</span><span class="more-item-label">Community</span></div>
     <div class="more-drawer-item" id="md-digest" onclick="moreNav('digest',this)"><span class="more-item-icon">📬</span><span class="more-item-label">Digest</span></div>
+    <div class="more-drawer-item" id="md-premomentum" onclick="moreNav('premomentum',this)"><span class="more-item-icon">🌱</span><span class="more-item-label">Pre-Momentum</span></div>
     <div class="more-drawer-item" onclick="closeMoreDrawer();openSettings()"><span class="more-item-icon">⚙</span><span class="more-item-label">Settings</span></div>
   </div>
 </div>
@@ -2464,6 +2496,7 @@ function goTab(id,el){
   if(id==='heatmap')renderHeatmap();if(id==='compare')populateCompareDropdown();
   if(id==='journal')renderJournalEntries();if(id==='watchlist-alerts')renderWatchlistAlerts();
   if(id==='ipos')renderIpos();
+  if(id==='premomentum')loadPreMomTab();
 }
 function mobNav(id,el){document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');goTab(id,document.querySelector(`.tab[onclick="goTab('${id}',this)"]`));}
 function openMoreDrawer(){document.getElementById('more-overlay').classList.add('open');document.getElementById('more-drawer').classList.add('open');}
@@ -2990,6 +3023,116 @@ function renderWeeklyDigest(){
   <div style="font-size:10px;color:var(--text3);text-align:center;padding:10px 0">StockMate · Not financial advice · Prices via Finnhub</div>`;
 }
 
+
+// ── PRE-MOMENTUM TAB ─────────────────────────────────────────────────────────
+const PM_TICKERS=[
+  {symbol:'GOOG',name:'Alphabet',sector:'tech'},
+  {symbol:'ASML',name:'ASML Holding',sector:'tech'},
+  {symbol:'LLY',name:'Eli Lilly',sector:'health'},
+  {symbol:'CVX',name:'Chevron',sector:'energy'},
+  {symbol:'SBUX',name:'Starbucks',sector:'consumer'},
+  {symbol:'TSM',name:'Taiwan Semi',sector:'tech'},
+];
+const _pmCache={};
+const PM_TTL=5*60*1000;
+let pmData=[],pmFilter='all',pmLoaded=false;
+function pmFromCache(sym){const e=_pmCache[sym];if(!e)return null;if(Date.now()-e.ts>PM_TTL){delete _pmCache[sym];return null;}return e.data;}
+function pmToCache(sym,d){_pmCache[sym]={ts:Date.now(),data:d};}
+function pmCacheAge(sym){const e=_pmCache[sym];return e?Math.round((Date.now()-e.ts)/1000):null;}
+async function fetchPmStock(meta){
+  const cached=pmFromCache(meta.symbol);
+  if(cached)return{...cached,...meta};
+  try{
+    const r=await fetch('/api/stockdata?symbol='+encodeURIComponent(meta.symbol),{signal:AbortSignal.timeout(10000)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    pmToCache(meta.symbol,d);
+    return{...d,...meta};
+  }catch(e){
+    console.warn('PM fetch failed for',meta.symbol,e.message);
+    return{...meta,error:true,price:null,oppScore:0};
+  }
+}
+async function loadPreMomTab(){
+  if(pmLoaded&&Object.keys(_pmCache).length>0){renderPmCards();return;}
+  const statusEl=document.getElementById('pm-status');
+  const statusTxt=document.getElementById('pm-status-text');
+  statusEl.style.display='block';statusEl.className='alert al-a';
+  statusTxt.textContent='Loading scores from Finnhub...';
+  let done=0;
+  const results=await Promise.all(PM_TICKERS.map(async meta=>{
+    const d=await fetchPmStock(meta);done++;
+    statusTxt.textContent='Loading '+done+'/'+PM_TICKERS.length+' \u2014 '+meta.symbol+' \u2713';
+    return d;
+  }));
+  pmData=results.filter(s=>!s.error&&s.price!=null).sort((a,b)=>b.oppScore-a.oppScore);
+  pmLoaded=true;statusEl.style.display='none';
+  const ages=PM_TICKERS.map(m=>pmCacheAge(m.symbol)).filter(Boolean);
+  if(ages.length){const oldest=Math.max(...ages);document.getElementById('pm-cache-label').textContent=oldest<60?'Updated '+oldest+'s ago':'Updated '+Math.round(oldest/60)+'m ago';}
+  renderPmCards();
+}
+function setPmFilter(f,el){pmFilter=f;document.querySelectorAll('[data-pmf]').forEach(p=>p.classList.remove('on'));el.classList.add('on');renderPmCards();}
+function renderPmCards(){
+  const sort=document.getElementById('pm-sort')?.value||'opp';
+  let list=pmFilter==='all'?[...pmData]:pmData.filter(s=>s.sector===pmFilter);
+  list.sort((a,b)=>sort==='opp'?b.oppScore-a.oppScore:sort==='catalyst'?b.catalystScore-a.catalystScore:sort==='upside'?b.analystUpside-a.analystUpside:b.momGap-a.momGap);
+  const el=document.getElementById('pm-card-list');
+  if(!list.length){el.innerHTML='<div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px">No picks in this sector yet.</div>';return;}
+  el.innerHTML=list.map(s=>buildPmCard(s)).join('');
+}
+function buildPmCard(s){
+  const chgSign=s.changePercent>=0?'+':'';
+  const chgColor=s.changePercent>=0?'var(--green)':'var(--red)';
+  const oppColor=s.oppLevel==='high'?'var(--green)':s.oppLevel==='med'?'var(--amber)':'var(--text3)';
+  const oppBg=s.oppLevel==='high'?'var(--green-dim)':s.oppLevel==='med'?'var(--amber-dim)':'var(--bg3)';
+  const rsiTxt=s.rsi!=null?'RSI '+s.rsi:'RSI \u2014';
+  const maTxt=s.vsMA50!=null?(s.vsMA50>0?'+':'')+s.vsMA50+'% vs MA50':'MA50 \u2014';
+  const earnTxt=s.earningsDaysAway!=null?(s.earningsDaysAway<=1?'Earnings today!':'Earnings in '+s.earningsDaysAway+'d'):'No earnings date';
+  const earnColor=s.earningsDaysAway!=null&&s.earningsDaysAway<=14?'var(--red)':s.earningsDaysAway!=null&&s.earningsDaysAway<=30?'var(--amber)':'var(--text3)';
+  const oppIcon=s.oppLevel==='high'?'High opportunity':s.oppLevel==='med'?'Medium opportunity':'Watch list';
+  return '<div class="sbox" style="margin-bottom:10px;cursor:pointer;border:1px solid var(--border)" onclick="togglePmCard(\''+s.symbol+'\',this)">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+    +'<div><div style="font-size:15px;font-weight:700;color:var(--text)">'+s.symbol+'</div>'
+    +'<div style="font-size:11px;color:var(--text3)">'+(s.name||'')+'</div></div>'
+    +'<div style="text-align:right">'
+    +'<div style="font-size:14px;font-weight:600;color:var(--text)">'+(s.price!=null?'$'+s.price.toFixed(2):'\u2014')+'</div>'
+    +'<div style="font-size:11px;color:'+chgColor+'">'+(s.changePercent!=null?chgSign+s.changePercent.toFixed(2)+'%':'\u2014')+'</div>'
+    +'</div></div>'
+    +'<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:'+oppBg+';color:'+oppColor+';margin-bottom:10px">'
+    +oppIcon+' <span style="opacity:.7">\u00B7 '+s.oppScore+'/100</span></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+    +pmBar('Fundamental',s.fundScore,'var(--blue)')+pmBar('Momentum gap',s.momGap,'var(--red)')+pmBar('Catalyst',s.catalystScore,'var(--green)')+pmBar('Analyst',s.analystUpside,'var(--amber)')
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg3);color:var(--text2)">'+rsiTxt+'</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg3);color:var(--text2)">'+maTxt+'</span>'
+    +'<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg3);color:'+earnColor+'">'+earnTxt+'</span>'
+    +'</div>'
+    +'<div id="pm-detail-'+s.symbol+'" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">'
+    +'<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Signal detail</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'
+    +'<div style="background:var(--bg3);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">RSI (14-day)</div><div style="font-size:13px;font-weight:600;color:var(--text)">'+(s.rsi!=null?s.rsi:'\u2014')+'</div></div>'
+    +'<div style="background:var(--bg3);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">vs 50-day MA</div><div style="font-size:13px;font-weight:600;color:var(--text)">'+(s.vsMA50!=null?(s.vsMA50>0?'+':'')+s.vsMA50+'%':'\u2014')+'</div></div>'
+    +'<div style="background:var(--bg3);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Next earnings</div><div style="font-size:13px;font-weight:600;color:var(--text)">'+(s.earningsDate||'\u2014')+'</div></div>'
+    +'<div style="background:var(--bg3);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--text3);margin-bottom:2px">Analyst score</div><div style="font-size:13px;font-weight:600;color:var(--text)">'+(s.analystUpside!=null?s.analystUpside+'/100':'\u2014')+'</div></div>'
+    +'</div>'
+    +'<button class="reload-btn" style="width:100%;justify-content:center;display:flex" onclick="event.stopPropagation();selectStock(\''+s.symbol+'\');goTab(\'dashboard\',document.querySelector(\'.tab\'))">'
+    +'View '+s.symbol+' on dashboard \u2192</button>'
+    +'</div></div>';
+}
+function pmBar(label,val,color){
+  const v=val!=null?Math.min(100,Math.max(0,val)):0;
+  return '<div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px"><span>'+label+'</span><span>'+v+'</span></div>'
+    +'<div style="background:var(--bg3);border-radius:4px;height:5px;overflow:hidden"><div style="height:100%;border-radius:4px;background:'+color+';width:'+v+'%"></div></div></div>';
+}
+function togglePmCard(sym,cardEl){
+  const detail=document.getElementById('pm-detail-'+sym);
+  if(!detail)return;
+  const isOpen=detail.style.display!=='none';
+  detail.style.display=isOpen?'none':'block';
+  cardEl.style.borderColor=isOpen?'var(--border)':'var(--accent)';
+}
 </script>
 </body>
 </html>
