@@ -9,7 +9,7 @@
 // Usage: GET /api/stockdata?symbol=GOOG
 // Returns: { symbol, price, changePercent, rsi, vsMA50, earningsDaysAway, eps, analystTarget }
 
-const FINNHUB_KEY = process.env.FINNHUB_KEY; // set this in Vercel env vars
+const FINNHUB_KEY = process.env.FINNHUB_KEY || 'd77fes9r01qp6aflfiigd77fes9r01qp6aflfij0'; // set this in Vercel env vars
 
 const SYMBOL_MAP = { 'ATZ.TO': 'ATZ:TSX', 'NOVO.TO': 'NVO' };
 function fhSym(t) { return SYMBOL_MAP[t] || t; }
